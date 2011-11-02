@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SDRSharp.Radio</RootNamespace>
+    <AssemblyName>SDRSharp.Radio</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <UseHostCompilerIfAvailable>False</UseHostCompilerIfAvailable>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;MANAGED_ONLY</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Release\</OutputPath>
+    <DefineConstants>MANAGED_ONLY</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>..\Release\</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AmDetector.cs" />
+    <Compile Include="AudioControl.cs" />
+    <Compile Include="AutomaticGain.cs" />
+    <Compile Include="DcRemover.cs" />
+    <Compile Include="DetectorType.cs" />
+    <Compile Include="FifoStream.cs" />
+    <Compile Include="FilterBuilder.cs" />
+    <Compile Include="FmDetector.cs" />
+    <Compile Include="Fourier.cs" />
+    <Compile Include="IQBalancer.cs" />
+    <Compile Include="IQFirFilter.cs" />
+    <Compile Include="WaveLib\FifoStream.cs" />
+    <Compile Include="FirFilter.cs" />
+    <Compile Include="Complex.cs" />
+    <Compile Include="LsbDetector.cs" />
+    <Compile Include="Oscillator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Vfo.cs" />
+    <Compile Include="UsbDetector.cs" />
+    <Compile Include="WaveLib\WaveDevices.cs" />
+    <Compile Include="WaveLib\WaveIn.cs" />
+    <Compile Include="WaveLib\WaveNative.cs" />
+    <Compile Include="WaveLib\WaveOut.cs" />
+    <Compile Include="WaveLib\WaveStream.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PreBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.cs" "$(ProjectDir)Properties\AssemblyInfo.tpl.cs"
+SubWCRev "$(SolutionDir)." "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"
+</PreBuildEvent>
+    <PostBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"</PostBuildEvent>
+  </PropertyGroup>
+</Project>
