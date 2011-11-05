@@ -14,5 +14,10 @@ namespace SDRSharp.Radio
             }
             _dcRemover.Process(audio);
         }
+
+        public double Amplitude
+        {
+            get { return _dcRemover.Offset; }
+        }
     }
 }
