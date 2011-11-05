@@ -34,7 +34,7 @@ namespace SDRSharp.Radio
             return Math.Sqrt(Real * Real + Imag * Imag);
         }
 
-        public double Phase()
+        public double Argument()
         {
             return Math.Atan(Imag / Real);
         }
