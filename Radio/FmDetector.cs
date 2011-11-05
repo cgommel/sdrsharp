@@ -7,28 +7,32 @@
     public class FmDetector
     {
         private const double AFGain = 0.001;
+        private const double TimeConst = 0.000001;
+        private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
 
         public void Demodulate(Complex[] iq, double[] audio)
         {
-            UnityLimit(iq);
             for (var i = 1; i < iq.Length; i++)
             {
+                // Polar discriminator
                 var f = iq[i] * iq[i - 1].Conjugate();
-                audio[i] = f.Phase() * AFGain;
-            }
-            audio[0] = audio[1]; // Too cheap?
-        }
-
-        private static void UnityLimit(Complex[] iq)
-        {
-            for (var i = 0; i < iq.Length; i++)
-            {
-                var m = iq[i].Modulus();
+                // Limiting
+                var m = f.Modulus();
                 if (m > 0.0)
                 {
-                    iq[i] /= m;
+                    f /= m;
                 }
+                // Angle estimate
+                var a = f.Argument();
+                audio[i] = a * AFGain;
             }
+            audio[0] = audio[1]; // Too cheap?
+            _dcRemover.Process(audio);
+        }
+
+        public double Offset
+        {
+            get { return _dcRemover.Offset; }
         }
     }
 }
