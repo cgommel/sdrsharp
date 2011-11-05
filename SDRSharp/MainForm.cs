@@ -82,12 +82,12 @@ namespace SDRSharp
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             waterfall.Frequency = _vfo.Frequency;
-            waterfall.Offset = Vfo.AFMinFrequency;
+            waterfall.Offset = Vfo.MinSSBAudioFrequency;
             waterfall.BandType = BandType.Center;
 
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.Frequency = _vfo.Frequency;
-            spectrumAnalyzer.Offset = Vfo.AFMinFrequency;
+            spectrumAnalyzer.Offset = Vfo.MinSSBAudioFrequency;
             spectrumAnalyzer.BandType = BandType.Center;
 
             frequencyNumericUpDown.Value = 0;
@@ -407,8 +407,8 @@ namespace SDRSharp
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
             if (_vfo.Bandwidth > Vfo.DefaultCwSideTone)
             {
-                waterfall.Offset = Vfo.AFMinFrequency;
-                spectrumAnalyzer.Offset = Vfo.AFMinFrequency;
+                waterfall.Offset = Vfo.MinSSBAudioFrequency;
+                spectrumAnalyzer.Offset = Vfo.MinSSBAudioFrequency;
             }
             else
             {
