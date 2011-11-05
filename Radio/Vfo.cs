@@ -27,7 +27,9 @@ namespace SDRSharp.Radio
 
         public const int DefaultCwSideTone = 600;
         public const int DefaultBandwidth = 2400;
-        public const int AFMinFrequency = 200;
+        public const int MinSSBAudioFrequency = 200;
+        public const int MinBCAudioFrequency = 50;
+        public const int MaxBCAudioFrequency = 15000;
         public const int MaxQuadratureFilterOrder = 300;
 
         private readonly AutomaticGainControl _agc = new AutomaticGainControl();
@@ -180,7 +182,7 @@ namespace SDRSharp.Radio
                 {
                     bfo = _bandwidth;
                 }
-                bfo = bfo / 2 + AFMinFrequency;
+                bfo = bfo / 2 + MinSSBAudioFrequency;
                 _usbDetector.SampleRate = _sampleRate;
                 _usbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency -= _usbDetector.BfoFrequency;
@@ -196,7 +198,7 @@ namespace SDRSharp.Radio
                 {
                     bfo = _bandwidth;
                 }
-                bfo = bfo / 2 + AFMinFrequency;
+                bfo = bfo / 2 + MinSSBAudioFrequency;
                 _lsbDetector.SampleRate = _sampleRate;
                 _lsbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency += _lsbDetector.BfoFrequency;
@@ -232,9 +234,18 @@ namespace SDRSharp.Radio
             }
             else
             {
-                const int cutoff1 = AFMinFrequency;
-                var cutoff2 = _bandwidth - cutoff1;
-                coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
+                if (_detectorType == DetectorType.LSB || _detectorType == DetectorType.USB)
+                {
+                    const int cutoff1 = MinSSBAudioFrequency;
+                    var cutoff2 = _bandwidth - cutoff1;
+                    coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
+                }
+                else
+                {
+                    const int cutoff1 = MinBCAudioFrequency;
+                    int cutoff2 = Math.Min(_bandwidth, MaxBCAudioFrequency);
+                    coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
+                }
             }
 
 #if MANAGED_ONLY
