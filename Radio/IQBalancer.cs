@@ -57,7 +57,7 @@ namespace SDRSharp.Radio
                 EstimateImbalanceWithEvents(iq, _maxPasses);
                 _balanceIQ = false;
             }
-            if (_autoBalanceIQ)
+            else if (_autoBalanceIQ)
             {
                 EstimateImbalance(iq, AutomaticBalancePasses);
             }
