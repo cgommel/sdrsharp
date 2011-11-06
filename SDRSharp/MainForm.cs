@@ -77,7 +77,7 @@ namespace SDRSharp
             _vfo.UseAGC = true;
             _vfo.AgcAttack = 800;
             _vfo.AgcDecay = 50;
-            _audioControl.AudioGain = 25.0;
+            _audioControl.AudioGain = 30.0;
             _audioControl.BufferNeeded += ProcessBuffer;
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;

@@ -57,6 +57,7 @@ namespace SDRSharp
             this.playButton = new System.Windows.Forms.Button();
             this.stopButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.fmRadioButton = new System.Windows.Forms.RadioButton();
             this.autoCorrectIQCheckBox = new System.Windows.Forms.CheckBox();
             this.correctIQButton = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
@@ -94,6 +95,8 @@ namespace SDRSharp
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
             this.highDefinitionCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -101,9 +104,6 @@ namespace SDRSharp
             this.label7 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
-            this.fmRadioButton = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
@@ -169,6 +169,17 @@ namespace SDRSharp
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Radio settings";
+            // 
+            // fmRadioButton
+            // 
+            this.fmRadioButton.AutoSize = true;
+            this.fmRadioButton.Location = new System.Drawing.Point(7, 21);
+            this.fmRadioButton.Name = "fmRadioButton";
+            this.fmRadioButton.Size = new System.Drawing.Size(40, 17);
+            this.fmRadioButton.TabIndex = 0;
+            this.fmRadioButton.Text = "FM";
+            this.fmRadioButton.UseVisualStyleBackColor = true;
+            this.fmRadioButton.CheckedChanged += new System.EventHandler(this.fmRadioButton_CheckedChanged);
             // 
             // autoCorrectIQCheckBox
             // 
@@ -368,6 +379,7 @@ namespace SDRSharp
             this.amRadioButton.Name = "amRadioButton";
             this.amRadioButton.Size = new System.Drawing.Size(41, 17);
             this.amRadioButton.TabIndex = 1;
+            this.amRadioButton.TabStop = true;
             this.amRadioButton.Text = "AM";
             this.amRadioButton.UseVisualStyleBackColor = true;
             this.amRadioButton.CheckedChanged += new System.EventHandler(this.amRadioButton_CheckedChanged);
@@ -466,7 +478,7 @@ namespace SDRSharp
             this.audioGainNumericUpDown.TabIndex = 0;
             this.audioGainNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.audioGainNumericUpDown.Value = new decimal(new int[] {
-            25,
+            30,
             0,
             0,
             0});
@@ -670,6 +682,39 @@ namespace SDRSharp
             this.panSplitContainer.SplitterDistance = 264;
             this.panSplitContainer.TabIndex = 13;
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
+            this.spectrumAnalyzer.CenterFrequency = 0;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 0;
+            this.spectrumAnalyzer.Frequency = 0;
+            this.spectrumAnalyzer.HighDefinition = false;
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Offset = 0;
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 264);
+            this.spectrumAnalyzer.SpectrumWidth = 0;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.CenterFrequency = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.Frequency = 0;
+            this.waterfall.HighDefinition = false;
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Offset = 0;
+            this.waterfall.Size = new System.Drawing.Size(663, 268);
+            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
+            // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.agcCheckBox);
@@ -751,50 +796,6 @@ namespace SDRSharp
             this.iqTimer.Enabled = true;
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 0;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.HighDefinition = false;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 264);
-            this.spectrumAnalyzer.SpectrumWidth = 0;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.HighDefinition = false;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(663, 268);
-            this.waterfall.SpectrumWidth = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
-            // 
-            // fmRadioButton
-            // 
-            this.fmRadioButton.AutoSize = true;
-            this.fmRadioButton.Location = new System.Drawing.Point(7, 21);
-            this.fmRadioButton.Name = "fmRadioButton";
-            this.fmRadioButton.Size = new System.Drawing.Size(40, 17);
-            this.fmRadioButton.TabIndex = 0;
-            this.fmRadioButton.Text = "FM";
-            this.fmRadioButton.UseVisualStyleBackColor = true;
-            this.fmRadioButton.CheckedChanged += new System.EventHandler(this.fmRadioButton_CheckedChanged);
             // 
             // MainForm
             // 
