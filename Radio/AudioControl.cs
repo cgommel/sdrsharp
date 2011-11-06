@@ -167,7 +167,7 @@ namespace SDRSharp.Radio
             {
                 _source = "Sound card";
                 _audioStream = new FifoStream();
-                _format = new WaveFormat(_sampleRate, 32, 2);
+                _format = new WaveFormat(_sampleRate, 16, 2);
                 _isPCM = _format.wFormatTag == 1;
                 var bytesPerSample = _isPCM ? 4 : 8;
                 var nSamples = _outBuffer.Length / bytesPerSample;

@@ -34,13 +34,13 @@ namespace WaveLib
 
 		public WaveFormat(int rate, int bits, int channels)
 		{
-			wFormatTag = (short) WaveFormats.Float;
-			nChannels = (short)channels;
+			wFormatTag = (short) WaveFormats.Pcm;
+			nChannels = (short) channels;
 			nSamplesPerSec = rate;
-			wBitsPerSample = (short)bits;
+			wBitsPerSample = (short) bits;
 			cbSize = 0;
                
-			nBlockAlign = (short)(channels * (bits / 8));
+			nBlockAlign = (short)(channels * (bits / 4));
 			nAvgBytesPerSec = nSamplesPerSec * nBlockAlign;
 		}
 	}
