@@ -52,6 +52,7 @@ namespace SDRSharp
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Drawing.Drawing2D.ColorBlend colorBlend1 = new System.Drawing.Drawing2D.ColorBlend();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
             this.playButton = new System.Windows.Forms.Button();
@@ -95,8 +96,6 @@ namespace SDRSharp
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
             this.highDefinitionCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -106,6 +105,8 @@ namespace SDRSharp
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.gradientButton = new System.Windows.Forms.Button();
             this.label14 = new System.Windows.Forms.Label();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
@@ -680,42 +681,9 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(663, 567);
-            this.panSplitContainer.SplitterDistance = 279;
+            this.panSplitContainer.Size = new System.Drawing.Size(663, 565);
+            this.panSplitContainer.SplitterDistance = 278;
             this.panSplitContainer.TabIndex = 13;
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 0;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.HighDefinition = false;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 279);
-            this.spectrumAnalyzer.SpectrumWidth = 0;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.HighDefinition = false;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(663, 284);
-            this.waterfall.SpectrumWidth = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
             // 
             // groupBox3
             // 
@@ -741,7 +709,7 @@ namespace SDRSharp
             this.groupBox4.Controls.Add(this.highDefinitionCheckBox);
             this.groupBox4.Location = new System.Drawing.Point(11, 486);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(193, 124);
+            this.groupBox4.Size = new System.Drawing.Size(193, 122);
             this.groupBox4.TabIndex = 15;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Display";
@@ -803,7 +771,7 @@ namespace SDRSharp
             // 
             // gradientButton
             // 
-            this.gradientButton.Location = new System.Drawing.Point(163, 94);
+            this.gradientButton.Location = new System.Drawing.Point(162, 92);
             this.gradientButton.Name = "gradientButton";
             this.gradientButton.Size = new System.Drawing.Size(25, 23);
             this.gradientButton.TabIndex = 15;
@@ -814,16 +782,68 @@ namespace SDRSharp
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(110, 99);
+            this.label14.Location = new System.Drawing.Point(109, 97);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(47, 13);
             this.label14.TabIndex = 16;
             this.label14.Text = "Gradient";
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
+            this.spectrumAnalyzer.CenterFrequency = 0;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 0;
+            this.spectrumAnalyzer.Frequency = 0;
+            this.spectrumAnalyzer.HighDefinition = false;
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Offset = 0;
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 278);
+            this.spectrumAnalyzer.SpectrumWidth = 0;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.CenterFrequency = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.Frequency = 0;
+            colorBlend1.Colors = new System.Drawing.Color[] {
+        System.Drawing.Color.White,
+        System.Drawing.Color.Red,
+        System.Drawing.Color.Yellow,
+        System.Drawing.Color.Lime,
+        System.Drawing.Color.DodgerBlue,
+        System.Drawing.Color.DarkBlue,
+        System.Drawing.Color.Black,
+        System.Drawing.Color.Black};
+            colorBlend1.Positions = new float[] {
+        0F,
+        0.1428571F,
+        0.2857143F,
+        0.4285715F,
+        0.5714286F,
+        0.7142857F,
+        0.8571429F,
+        1F};
+            this.waterfall.GradientColorBlend = colorBlend1;
+            this.waterfall.HighDefinition = false;
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Offset = 0;
+            this.waterfall.Size = new System.Drawing.Size(663, 283);
+            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(886, 618);
+            this.ClientSize = new System.Drawing.Size(886, 616);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.panSplitContainer);
