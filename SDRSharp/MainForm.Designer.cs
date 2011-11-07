@@ -104,6 +104,8 @@ namespace SDRSharp
             this.label7 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
+            this.gradientButton = new System.Windows.Forms.Button();
+            this.label14 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
@@ -678,8 +680,8 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(663, 536);
-            this.panSplitContainer.SplitterDistance = 264;
+            this.panSplitContainer.Size = new System.Drawing.Size(663, 567);
+            this.panSplitContainer.SplitterDistance = 279;
             this.panSplitContainer.TabIndex = 13;
             // 
             // spectrumAnalyzer
@@ -693,7 +695,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
             this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 264);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 279);
             this.spectrumAnalyzer.SpectrumWidth = 0;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
@@ -709,7 +711,7 @@ namespace SDRSharp
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
             this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(663, 268);
+            this.waterfall.Size = new System.Drawing.Size(663, 284);
             this.waterfall.SpectrumWidth = 0;
             this.waterfall.TabIndex = 0;
             this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
@@ -730,6 +732,8 @@ namespace SDRSharp
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.label14);
+            this.groupBox4.Controls.Add(this.gradientButton);
             this.groupBox4.Controls.Add(this.label8);
             this.groupBox4.Controls.Add(this.fftWindowComboBox);
             this.groupBox4.Controls.Add(this.label7);
@@ -737,7 +741,7 @@ namespace SDRSharp
             this.groupBox4.Controls.Add(this.highDefinitionCheckBox);
             this.groupBox4.Location = new System.Drawing.Point(11, 486);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(193, 93);
+            this.groupBox4.Size = new System.Drawing.Size(193, 124);
             this.groupBox4.TabIndex = 15;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Display";
@@ -797,10 +801,29 @@ namespace SDRSharp
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
             // 
+            // gradientButton
+            // 
+            this.gradientButton.Location = new System.Drawing.Point(163, 94);
+            this.gradientButton.Name = "gradientButton";
+            this.gradientButton.Size = new System.Drawing.Size(25, 23);
+            this.gradientButton.TabIndex = 15;
+            this.gradientButton.Text = "...";
+            this.gradientButton.UseVisualStyleBackColor = true;
+            this.gradientButton.Click += new System.EventHandler(this.gradientButton_Click);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(110, 99);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(47, 13);
+            this.label14.TabIndex = 16;
+            this.label14.Text = "Gradient";
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(886, 587);
+            this.ClientSize = new System.Drawing.Size(886, 618);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.panSplitContainer);
@@ -856,5 +879,7 @@ namespace SDRSharp
         private CheckBox autoCorrectIQCheckBox;
         private Timer iqTimer;
         private RadioButton fmRadioButton;
+        private Button gradientButton;
+        private Label label14;
     }
 }

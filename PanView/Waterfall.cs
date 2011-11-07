@@ -25,7 +25,7 @@ namespace SDRSharp.PanView
         private Graphics _graphics;
         private BandType _bandType;
         private int _filterBandwidth;
-        private int _offset;
+        private int _frequencyOffset;
         private float _xIncrement;
         private double[] _spectrum = new double[0];
         private int _centerFrequency;
@@ -37,12 +37,29 @@ namespace SDRSharp.PanView
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _highDefinition;
+        private ColorBlend _gradientColorBlend = GetGradientBlend();
 
         public Waterfall()
         {
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
             _cursor = new Bitmap(10, 10);
             _graphics = Graphics.FromImage(_buffer);
+        }
+
+        private static ColorBlend GetGradientBlend()
+        {
+            var colorBlend = new ColorBlend();
+            //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
+            //colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
+            colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };
+            var positions = new float[colorBlend.Colors.Length];
+            var distance = 1f / (positions.Length - 1);
+            for (var i = 0; i < positions.Length; i++)
+            {
+                positions[i] = i * distance;
+            }
+            colorBlend.Positions = positions;
+            return colorBlend;
         }
 
         ~Waterfall()
@@ -55,6 +72,24 @@ namespace SDRSharp.PanView
         public event ManualFrequencyChange FrequencyChanged;
 
         public event ManualFrequencyChange CenterFrequencyChanged;
+
+        public ColorBlend GradientColorBlend
+        {
+            get
+            {
+                return _gradientColorBlend;
+            }
+            set
+            {
+                _gradientColorBlend = value;
+
+                _graphics.SmoothingMode = SmoothingMode.None;
+                DrawGradient();
+                _graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                Invalidate();
+            }
+        }
 
         public int CenterFrequency
         {
@@ -121,11 +156,11 @@ namespace SDRSharp.PanView
         {
             get
             {
-                return _offset;
+                return _frequencyOffset;
             }
             set
             {
-                _offset = value;
+                _frequencyOffset = value;
                 GenerateCursor();
                 Invalidate();
             }
@@ -157,22 +192,6 @@ namespace SDRSharp.PanView
                 Draw();
                 Invalidate();
             }
-        }
-
-        private static ColorBlend GetGradientBlend()
-        {
-            var colorBlend = new ColorBlend();
-            //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
-            colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
-            //colorBlend.Colors = new[] {Color.White,Color.White,Color.Red,Color.Yellow,Color.Lime,Color.DodgerBlue,Color.DarkBlue,Color.Black,Color.Black};
-            var positions = new float[colorBlend.Colors.Length];
-            var distance = 1f / (positions.Length - 1);
-            for (var i = 0; i < positions.Length; i++)
-            {
-                positions[i] = i * distance;
-            }
-            colorBlend.Positions = positions;
-            return colorBlend;
         }
 
         public void Render(double[] spectrum, int length)
@@ -304,7 +323,7 @@ namespace SDRSharp.PanView
         private void PositionCursor()
         {
             var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
-            var relativeOffset = _offset * _xIncrement;
+            var relativeOffset = _frequencyOffset * _xIncrement;
             var xCarrier = AxisMargin + (_frequency - _centerFrequency + _spectrumWidth / 2) * _xIncrement;
 
             switch (_bandType)
@@ -330,7 +349,7 @@ namespace SDRSharp.PanView
         {
             var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
             var bandpassWidth = cursorWidth;
-            var bandpassOffset = _offset * _xIncrement;
+            var bandpassOffset = _frequencyOffset * _xIncrement;
             var bandpassLow = 0f;
             var xCarrier = 0f;
 
@@ -390,10 +409,18 @@ namespace SDRSharp.PanView
             {
                 _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
             }
+            DrawGradient();
 
+            _graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            GenerateCursor();
+            Invalidate();
+        }
+
+        private void DrawGradient()
+        {
             using (var gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical))
             {
-                gradientBrush.InterpolationColors = GetGradientBlend();
+                gradientBrush.InterpolationColors = _gradientColorBlend;
                 using (var pen = new Pen(gradientBrush))
                 {
                     pen.Width = 10;
@@ -401,12 +428,9 @@ namespace SDRSharp.PanView
                                        ClientRectangle.Width - AxisMargin/2,
                                        ClientRectangle.Height - AxisMargin/2,
                                        ClientRectangle.Width - AxisMargin/2,
-                                       AxisMargin/2);
+                                       AxisMargin / 2);
                 }
             }
-            _graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            GenerateCursor();
-            Invalidate();
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)

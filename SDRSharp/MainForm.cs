@@ -478,5 +478,14 @@ namespace SDRSharp
         {
             Text = string.Format(BaseTitle + " - IQ Imbalance: Gain = {0:F3} Phase = {1:F3}°", _iqBalancer.Gain, _iqBalancer.Phase * 180 / Math.PI);
         }
+
+        private void gradientButton_Click(object sender, EventArgs e)
+        {
+            var gradient = GradientDialog.GetGradient(waterfall.GradientColorBlend);
+            if (gradient != null && gradient.Positions.Length > 0)
+            {
+                waterfall.GradientColorBlend = gradient;
+            }
+        }
     }
 }
