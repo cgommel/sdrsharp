@@ -52,7 +52,6 @@ namespace SDRSharp
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Drawing.Drawing2D.ColorBlend colorBlend1 = new System.Drawing.Drawing2D.ColorBlend();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
             this.playButton = new System.Windows.Forms.Button();
@@ -811,25 +810,6 @@ namespace SDRSharp
             this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
             this.waterfall.FilterBandwidth = 0;
             this.waterfall.Frequency = 0;
-            colorBlend1.Colors = new System.Drawing.Color[] {
-        System.Drawing.Color.White,
-        System.Drawing.Color.Red,
-        System.Drawing.Color.Yellow,
-        System.Drawing.Color.Lime,
-        System.Drawing.Color.DodgerBlue,
-        System.Drawing.Color.DarkBlue,
-        System.Drawing.Color.Black,
-        System.Drawing.Color.Black};
-            colorBlend1.Positions = new float[] {
-        0F,
-        0.1428571F,
-        0.2857143F,
-        0.4285715F,
-        0.5714286F,
-        0.7142857F,
-        0.8571429F,
-        1F};
-            this.waterfall.GradientColorBlend = colorBlend1;
             this.waterfall.HighDefinition = false;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
