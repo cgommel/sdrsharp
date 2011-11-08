@@ -145,6 +145,7 @@
             this.MinimizeBox = false;
             this.Name = "GradientDialog";
             this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Gradient Editor";
             ((System.ComponentModel.ISupportInitialize)(this.gradientPictureBox)).EndInit();
             this.ResumeLayout(false);

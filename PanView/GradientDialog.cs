@@ -107,7 +107,7 @@ namespace SDRSharp.PanView
         private void deleteButton_Click(object sender, EventArgs e)
         {
             var index = colorListBox.SelectedIndex;
-            if (index >= 0)
+            if (index >= 0 && colorListBox.Items.Count > 2)
             {
                 colorListBox.Items.RemoveAt(index);
                 gradientPictureBox.Invalidate();
@@ -117,10 +117,10 @@ namespace SDRSharp.PanView
         private void gradientPictureBox_Paint(object sender, PaintEventArgs e)
         {
             var colorBlend = GetColorBlend();
-            using (var gradientBrush = new LinearGradientBrush(e.Graphics.ClipBounds, Color.White, Color.Black, LinearGradientMode.Vertical))
+            using (var gradientBrush = new LinearGradientBrush(gradientPictureBox.ClientRectangle, Color.White, Color.Black, LinearGradientMode.Vertical))
             {
                 gradientBrush.InterpolationColors = colorBlend;
-                e.Graphics.FillRectangle(gradientBrush, e.Graphics.ClipBounds);
+                e.Graphics.FillRectangle(gradientBrush, e.ClipRectangle);
             }
         }
     }
