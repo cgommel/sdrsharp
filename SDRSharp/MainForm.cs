@@ -1,11 +1,14 @@
 using System;
 using System.ComponentModel;
+using System.Configuration;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.SoftRock;
+using System.Drawing;
 
 namespace SDRSharp
 {
@@ -485,7 +488,27 @@ namespace SDRSharp
             if (gradient != null && gradient.Positions.Length > 0)
             {
                 waterfall.GradientColorBlend = gradient;
+                SaveSetting("gradient", GradientToString(gradient.Colors));
             }
+        }
+
+        private static void SaveSetting(string key, string value)
+        {
+            var configurationFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            configurationFile.AppSettings.Settings.Remove(key);
+            configurationFile.AppSettings.Settings.Add(key, value);
+            configurationFile.Save(ConfigurationSaveMode.Full);
+            ConfigurationManager.RefreshSection("appSettings");
+        }
+
+        private static string GradientToString(Color[] colors)
+        {
+            var sb = new StringBuilder();
+            for (var i = 0; i < colors.Length - 1; i++)
+            {
+                sb.AppendFormat(",{0:X2}{1:X2}{2:X2}", colors[i].R, colors[i].G, colors[i].B);
+            }
+            return sb.ToString().Substring(1);
         }
     }
 }

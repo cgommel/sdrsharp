@@ -107,7 +107,7 @@ namespace SDRSharp.Radio
 
                 var u = Utility(_spectrum);
 
-                if (u >= utility)
+                if (u > utility)
                 {
                     utility = u;
                     _gain += gainIncrement;
@@ -115,7 +115,7 @@ namespace SDRSharp.Radio
                 }
             }
 
-            return utility >= current;
+            return utility > current;
         }
 
         private void EstimateImbalanceWithEvents(Complex[] iq, int passes)

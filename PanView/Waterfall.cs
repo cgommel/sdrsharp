@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Configuration;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace SDRSharp.PanView
@@ -50,9 +52,25 @@ namespace SDRSharp.PanView
         private static ColorBlend GetGradientBlend()
         {
             var colorBlend = new ColorBlend();
-            //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
-            //colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
-            colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };
+            
+            var colorString = ConfigurationManager.AppSettings["gradient"];
+            var colorPatterns = colorString.Split(',');
+            if (colorPatterns.Length < 2)
+            {
+                //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
+                //colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
+                colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };                
+            }
+            colorBlend.Colors = new Color[colorPatterns.Length];
+            for (var i = 0; i < colorPatterns.Length; i++)
+            {
+                var colorPattern = colorPatterns[i];
+                var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
+                var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
+                var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
+                colorBlend.Colors[i] = Color.FromArgb(r, g, b);
+            }
+            
             var positions = new float[colorBlend.Colors.Length];
             var distance = 1f / (positions.Length - 1);
             for (var i = 0; i < positions.Length; i++)
