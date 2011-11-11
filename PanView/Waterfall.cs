@@ -40,6 +40,7 @@ namespace SDRSharp.PanView
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _highDefinition;
+        private bool _mouseIn;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
         public Waterfall()
@@ -58,19 +59,22 @@ namespace SDRSharp.PanView
             if (colorPatterns.Length < 2)
             {
                 //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
-                //colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
-                colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };                
+                colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
+                //colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };                
             }
-            colorBlend.Colors = new Color[colorPatterns.Length];
-            for (var i = 0; i < colorPatterns.Length; i++)
+            else
             {
-                var colorPattern = colorPatterns[i];
-                var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
-                var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
-                var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
-                colorBlend.Colors[i] = Color.FromArgb(r, g, b);
+                colorBlend.Colors = new Color[colorPatterns.Length];
+                for (var i = 0; i < colorPatterns.Length; i++)
+                {
+                    var colorPattern = colorPatterns[i];
+                    var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
+                    var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
+                    var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
+                    colorBlend.Colors[i] = Color.FromArgb(r, g, b);
+                }
             }
-            
+
             var positions = new float[colorBlend.Colors.Length];
             var distance = 1f / (positions.Length - 1);
             for (var i = 0; i < positions.Length; i++)
@@ -327,16 +331,23 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            using (var bmp = (Bitmap) _buffer.Clone())
-            using (var g = Graphics.FromImage(bmp))
+            if (_mouseIn)
             {
-                g.DrawImage(_buffer, 0, 0);
-
-                if (_spectrumWidth > 0)
+                using (var bmp = (Bitmap) _buffer.Clone())
+                using (var g = Graphics.FromImage(bmp))
                 {
-                    g.DrawImage(_cursor, _lower, 0f);
+                    g.DrawImage(_buffer, 0, 0);
+
+                    if (_spectrumWidth > 0)
+                    {
+                        g.DrawImage(_cursor, _lower, 0f);
+                    }
+                    e.Graphics.DrawImage(bmp, 0, 0);
                 }
-                e.Graphics.DrawImage(bmp, 0, 0);
+            }
+            else
+            {
+                e.Graphics.DrawImage(_buffer, 0, 0);
             }
         }
 
@@ -556,6 +567,20 @@ namespace SDRSharp.PanView
                 var f = (e.X + _delta) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _centerFrequency - _spectrumWidth / 2;
                 UpdateCenterFrequency(f);
             }
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+            _mouseIn = true;
+            Invalidate();
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            _mouseIn = false;
+            Invalidate();
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
