@@ -551,7 +551,7 @@ namespace SDRSharp.PanView
             else
             {
                 _delta = (int)(AxisMargin - _spectrumWidth * _xIncrement / 2 + e.X);
-                _changingCenterFrequency = true;
+                //_changingCenterFrequency = true;
             }
         }
 
