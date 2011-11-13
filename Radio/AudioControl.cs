@@ -161,15 +161,23 @@ namespace SDRSharp.Radio
 
         public bool Play()
         {
-            if (_player == null)
+            try
             {
-                if (_waveFile == null)
+                if (_player == null)
                 {
-                    _audioStream = new FifoStream<Complex>();
-                    _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+                    if (_waveFile == null)
+                    {
+                        _audioStream = new FifoStream<Complex>();
+                        _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+                    }
+                    _player = new WavePlayer(_outputDevice, _sampleRate, BufferSize, PlayerFiller);
+                    return true;
                 }
-                _player = new WavePlayer(_outputDevice, _sampleRate, BufferSize, PlayerFiller);
-                return true;
+            }
+            catch
+            {
+                Stop();
+                throw;
             }
             return false;
         }

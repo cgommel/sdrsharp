@@ -270,13 +270,20 @@ namespace SDRSharp
         private void playButton_Click(object sender, EventArgs e)
         {
             Open();
-            if (_audioControl.Play())
+            try
             {
-                playButton.Enabled = false;
-                stopButton.Enabled = true;
-                sampleRateComboBox.Enabled = false;
-                inputDeviceComboBox.Enabled = false;
-                outputDeviceComboBox.Enabled = false;
+                if (_audioControl.Play())
+                {
+                    playButton.Enabled = false;
+                    stopButton.Enabled = true;
+                    sampleRateComboBox.Enabled = false;
+                    inputDeviceComboBox.Enabled = false;
+                    outputDeviceComboBox.Enabled = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
