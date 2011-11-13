@@ -9,6 +9,7 @@ using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.SoftRock;
 using System.Drawing;
+using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp
 {
@@ -41,27 +42,26 @@ namespace SDRSharp
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-#if !__MonoCS__
-            var waveInDevices = WaveDevices.GetDevCapsRecording();
-            foreach (var device in waveInDevices)
+            var devices = AudioDevice.GetDevices(DeviceDirection.Input);
+
+            foreach (var device in devices)
             {
-                inputDeviceComboBox.Items.Add(device.szPname);
+                inputDeviceComboBox.Items.Add(device);
             }
             if (inputDeviceComboBox.Items.Count > 0)
             {
                 inputDeviceComboBox.SelectedIndex = 0;
             }
 
-            var waveOutDevices = WaveDevices.GetDevCapsPlayback();
-            foreach (var device in waveOutDevices)
+            devices = AudioDevice.GetDevices(DeviceDirection.Output);
+            foreach (var device in devices)
             {
-                outputDeviceComboBox.Items.Add(device.szPname);
+                outputDeviceComboBox.Items.Add(device);
             }
             if (outputDeviceComboBox.Items.Count > 0)
             {
                 outputDeviceComboBox.SelectedIndex = 0;
             }
-#endif
             _spectrumBins = MinSpectrumBins;
 
             _iqBalancer.ImbalanceEstimationSucceeded += iqBalancer_ImbalanceEstimationSucceeded;
@@ -80,7 +80,7 @@ namespace SDRSharp
             _vfo.UseAGC = true;
             _vfo.AgcAttack = 800;
             _vfo.AgcDecay = 50;
-            _audioControl.AudioGain = 30.0;
+            _audioControl.AudioGain = 20.0;
             _audioControl.BufferNeeded += ProcessBuffer;
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
@@ -226,18 +226,18 @@ namespace SDRSharp
 
         private void Open()
         {
+            var inputDevice = (AudioDevice) inputDeviceComboBox.SelectedItem;
+            var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
             Match match;
             if (soundCardRadioButton.Checked)
             {
-                var inputDevice = inputDeviceComboBox.SelectedIndex - 1;
-                var outputDevice = outputDeviceComboBox.SelectedIndex - 1;
                 var sampleRate = 0;
                 match = Regex.Match(sampleRateComboBox.Text, "([0-9\\.]+)k", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
                     sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
                 }
-                _audioControl.OpenDevice(inputDevice, outputDevice, sampleRate);
+                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate);
             }
             else
             {
@@ -245,26 +245,23 @@ namespace SDRSharp
                 {
                     return;
                 }
-                _audioControl.OpenFile(wavFileTextBox.Text);
+                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index);
+
+                var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
+                match = Regex.Match(friendlyFilename, "([0-9]+)KHz", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    var center = int.Parse(match.Groups[1].Value) * 1000;
+                    centerFreqNumericUpDown.Value = center;
+                    centerFreqNumericUpDown_ValueChanged(null, null);
+                }
             }
 
             _vfo.SampleRate = _audioControl.SampleRate;
+            frequencyNumericUpDown.Maximum = (int)centerFreqNumericUpDown.Value + _vfo.SampleRate / 2;
+            frequencyNumericUpDown.Minimum = (int)centerFreqNumericUpDown.Value - _vfo.SampleRate / 2;
 
             BuildFFTWindow();
-
-            var friendlyFilename = "" + Path.GetFileName(_audioControl.Source);
-            match = Regex.Match(friendlyFilename, "([0-9]+)KHz", RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                var center = int.Parse(match.Groups[1].Value) * 1000;
-                centerFreqNumericUpDown.Value = center;
-                centerFreqNumericUpDown_ValueChanged(null, null);
-            }
-            else
-            {
-                frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + _vfo.SampleRate / 2;
-                frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - _vfo.SampleRate / 2;
-            }
 
             spectrumAnalyzer.SpectrumWidth = _vfo.SampleRate;
             waterfall.SpectrumWidth = _vfo.SampleRate;

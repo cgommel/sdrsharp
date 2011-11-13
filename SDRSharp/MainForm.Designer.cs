@@ -52,6 +52,7 @@ namespace SDRSharp
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Drawing.Drawing2D.ColorBlend colorBlend1 = new System.Drawing.Drawing2D.ColorBlend();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
             this.playButton = new System.Windows.Forms.Button();
@@ -95,17 +96,17 @@ namespace SDRSharp
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
             this.highDefinitionCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.gradientButton = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
-            this.gradientButton = new System.Windows.Forms.Button();
-            this.label14 = new System.Windows.Forms.Label();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
@@ -480,7 +481,7 @@ namespace SDRSharp
             this.audioGainNumericUpDown.TabIndex = 0;
             this.audioGainNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.audioGainNumericUpDown.Value = new decimal(new int[] {
-            30,
+            20,
             0,
             0,
             0});
@@ -541,6 +542,7 @@ namespace SDRSharp
             // outputDeviceComboBox
             // 
             this.outputDeviceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.outputDeviceComboBox.DropDownWidth = 300;
             this.outputDeviceComboBox.FormattingEnabled = true;
             this.outputDeviceComboBox.Location = new System.Drawing.Point(69, 99);
             this.outputDeviceComboBox.Name = "outputDeviceComboBox";
@@ -559,6 +561,7 @@ namespace SDRSharp
             // inputDeviceComboBox
             // 
             this.inputDeviceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.inputDeviceComboBox.DropDownWidth = 300;
             this.inputDeviceComboBox.FormattingEnabled = true;
             this.inputDeviceComboBox.Location = new System.Drawing.Point(69, 74);
             this.inputDeviceComboBox.Name = "inputDeviceComboBox";
@@ -684,6 +687,54 @@ namespace SDRSharp
             this.panSplitContainer.SplitterDistance = 278;
             this.panSplitContainer.TabIndex = 13;
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
+            this.spectrumAnalyzer.CenterFrequency = 0;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 0;
+            this.spectrumAnalyzer.Frequency = 0;
+            this.spectrumAnalyzer.HighDefinition = false;
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Offset = 0;
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 278);
+            this.spectrumAnalyzer.SpectrumWidth = 0;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.CenterFrequency = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.Frequency = 0;
+            colorBlend1.Colors = new System.Drawing.Color[] {
+        System.Drawing.Color.White,
+        System.Drawing.Color.LightBlue,
+        System.Drawing.Color.DodgerBlue,
+        System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(80))))),
+        System.Drawing.Color.Black,
+        System.Drawing.Color.Black};
+            colorBlend1.Positions = new float[] {
+        0F,
+        0.2F,
+        0.4F,
+        0.6F,
+        0.8F,
+        1F};
+            this.waterfall.GradientColorBlend = colorBlend1;
+            this.waterfall.HighDefinition = false;
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Offset = 0;
+            this.waterfall.Size = new System.Drawing.Size(663, 283);
+            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
+            // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.agcCheckBox);
@@ -712,6 +763,25 @@ namespace SDRSharp
             this.groupBox4.TabIndex = 15;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Display";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(109, 97);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(47, 13);
+            this.label14.TabIndex = 16;
+            this.label14.Text = "Gradient";
+            // 
+            // gradientButton
+            // 
+            this.gradientButton.Location = new System.Drawing.Point(162, 92);
+            this.gradientButton.Name = "gradientButton";
+            this.gradientButton.Size = new System.Drawing.Size(25, 23);
+            this.gradientButton.TabIndex = 15;
+            this.gradientButton.Text = "...";
+            this.gradientButton.UseVisualStyleBackColor = true;
+            this.gradientButton.Click += new System.EventHandler(this.gradientButton_Click);
             // 
             // label8
             // 
@@ -767,58 +837,6 @@ namespace SDRSharp
             this.iqTimer.Enabled = true;
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
-            // 
-            // gradientButton
-            // 
-            this.gradientButton.Location = new System.Drawing.Point(162, 92);
-            this.gradientButton.Name = "gradientButton";
-            this.gradientButton.Size = new System.Drawing.Size(25, 23);
-            this.gradientButton.TabIndex = 15;
-            this.gradientButton.Text = "...";
-            this.gradientButton.UseVisualStyleBackColor = true;
-            this.gradientButton.Click += new System.EventHandler(this.gradientButton_Click);
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(109, 97);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(47, 13);
-            this.label14.TabIndex = 16;
-            this.label14.Text = "Gradient";
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 0;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.HighDefinition = false;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(663, 278);
-            this.spectrumAnalyzer.SpectrumWidth = 0;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.HighDefinition = false;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(663, 283);
-            this.waterfall.SpectrumWidth = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
             // 
             // MainForm
             // 
