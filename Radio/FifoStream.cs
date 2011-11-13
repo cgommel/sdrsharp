@@ -48,6 +48,7 @@ namespace SDRSharp.Radio
         {
             Flush();
         }
+
         public void Flush()
         {
             lock (this)
@@ -60,6 +61,7 @@ namespace SDRSharp.Radio
                 _size = 0;
             }
         }
+        
         public int Read(T[] buf, int ofs, int count)
         {
             lock (this)
@@ -69,6 +71,7 @@ namespace SDRSharp.Radio
                 return result;
             }
         }
+        
         public void Write(T[] buf, int ofs, int count)
         {
             lock (this)

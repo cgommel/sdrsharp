@@ -1,6 +1,5 @@
 using System;
-using System.IO;
-using WaveLib;
+using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp.Radio
 {
@@ -8,21 +7,18 @@ namespace SDRSharp.Radio
 
     public class AudioControl
     {
-        private const double InputGain = 0.01;
         private const int BufferSize = 1024 * 16;
         private const int MaxQueue = 2 * BufferSize;
-        private const int BufferCount = 4;
+        private const double InputGain = 0.01;
 
-        private byte[] _outBuffer = new byte[BufferSize];
-        private byte[] _inBuffer;
-        private double[] _audioBuffer;
-        private Complex[] _iqBuffer;
-        private WaveOutPlayer _player;
-        private WaveInRecorder _recorder;
-        private Stream _audioStream;
-        private WaveFormat _format;
-        private string _source;
-        private bool _isPCM;
+        private double[] _audioBuffer = new double[BufferSize];
+        private Complex[] _iqBuffer = new Complex[BufferSize];
+        private Complex[] _recorderIQBuffer = new Complex[BufferSize];
+
+        private WavePlayer _player;
+        private WaveRecorder _recorder;
+        private FifoStream<Complex> _audioStream;
+
         private int _sampleRate;
         private int _inputDevice;
         private int _outputDevice;
@@ -31,14 +27,8 @@ namespace SDRSharp.Radio
 
         public AudioControl()
         {
-            IGain = 1.0;
-            QGain = 1.0;
             AudioGain = 10.0;
         }
-
-        public double IGain { get; set; }
-
-        public double QGain { get; set; }
 
         public double AudioGain { get; set; }
 
@@ -52,48 +42,63 @@ namespace SDRSharp.Radio
             }
         }
 
-        public string Source
+        private void PlayerFiller(float[] buffer)
         {
-            get
+            if (BufferNeeded == null)
             {
-                return _source;
+                return;
+            }
+
+            if (_audioBuffer == null || _audioBuffer.Length != buffer.Length / 2)
+            {
+                _audioBuffer = new double[buffer.Length / 2];
+            }
+
+            if (_iqBuffer == null || _iqBuffer.Length != buffer.Length / 2)
+            {
+                _iqBuffer = new Complex[buffer.Length / 2];
+            }
+            _audioStream.Read(_iqBuffer, 0, _iqBuffer.Length);
+
+            BufferNeeded(_iqBuffer, _audioBuffer);
+                
+            double audioGain = Math.Pow(AudioGain / 10.0, 10);
+
+            for (var i = 0; i < _audioBuffer.Length; i++)
+            {
+                var audio = (float) (_audioBuffer[i] * audioGain);
+                buffer[i * 2] = audio;
+                buffer[i * 2 + 1] = audio;
             }
         }
 
-        private void PlayerFiller(IntPtr data, int size)
-        {
-            int pos = 0;
-            while (pos < size)
-            {
-                int toget = size - pos;
-                int got = _audioStream.Read(_outBuffer, pos, toget);
-                if (got < toget && _audioStream is WaveStream)
-                    _audioStream.Position = 0; // loop if the file ends
-                if (got <= 0)
-                    break;
-                pos += got;
-            }
-
-            if (BufferNeeded != null)
-            {
-                FillIQ();
-                BufferNeeded(_iqBuffer, _audioBuffer);
-                FillLR();
-            }
-
-            System.Runtime.InteropServices.Marshal.Copy(_outBuffer, 0, data, size);
-        }
-
-        private void RecorderFiller(IntPtr data, int size)
+        private void RecorderFiller(float[] buffer)
         {
             if (_audioStream.Length > MaxQueue)
             {
                 return;
             }
-            if (_inBuffer == null || _inBuffer.Length != size)
-                _inBuffer = new byte[size];
-            System.Runtime.InteropServices.Marshal.Copy(data, _inBuffer, 0, size);
-            _audioStream.Write(_inBuffer, 0, _inBuffer.Length);
+
+            #region Fill IQ buffer
+
+            if (_recorderIQBuffer == null || _recorderIQBuffer.Length != buffer.Length / 2)
+            {
+                _recorderIQBuffer = new Complex[buffer.Length / 2];
+            }
+
+            for (var i = 0; i < _iqBuffer.Length; i++)
+            {
+                _recorderIQBuffer[i].Real = buffer[i * 2] * InputGain;
+                _recorderIQBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
+            }
+
+            #endregion
+
+            #region Fill the FiFo
+
+            _audioStream.Write(_recorderIQBuffer, 0, _recorderIQBuffer.Length);
+
+            #endregion
         }
 
         public void Stop()
@@ -125,31 +130,22 @@ namespace SDRSharp.Radio
                 try
                 {
                     _audioStream.Close();
-                    _audioStream.Dispose();
                 }
                 finally
                 {
                     _audioStream = null;
                 }
             }
-            _format = null;
-            _source = null;
             _sampleRate = 0;
         }
 
         public bool Play()
         {
-            if (_audioStream != null && _player == null && _recorder == null)
+            if (_player == null && _recorder == null)
             {
-                if (_audioStream is WaveStream)
-                {
-                    _audioStream.Position = 0;
-                }
-                else if (_audioStream is FifoStream)
-                {
-                    _recorder = new WaveInRecorder(_inputDevice, _format, BufferSize, BufferCount, RecorderFiller);
-                }
-                _player = new WaveOutPlayer(_outputDevice, _format, BufferSize, BufferCount, PlayerFiller);
+                _audioStream = new FifoStream<Complex>();
+                _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+                _player = new WavePlayer(_outputDevice, _sampleRate, BufferSize, PlayerFiller);
                 return true;
             }
             return false;
@@ -162,115 +158,35 @@ namespace SDRSharp.Radio
             _inputDevice = inputDevice;
             _outputDevice = outputDevice;
             _sampleRate = sampleRate;
-
-            try
-            {
-                _source = "Sound card";
-                _audioStream = new FifoStream();
-                _format = new WaveFormat(_sampleRate, 16, 2);
-                _isPCM = _format.wFormatTag == 1;
-                var bytesPerSample = _isPCM ? 4 : 8;
-                var nSamples = _outBuffer.Length / bytesPerSample;
-                _iqBuffer = new Complex[nSamples];
-                _audioBuffer = new double[nSamples];
-            }
-            catch (Exception)
-            {
-                Stop();
-            }
         }
 
-        public void OpenFile(string filename)
+        public void OpenFile(string filename, int outputDevice)
         {
             Stop();
 
-            try
-            {
-                _source = filename;
-                var stream = new WaveStream(filename);
-                if (stream.Length <= 0)
-                    throw new Exception("Invalid WAV file");
-                if (stream.Format.wFormatTag != (short)WaveFormats.Pcm &&
-                    stream.Format.wFormatTag != (short)WaveFormats.Float)
-                    throw new Exception("Only PCM files are supported");
-                _audioStream = stream;
-                _format = stream.Format;
-                _sampleRate = _format.nSamplesPerSec;
-                _isPCM = _format.wFormatTag == 1;
-                var bytesPerSample = _isPCM ? 4 : 8;
-                var nSamples = _outBuffer.Length / bytesPerSample;
-                _iqBuffer = new Complex[nSamples];
-                _audioBuffer = new double[nSamples];
-            }
-            catch (Exception)
-            {
-                Stop();
-            }
-        }
-
-        private unsafe void FillIQ()
-        {
-            var numReads = _iqBuffer.Length;
-
-            fixed (Complex *iqPtr = _iqBuffer)
-            fixed (byte* rawPtr = _outBuffer)
-            {
-                if (_isPCM)
-                {
-                    for (int i = 0; i < numReads; i++)
-                    {
-                        iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0 * InputGain;
-                        iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0 * InputGain;
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < numReads; i++)
-                    {
-                        iqPtr[i].Real = *(float*)(rawPtr + i * 8) * InputGain;
-                        iqPtr[i].Imag = *(float*)(rawPtr + i * 8 + 4) * InputGain;
-                    }
-                }
-                for (int i = 0; i < numReads; i++)
-                {
-                    iqPtr[i].Real *= IGain;
-                    iqPtr[i].Imag *= QGain;
-                    if (SwapIQ)
-                    {
-                        var tmp = iqPtr[i].Real;
-                        iqPtr[i].Real = iqPtr[i].Imag;
-                        iqPtr[i].Imag = tmp;
-                    }
-                }
-            }
-        }
-
-        private unsafe void FillLR()
-        {
-            double audioGain = Math.Pow(AudioGain / 10.0, 10);
-
-            fixed (double* sourcePtr = _audioBuffer)
-            fixed (byte* bufferPtr = _outBuffer)
-            {
-                if (_isPCM)
-                {
-                    for (var i = 0; i < _audioBuffer.Length; i++)
-                    {
-                        var i16 = (Int16) (_audioBuffer[i] * audioGain * 1000.0);
-                        *(Int16*)(bufferPtr + i * 4) = i16;
-                        *(Int16*)(bufferPtr + i * 4 + 2) = i16;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < _audioBuffer.Length; i++)
-                    {
-                        var f = (float)(sourcePtr[i] * audioGain);
-                        *(float*)(bufferPtr + i * 8) = f;
-                        *(float*)(bufferPtr + i * 8 + 4) = f;
-                    }
-                }
-            }
+            //try
+            //{
+            //    _source = filename;
+            //    _outputDevice = outputDevice;
+            //    var stream = new WaveStream(filename);
+            //    if (stream.Length <= 0)
+            //        throw new Exception("Invalid WAV file");
+            //    if (stream.Format.wFormatTag != (short)WaveFormats.Pcm &&
+            //        stream.Format.wFormatTag != (short)WaveFormats.Float)
+            //        throw new Exception("Only PCM files are supported");
+            //    _audioStream = stream;
+            //    _format = stream.Format;
+            //    _sampleRate = _format.nSamplesPerSec;
+            //    _isPCM = _format.wFormatTag == 1;
+            //    var bytesPerSample = _isPCM ? 4 : 8;
+            //    var nSamples = _outBuffer.Length / bytesPerSample;
+            //    _iqBuffer = new Complex[nSamples];
+            //    _audioBuffer = new double[nSamples];
+            //}
+            //catch (Exception)
+            //{
+            //    Stop();
+            //}
         }
     }
 }

@@ -71,7 +71,11 @@
     <Compile Include="Fourier.cs" />
     <Compile Include="IQBalancer.cs" />
     <Compile Include="IQFirFilter.cs" />
-    <Compile Include="WaveLib\FifoStream.cs" />
+    <Compile Include="PortAudio\AudioDevice.cs" />
+    <Compile Include="PortAudio\WaveRecorder.cs" />
+    <Compile Include="PortAudio\DeviceDirection.cs" />
+    <Compile Include="PortAudio\PortAudio.cs" />
+    <Compile Include="PortAudio\WavePlayer.cs" />
     <Compile Include="FirFilter.cs" />
     <Compile Include="Complex.cs" />
     <Compile Include="LsbDetector.cs" />
@@ -79,10 +83,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Vfo.cs" />
     <Compile Include="UsbDetector.cs" />
-    <Compile Include="WaveLib\WaveDevices.cs" />
-    <Compile Include="WaveLib\WaveIn.cs" />
     <Compile Include="WaveLib\WaveNative.cs" />
-    <Compile Include="WaveLib\WaveOut.cs" />
     <Compile Include="WaveLib\WaveStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
