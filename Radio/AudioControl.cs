@@ -7,7 +7,7 @@ namespace SDRSharp.Radio
 
     public class AudioControl
     {
-        private const int BufferSize = 1024 * 16;
+        private const int BufferSize = 1024 * 32;
         private const int MaxQueue = 2 * BufferSize;
         private const double InputGain = 0.01;
 

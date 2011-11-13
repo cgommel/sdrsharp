@@ -80,7 +80,7 @@ namespace SDRSharp
             _vfo.UseAGC = true;
             _vfo.AgcAttack = 800;
             _vfo.AgcDecay = 50;
-            _audioControl.AudioGain = 20.0;
+            _audioControl.AudioGain = 25.0;
             _audioControl.BufferNeeded += ProcessBuffer;
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
@@ -283,6 +283,7 @@ namespace SDRSharp
         private void stopButton_Click(object sender, EventArgs e)
         {
             _audioControl.Stop();
+            _fftStream.Close();
             playButton.Enabled = true;
             stopButton.Enabled = false;
             sampleRateComboBox.Enabled = true;

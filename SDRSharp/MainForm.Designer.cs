@@ -481,7 +481,7 @@ namespace SDRSharp
             this.audioGainNumericUpDown.TabIndex = 0;
             this.audioGainNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.audioGainNumericUpDown.Value = new decimal(new int[] {
-            20,
+            25,
             0,
             0,
             0});
