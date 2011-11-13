@@ -7,13 +7,11 @@ namespace SDRSharp.Radio
 
     public class AudioControl
     {
-        private const int BufferSize = 1024 * 4;
-        private const int MaxQueue = 2 * BufferSize;
         private const double InputGain = 0.01;
 
-        private double[] _audioBuffer = new double[BufferSize];
-        private Complex[] _iqBuffer = new Complex[BufferSize];
-        private Complex[] _recorderIQBuffer = new Complex[BufferSize];
+        private double[] _audioBuffer;
+        private Complex[] _iqBuffer;
+        private Complex[] _recorderIQBuffer;
 
         private WavePlayer _player;
         private WaveRecorder _recorder;
@@ -22,6 +20,7 @@ namespace SDRSharp.Radio
 
         private int _sampleRate;
         private int _inputDevice;
+        private int _bufferSizeInMs;
         private int _outputDevice;
 
         public event BufferNeededDelegate BufferNeeded;
@@ -83,7 +82,7 @@ namespace SDRSharp.Radio
 
         private void RecorderFiller(float[] buffer)
         {
-            if (_audioStream.Length > MaxQueue)
+            if (_audioStream.Length > buffer.Length * 2)
             {
                 return;
             }
@@ -165,12 +164,15 @@ namespace SDRSharp.Radio
             {
                 if (_player == null)
                 {
+                    var bufferSize = _bufferSizeInMs * _sampleRate / 1000;
+
                     if (_waveFile == null)
                     {
                         _audioStream = new FifoStream<Complex>();
-                        _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+
+                        _recorder = new WaveRecorder(_inputDevice, _sampleRate, bufferSize, RecorderFiller);
                     }
-                    _player = new WavePlayer(_outputDevice, _sampleRate, BufferSize, PlayerFiller);
+                    _player = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
                     return true;
                 }
             }
@@ -182,22 +184,24 @@ namespace SDRSharp.Radio
             return false;
         }
 
-        public void OpenDevice(int inputDevice, int outputDevice, int sampleRate)
+        public void OpenDevice(int inputDevice, int outputDevice, int sampleRate, int bufferSizeInMs)
         {
             Stop();
 
+            _bufferSizeInMs = bufferSizeInMs;
             _inputDevice = inputDevice;
             _outputDevice = outputDevice;
             _sampleRate = sampleRate;
         }
 
-        public void OpenFile(string filename, int outputDevice)
+        public void OpenFile(string filename, int outputDevice, int bufferSizeInMs)
         {
             Stop();
 
             try
             {
                 _outputDevice = outputDevice;
+                _bufferSizeInMs = bufferSizeInMs;
                 _waveFile = new WaveFile(filename);
                 _sampleRate = _waveFile.SampleRate;
             }

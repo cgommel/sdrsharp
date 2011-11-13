@@ -148,7 +148,8 @@ namespace SDRSharp
             _iqBalancer.Process(iqBuffer);
             if (_fftStream.Length < _spectrumBins * 2)
             {
-                _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
+                var len = Math.Min(_spectrumBins * 2, iqBuffer.Length);
+                _fftStream.Write(iqBuffer, 0, len);
             }
             _vfo.ProcessBuffer(iqBuffer, audioBuffer);
         }
@@ -208,7 +209,8 @@ namespace SDRSharp
                 stopButton.Enabled = false;
                 sampleRateComboBox.Enabled = false;
                 inputDeviceComboBox.Enabled = false;
-                outputDeviceComboBox.Enabled = false;
+                outputDeviceComboBox.Enabled = true;
+                bufferSizeNumericUpDown.Enabled = true;
                 Open();
             }
         }
@@ -237,7 +239,7 @@ namespace SDRSharp
                 {
                     sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
                 }
-                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate);
+                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) bufferSizeNumericUpDown.Value);
             }
             else
             {
@@ -245,7 +247,7 @@ namespace SDRSharp
                 {
                     return;
                 }
-                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index);
+                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) bufferSizeNumericUpDown.Value);
 
                 var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
                 match = Regex.Match(friendlyFilename, "([0-9]+)KHz", RegexOptions.IgnoreCase);
@@ -279,6 +281,7 @@ namespace SDRSharp
                     sampleRateComboBox.Enabled = false;
                     inputDeviceComboBox.Enabled = false;
                     outputDeviceComboBox.Enabled = false;
+                    bufferSizeNumericUpDown.Enabled = false;
                 }
             }
             catch (Exception ex)
@@ -296,6 +299,7 @@ namespace SDRSharp
             sampleRateComboBox.Enabled = true;
             inputDeviceComboBox.Enabled = true;
             outputDeviceComboBox.Enabled = true;
+            bufferSizeNumericUpDown.Enabled = true;
         }
 
         private void audioGainNumericUpDown_ValueChanged(object sender, EventArgs e)
