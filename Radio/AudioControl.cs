@@ -94,7 +94,7 @@ namespace SDRSharp.Radio
                 _recorderIQBuffer = new Complex[buffer.Length / 2];
             }
 
-            for (var i = 0; i < _iqBuffer.Length; i++)
+            for (var i = 0; i < _recorderIQBuffer.Length; i++)
             {
                 _recorderIQBuffer[i].Real = buffer[i * 2] * InputGain;
                 _recorderIQBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;

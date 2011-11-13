@@ -50,7 +50,7 @@ namespace SDRSharp.Radio
         public void Process(Complex[] iq)
         {
             //Adjust(iq, 0.1, 0.25); // Uncomment for testing
-            //RemoveDC(iq);
+            RemoveDC(iq);
 
             if (_balanceIQ)
             {
