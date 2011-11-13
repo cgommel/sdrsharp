@@ -57,7 +57,7 @@ namespace SDRSharp.PanView
             string colorString;
             try
             {
-                colorString = ConfigurationManager.AppSettings["gradient"];
+                colorString = ConfigurationManager.AppSettings["gradient"] ?? string.Empty;
             }
             catch
             {
