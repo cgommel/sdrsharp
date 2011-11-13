@@ -7,7 +7,7 @@ namespace SDRSharp.Radio
 
     public class AudioControl
     {
-        private const int BufferSize = 1024 * 32;
+        private const int BufferSize = 1024 * 4;
         private const int MaxQueue = 2 * BufferSize;
         private const double InputGain = 0.01;
 
@@ -17,6 +17,7 @@ namespace SDRSharp.Radio
 
         private WavePlayer _player;
         private WaveRecorder _recorder;
+        private WaveFile _waveFile;
         private FifoStream<Complex> _audioStream;
 
         private int _sampleRate;
@@ -58,7 +59,15 @@ namespace SDRSharp.Radio
             {
                 _iqBuffer = new Complex[buffer.Length / 2];
             }
-            _audioStream.Read(_iqBuffer, 0, _iqBuffer.Length);
+
+            if (_waveFile != null)
+            {
+                _waveFile.Read(_iqBuffer);
+            }
+            else
+            {
+                _audioStream.Read(_iqBuffer, 0, _iqBuffer.Length);
+            }
 
             BufferNeeded(_iqBuffer, _audioBuffer);
                 
@@ -136,15 +145,29 @@ namespace SDRSharp.Radio
                     _audioStream = null;
                 }
             }
+            if (_waveFile != null)
+            {
+                try
+                {
+                    _waveFile.Dispose();
+                }
+                finally
+                {
+                    _audioStream = null;
+                }
+            }
             _sampleRate = 0;
         }
 
         public bool Play()
         {
-            if (_player == null && _recorder == null)
+            if (_player == null)
             {
-                _audioStream = new FifoStream<Complex>();
-                _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+                if (_waveFile == null)
+                {
+                    _audioStream = new FifoStream<Complex>();
+                    _recorder = new WaveRecorder(_inputDevice, _sampleRate, BufferSize, RecorderFiller);
+                }
                 _player = new WavePlayer(_outputDevice, _sampleRate, BufferSize, PlayerFiller);
                 return true;
             }
@@ -164,29 +187,16 @@ namespace SDRSharp.Radio
         {
             Stop();
 
-            //try
-            //{
-            //    _source = filename;
-            //    _outputDevice = outputDevice;
-            //    var stream = new WaveStream(filename);
-            //    if (stream.Length <= 0)
-            //        throw new Exception("Invalid WAV file");
-            //    if (stream.Format.wFormatTag != (short)WaveFormats.Pcm &&
-            //        stream.Format.wFormatTag != (short)WaveFormats.Float)
-            //        throw new Exception("Only PCM files are supported");
-            //    _audioStream = stream;
-            //    _format = stream.Format;
-            //    _sampleRate = _format.nSamplesPerSec;
-            //    _isPCM = _format.wFormatTag == 1;
-            //    var bytesPerSample = _isPCM ? 4 : 8;
-            //    var nSamples = _outBuffer.Length / bytesPerSample;
-            //    _iqBuffer = new Complex[nSamples];
-            //    _audioBuffer = new double[nSamples];
-            //}
-            //catch (Exception)
-            //{
-            //    Stop();
-            //}
+            try
+            {
+                _outputDevice = outputDevice;
+                _waveFile = new WaveFile(filename);
+                _sampleRate = _waveFile.SampleRate;
+            }
+            catch (Exception)
+            {
+                Stop();
+            }
         }
     }
 }

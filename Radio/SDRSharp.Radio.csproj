@@ -83,8 +83,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Vfo.cs" />
     <Compile Include="UsbDetector.cs" />
-    <Compile Include="WaveLib\WaveNative.cs" />
-    <Compile Include="WaveLib\WaveStream.cs" />
+    <Compile Include="PortAudio\WaveFile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

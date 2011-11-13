@@ -50,7 +50,7 @@ namespace SDRSharp.Radio
         public void Process(Complex[] iq)
         {
             //Adjust(iq, 0.1, 0.25); // Uncomment for testing
-            RemoveDC(iq);
+            //RemoveDC(iq);
 
             if (_balanceIQ)
             {
@@ -74,11 +74,19 @@ namespace SDRSharp.Radio
             for (var i = 0; i < iq.Length; i++)
             {
                 // I branch
-                _meanI = _meanI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                var temp = _meanI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                if (!double.IsNaN(temp) && !double.IsInfinity(temp))
+                {
+                    _meanI = temp;
+                }
                 iq[i].Real = iq[i].Real - _meanI;
 
                 // Q branch
-                _meanQ = _meanQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
+                temp = _meanQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
+                if (!double.IsNaN(temp) && !double.IsInfinity(temp))
+                {
+                    _meanQ = temp;
+                }
                 iq[i].Imag = iq[i].Imag - _meanQ;
             }
         }
