@@ -54,7 +54,15 @@ namespace SDRSharp.PanView
         {
             var colorBlend = new ColorBlend();
             
-            var colorString = ConfigurationManager.AppSettings["gradient"];
+            string colorString;
+            try
+            {
+                colorString = ConfigurationManager.AppSettings["gradient"];
+            }
+            catch
+            {
+                colorString = string.Empty;
+            }
             var colorPatterns = colorString.Split(',');
             if (colorPatterns.Length < 2)
             {
@@ -543,7 +551,7 @@ namespace SDRSharp.PanView
             else
             {
                 _delta = (int)(AxisMargin - _spectrumWidth * _xIncrement / 2 + e.X);
-                //_changingCenterFrequency = true;
+                _changingCenterFrequency = true;
             }
         }
 
