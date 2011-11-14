@@ -84,7 +84,7 @@ namespace SDRSharp.Radio.PortAudio
 	 		{
                 if (instance._bufferAvailable != null)
                 {
-                    Marshal.Copy(input, instance._callbackBuffer, 0, (int)frameCount * 2);
+                    Marshal.Copy(input, instance._callbackBuffer, 0, (int) frameCount * 2);
                     instance._bufferAvailable(instance._callbackBuffer);
                     Marshal.Copy(instance._callbackBuffer, 0, output, (int) frameCount * 2);
                 }

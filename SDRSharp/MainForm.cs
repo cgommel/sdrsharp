@@ -311,6 +311,7 @@ namespace SDRSharp
             spectrumAnalyzer.Frequency = (int) frequencyNumericUpDown.Value;
             _vfo.Frequency = waterfall.Frequency - (int) centerFreqNumericUpDown.Value;
             frequencyNumericUpDown.Update();
+            displayTimer_Tick(null, null);
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
