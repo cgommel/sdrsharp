@@ -19,7 +19,7 @@ namespace SDRSharp.Radio.PortAudio
             {
                 var di = PortAudioAPI.Pa_GetDeviceInfo(i);
                 var deviceDirection = di.maxInputChannels > 0 ? (di.maxOutputChannels > 0 ? DeviceDirection.InputOutput : DeviceDirection.Input) : DeviceDirection.Output;
-                if (deviceDirection == direction)
+                if (deviceDirection == direction || deviceDirection == DeviceDirection.InputOutput)
                 {
                     var hi = PortAudioAPI.Pa_GetHostApiInfo(di.hostApi);
                     var ad = new AudioDevice();
