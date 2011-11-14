@@ -72,6 +72,7 @@
     <Compile Include="IQBalancer.cs" />
     <Compile Include="IQFirFilter.cs" />
     <Compile Include="PortAudio\AudioDevice.cs" />
+    <Compile Include="PortAudio\WaveDuplex.cs" />
     <Compile Include="PortAudio\WaveRecorder.cs" />
     <Compile Include="PortAudio\DeviceDirection.cs" />
     <Compile Include="PortAudio\PortAudio.cs" />

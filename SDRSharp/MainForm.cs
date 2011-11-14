@@ -274,15 +274,13 @@ namespace SDRSharp
             Open();
             try
             {
-                if (_audioControl.Play())
-                {
-                    playButton.Enabled = false;
-                    stopButton.Enabled = true;
-                    sampleRateComboBox.Enabled = false;
-                    inputDeviceComboBox.Enabled = false;
-                    outputDeviceComboBox.Enabled = false;
-                    bufferSizeNumericUpDown.Enabled = false;
-                }
+                _audioControl.Play();
+                playButton.Enabled = false;
+                stopButton.Enabled = true;
+                sampleRateComboBox.Enabled = false;
+                inputDeviceComboBox.Enabled = false;
+                outputDeviceComboBox.Enabled = false;
+                bufferSizeNumericUpDown.Enabled = false;
             }
             catch (Exception ex)
             {

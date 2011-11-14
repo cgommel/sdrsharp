@@ -13,8 +13,9 @@ namespace SDRSharp.Radio
         private Complex[] _iqBuffer;
         private Complex[] _recorderIQBuffer;
 
-        private WavePlayer _player;
-        private WaveRecorder _recorder;
+        private WavePlayer _wavePlayer;
+        private WaveRecorder _waveRecorder;
+        private WaveDuplex _waveDuplex;
         private WaveFile _waveFile;
         private FifoStream<Complex> _audioStream;
 
@@ -40,6 +41,53 @@ namespace SDRSharp.Radio
             {
                 return _sampleRate;
             }
+        }
+
+        private void DuplexFiller(float[] buffer)
+        {
+            if (BufferNeeded == null)
+            {
+                return;
+            }
+
+            #region Fill IQ buffer
+
+            if (_iqBuffer == null || _iqBuffer.Length != buffer.Length / 2)
+            {
+                _iqBuffer = new Complex[buffer.Length / 2];
+            }
+
+            for (var i = 0; i < _iqBuffer.Length; i++)
+            {
+                _iqBuffer[i].Real = buffer[i * 2] * InputGain;
+                _iqBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
+            }
+
+            #endregion
+
+            #region Prepare audio buffer
+
+            if (_audioBuffer == null || _audioBuffer.Length != buffer.Length / 2)
+            {
+                _audioBuffer = new double[buffer.Length / 2];
+            }
+
+            #endregion
+
+            BufferNeeded(_iqBuffer, _audioBuffer);
+
+            #region Fill audio back
+
+            double audioGain = Math.Pow(AudioGain / 10.0, 10);
+
+            for (var i = 0; i < _audioBuffer.Length; i++)
+            {
+                var audio = (float)(_audioBuffer[i] * audioGain);
+                buffer[i * 2] = audio;
+                buffer[i * 2 + 1] = audio;
+            }
+
+            #endregion
         }
 
         private void PlayerFiller(float[] buffer)
@@ -111,26 +159,26 @@ namespace SDRSharp.Radio
 
         public void Stop()
         {
-            if (_player != null)
+            if (_wavePlayer != null)
             {
                 try
                 {
-                    _player.Dispose();
+                    _wavePlayer.Dispose();
                 }
                 finally
                 {
-                    _player = null;
+                    _wavePlayer = null;
                 }
             }
-            if (_recorder != null)
+            if (_waveRecorder != null)
             {
                 try
                 {
-                    _recorder.Dispose();
+                    _waveRecorder.Dispose();
                 }
                 finally
                 {
-                    _recorder = null;
+                    _waveRecorder = null;
                 }
             }
             if (_audioStream != null)
@@ -142,6 +190,17 @@ namespace SDRSharp.Radio
                 finally
                 {
                     _audioStream = null;
+                }
+            }
+            if (_waveDuplex != null)
+            {
+                try
+                {
+                    _waveDuplex.Dispose();
+                }
+                finally
+                {
+                    _waveDuplex = null;
                 }
             }
             if (_waveFile != null)
@@ -158,30 +217,30 @@ namespace SDRSharp.Radio
             _sampleRate = 0;
         }
 
-        public bool Play()
+        public void Play()
         {
-            try
+            if (_wavePlayer == null && _waveDuplex == null)
             {
-                if (_player == null)
-                {
-                    var bufferSize = _bufferSizeInMs * _sampleRate / 1000;
+                var bufferSize = _bufferSizeInMs * _sampleRate / 1000;
 
-                    if (_waveFile == null)
+                if (_waveFile == null)
+                {
+                    if (_inputDevice == _outputDevice)
+                    {
+                        _waveDuplex = new WaveDuplex(_inputDevice, _sampleRate, bufferSize, DuplexFiller);
+                    }
+                    else
                     {
                         _audioStream = new FifoStream<Complex>();
-
-                        _recorder = new WaveRecorder(_inputDevice, _sampleRate, bufferSize, RecorderFiller);
+                        _waveRecorder = new WaveRecorder(_inputDevice, _sampleRate, bufferSize, RecorderFiller);
+                        _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
                     }
-                    _player = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
-                    return true;
+                }
+                else
+                {
+                    _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
                 }
             }
-            catch
-            {
-                Stop();
-                throw;
-            }
-            return false;
         }
 
         public void OpenDevice(int inputDevice, int outputDevice, int sampleRate, int bufferSizeInMs)
@@ -204,6 +263,7 @@ namespace SDRSharp.Radio
                 _bufferSizeInMs = bufferSizeInMs;
                 _waveFile = new WaveFile(filename);
                 _sampleRate = _waveFile.SampleRate;
+
             }
             catch (Exception)
             {
