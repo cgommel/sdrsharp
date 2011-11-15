@@ -19,10 +19,13 @@ namespace SDRSharp.Radio
         private WaveFile _waveFile;
         private FifoStream<Complex> _audioStream;
 
+        private double _audioGain;
+        private double _outputGain;
         private int _sampleRate;
         private int _inputDevice;
         private int _bufferSizeInMs;
         private int _outputDevice;
+        private bool _swapIQ;
 
         public event BufferNeededDelegate BufferNeeded;
 
@@ -31,9 +34,30 @@ namespace SDRSharp.Radio
             AudioGain = 10.0;
         }
 
-        public double AudioGain { get; set; }
+        public double AudioGain
+        {
+            get
+            {
+                return _audioGain;
+            }
+            set
+            {
+                _audioGain = value;
+                _outputGain = Math.Pow(value / 10.0, 10);
+            }
+        }
 
-        public bool SwapIQ { get; set; }
+        public bool SwapIQ
+        {
+            get
+            {
+                return _swapIQ;
+            }
+            set
+            {
+                _swapIQ = value;
+            }
+        }
 
         public int SampleRate
         {
@@ -57,11 +81,7 @@ namespace SDRSharp.Radio
                 _iqBuffer = new Complex[buffer.Length / 2];
             }
 
-            for (var i = 0; i < _iqBuffer.Length; i++)
-            {
-                _iqBuffer[i].Real = buffer[i * 2] * InputGain;
-                _iqBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
-            }
+            FillIQ(buffer, _iqBuffer);
 
             #endregion
 
@@ -74,18 +94,16 @@ namespace SDRSharp.Radio
 
             #endregion
 
+            if (_swapIQ)
+            {
+                SwapIQBuffer();
+            }
+
             BufferNeeded(_iqBuffer, _audioBuffer);
 
-            #region Fill audio back
+            #region Fill audio buffer
 
-            double audioGain = Math.Pow(AudioGain / 10.0, 10);
-
-            for (var i = 0; i < _audioBuffer.Length; i++)
-            {
-                var audio = (float)(_audioBuffer[i] * audioGain);
-                buffer[i * 2] = audio;
-                buffer[i * 2 + 1] = audio;
-            }
+            FillAudio(buffer);
 
             #endregion
         }
@@ -116,16 +134,14 @@ namespace SDRSharp.Radio
                 _audioStream.Read(_iqBuffer, 0, _iqBuffer.Length);
             }
 
-            BufferNeeded(_iqBuffer, _audioBuffer);
-                
-            double audioGain = Math.Pow(AudioGain / 10.0, 10);
-
-            for (var i = 0; i < _audioBuffer.Length; i++)
+            if (_swapIQ)
             {
-                var audio = (float) (_audioBuffer[i] * audioGain);
-                buffer[i * 2] = audio;
-                buffer[i * 2 + 1] = audio;
+                SwapIQBuffer();
             }
+
+            BufferNeeded(_iqBuffer, _audioBuffer);
+
+            FillAudio(buffer);
         }
 
         private void RecorderFiller(float[] buffer)
@@ -142,11 +158,7 @@ namespace SDRSharp.Radio
                 _recorderIQBuffer = new Complex[buffer.Length / 2];
             }
 
-            for (var i = 0; i < _recorderIQBuffer.Length; i++)
-            {
-                _recorderIQBuffer[i].Real = buffer[i * 2] * InputGain;
-                _recorderIQBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
-            }
+            FillIQ(buffer, _recorderIQBuffer);
 
             #endregion
 
@@ -155,6 +167,35 @@ namespace SDRSharp.Radio
             _audioStream.Write(_recorderIQBuffer, 0, _recorderIQBuffer.Length);
 
             #endregion
+        }
+
+        private static void FillIQ(float[] buffer, Complex[] iqBuffer)
+        {
+            for (var i = 0; i < iqBuffer.Length; i++)
+            {
+                iqBuffer[i].Real = buffer[i * 2] * InputGain;
+                iqBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
+            }
+        }
+
+        private void FillAudio(float[] buffer)
+        {
+            for (var i = 0; i < _audioBuffer.Length; i++)
+            {
+                var audio = (float)(_audioBuffer[i] * _outputGain);
+                buffer[i * 2] = audio;
+                buffer[i * 2 + 1] = audio;
+            }
+        }
+
+        private void SwapIQBuffer()
+        {
+            for (var i = 0; i < _iqBuffer.Length; i++)
+            {
+                var temp = _iqBuffer[i].Real;
+                _iqBuffer[i].Real = _iqBuffer[i].Imag;
+                _iqBuffer[i].Imag = temp;
+            }
         }
 
         public void Stop()
@@ -211,7 +252,7 @@ namespace SDRSharp.Radio
                 }
                 finally
                 {
-                    _audioStream = null;
+                    _waveFile = null;
                 }
             }
             _sampleRate = 0;
