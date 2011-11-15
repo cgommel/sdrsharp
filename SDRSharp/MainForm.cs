@@ -186,6 +186,7 @@ namespace SDRSharp
         {
             if (soundCardRadioButton.Checked)
             {
+                displayTimer.Enabled = false;
                 _audioControl.Stop();
                 wavFileTextBox.Enabled = false;
                 fileSelectButton.Enabled = false;
@@ -202,6 +203,7 @@ namespace SDRSharp
         {
             if (wavFileRadioButton.Checked)
             {
+                displayTimer.Enabled = false;
                 _audioControl.Stop();
                 wavFileTextBox.Enabled = true;
                 fileSelectButton.Enabled = true;
