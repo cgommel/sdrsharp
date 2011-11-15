@@ -21,19 +21,20 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
 
-        private const int MaxSpectrumBins = 2048;
-        private const int MinSpectrumBins = 512;
+        private const int MaxFFTBins = 2048;
+        private const int MinFFTBins = 512;
 
-        private int _spectrumBins;
+        private int _fftBins;
         private WindowType _fftWindowType;
         private SoftRockIO _softRockIO;
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly AudioControl _audioControl = new AudioControl();
         private readonly FifoStream<Complex> _fftStream = new FifoStream<Complex>();
-        private readonly Complex[] _spectrumIQ = new Complex[MaxSpectrumBins];
-        private readonly double[] _spectrumAmplitude = new double[MaxSpectrumBins];
-        private readonly double[] _fftWindow = new double[MaxSpectrumBins];
+        private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
+        private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
+        private readonly double[] _spectrumPower = new double[MaxFFTBins];
+        private readonly double[] _fftWindow = new double[MaxFFTBins];
 
         public MainForm()
         {
@@ -62,7 +63,7 @@ namespace SDRSharp
             {
                 outputDeviceComboBox.SelectedIndex = 0;
             }
-            _spectrumBins = MinSpectrumBins;
+            _fftBins = MinFFTBins;
 
             _iqBalancer.ImbalanceEstimationSucceeded += iqBalancer_ImbalanceEstimationSucceeded;
             _iqBalancer.ImbalanceEstimationFailed += iqBalancer_ImbalanceEstimationFailed;
@@ -146,11 +147,7 @@ namespace SDRSharp
         private void ProcessBuffer(Complex[] iqBuffer, double[] audioBuffer)
         {
             _iqBalancer.Process(iqBuffer);
-            if (_fftStream.Length < _spectrumBins * 2)
-            {
-                var len = Math.Min(_spectrumBins * 2, iqBuffer.Length);
-                _fftStream.Write(iqBuffer, 0, len);
-            }
+            _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
             _vfo.ProcessBuffer(iqBuffer, audioBuffer);
         }
 
@@ -161,24 +158,27 @@ namespace SDRSharp
 
         private void displayTimer_Tick(object sender, EventArgs e)
         {
-            if (_fftStream.Length < _spectrumBins)
+            if (_fftStream.Length >= _fftBins)
             {
-                return;
+                _fftStream.Read(_iqBuffer, 0, _fftBins);
             }
-
-            _fftStream.Read(_spectrumIQ, 0, _spectrumBins);
-
-            Fourier.ApplyFFTWindow(_spectrumIQ, _fftWindow, _spectrumBins);
-            Fourier.ForwardTransform(_spectrumIQ, _spectrumBins);
-            Fourier.SpectrumPower(_spectrumIQ, _spectrumAmplitude, _spectrumBins);
+            var excessBuffer = _fftStream.Length - _audioControl.BufferSize;
+            if (excessBuffer > 0)
+            {
+                _fftStream.Advance(excessBuffer);
+            }
+            Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
+            Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+            Fourier.ForwardTransform(_fftBuffer, _fftBins);
+            Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
 
             if (!panSplitContainer.Panel1Collapsed)
             {
-                spectrumAnalyzer.Render(_spectrumAmplitude, _spectrumBins);
+                spectrumAnalyzer.Render(_spectrumPower, _fftBins);
             }
             if (!panSplitContainer.Panel2Collapsed)
             {
-                waterfall.Render(_spectrumAmplitude, _spectrumBins);
+                waterfall.Render(_spectrumPower, _fftBins);
             }
         }
 
@@ -275,6 +275,7 @@ namespace SDRSharp
             try
             {
                 _audioControl.Play();
+                displayTimer.Enabled = true;
                 playButton.Enabled = false;
                 stopButton.Enabled = true;
                 sampleRateComboBox.Enabled = false;
@@ -290,6 +291,7 @@ namespace SDRSharp
 
         private void stopButton_Click(object sender, EventArgs e)
         {
+            displayTimer.Enabled = false;
             _audioControl.Stop();
             _fftStream.Close();
             playButton.Enabled = true;
@@ -463,7 +465,7 @@ namespace SDRSharp
         {
             waterfall.HighDefinition = highDefinitionCheckBox.Checked;
             spectrumAnalyzer.HighDefinition = highDefinitionCheckBox.Checked;
-            _spectrumBins = highDefinitionCheckBox.Checked ? MaxSpectrumBins : MinSpectrumBins;
+            _fftBins = highDefinitionCheckBox.Checked ? MaxFFTBins : MinFFTBins;
             BuildFFTWindow();
         }
 
@@ -481,8 +483,8 @@ namespace SDRSharp
 
         private void BuildFFTWindow()
         {
-            var window = FilterBuilder.MakeWindow(_fftWindowType, _spectrumBins);
-            Array.Copy(window, _fftWindow, _spectrumBins);
+            var window = FilterBuilder.MakeWindow(_fftWindowType, _fftBins);
+            Array.Copy(window, _fftWindow, _fftBins);
         }
 
         private void iqTimer_Tick(object sender, EventArgs e)

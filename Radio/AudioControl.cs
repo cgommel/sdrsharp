@@ -23,6 +23,7 @@ namespace SDRSharp.Radio
         private double _outputGain;
         private int _sampleRate;
         private int _inputDevice;
+        private int _bufferSize;
         private int _bufferSizeInMs;
         private int _outputDevice;
         private bool _swapIQ;
@@ -64,6 +65,22 @@ namespace SDRSharp.Radio
             get
             {
                 return _sampleRate;
+            }
+        }
+
+        public int BufferSize
+        {
+            get
+            {
+                return _bufferSize;
+            }
+        }
+
+        public int BufferSizeInMs
+        {
+            get
+            {
+                return _bufferSizeInMs;
             }
         }
 
@@ -262,24 +279,22 @@ namespace SDRSharp.Radio
         {
             if (_wavePlayer == null && _waveDuplex == null)
             {
-                var bufferSize = _bufferSizeInMs * _sampleRate / 1000;
-
                 if (_waveFile == null)
                 {
                     if (_inputDevice == _outputDevice)
                     {
-                        _waveDuplex = new WaveDuplex(_inputDevice, _sampleRate, bufferSize, DuplexFiller);
+                        _waveDuplex = new WaveDuplex(_inputDevice, _sampleRate, _bufferSize, DuplexFiller);
                     }
                     else
                     {
                         _audioStream = new FifoStream<Complex>();
-                        _waveRecorder = new WaveRecorder(_inputDevice, _sampleRate, bufferSize, RecorderFiller);
-                        _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
+                        _waveRecorder = new WaveRecorder(_inputDevice, _sampleRate, _bufferSize, RecorderFiller);
+                        _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, _bufferSize, PlayerFiller);
                     }
                 }
                 else
                 {
-                    _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, bufferSize, PlayerFiller);
+                    _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, _bufferSize, PlayerFiller);
                 }
             }
         }
@@ -288,10 +303,11 @@ namespace SDRSharp.Radio
         {
             Stop();
 
-            _bufferSizeInMs = bufferSizeInMs;
             _inputDevice = inputDevice;
             _outputDevice = outputDevice;
             _sampleRate = sampleRate;
+            _bufferSizeInMs = bufferSizeInMs;
+            _bufferSize = _bufferSizeInMs * _sampleRate / 1000;
         }
 
         public void OpenFile(string filename, int outputDevice, int bufferSizeInMs)
