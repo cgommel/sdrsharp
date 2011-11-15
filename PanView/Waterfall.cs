@@ -105,6 +105,7 @@ namespace SDRSharp.PanView
         public event ManualFrequencyChange CenterFrequencyChanged;
 
         [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ColorBlend GradientColorBlend
         {
             get

@@ -855,21 +855,6 @@ namespace SDRSharp
             this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
             this.waterfall.FilterBandwidth = 0;
             this.waterfall.Frequency = 0;
-            colorBlend1.Colors = new System.Drawing.Color[] {
-        System.Drawing.Color.White,
-        System.Drawing.Color.LightBlue,
-        System.Drawing.Color.DodgerBlue,
-        System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(80))))),
-        System.Drawing.Color.Black,
-        System.Drawing.Color.Black};
-            colorBlend1.Positions = new float[] {
-        0F,
-        0.2F,
-        0.4F,
-        0.6F,
-        0.8F,
-        1F};
-            this.waterfall.GradientColorBlend = colorBlend1;
             this.waterfall.HighDefinition = false;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";

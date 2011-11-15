@@ -512,7 +512,7 @@ namespace SDRSharp
         private static string GradientToString(Color[] colors)
         {
             var sb = new StringBuilder();
-            for (var i = 0; i < colors.Length - 1; i++)
+            for (var i = 0; i < colors.Length; i++)
             {
                 sb.AppendFormat(",{0:X2}{1:X2}{2:X2}", colors[i].R, colors[i].G, colors[i].B);
             }
