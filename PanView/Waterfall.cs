@@ -41,6 +41,8 @@ namespace SDRSharp.PanView
         private bool _changingCenterFrequency;
         private bool _highDefinition;
         private bool _mouseIn;
+        private int _oldX;
+        private int _oldCenterFrequency;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
         public Waterfall()
@@ -520,9 +522,8 @@ namespace SDRSharp.PanView
                 f = 0;
             }
 
-            f = 10 * (f / 10);
-
-            if (f != _frequency)
+            f = 1000 * (f / 1000);
+            if (f != _centerFrequency)
             {
                 OnCenterFrequencyChanged(new FrequencyEventArgs(f));
             }
@@ -551,8 +552,9 @@ namespace SDRSharp.PanView
             }
             else
             {
-                _delta = (int)(AxisMargin - _spectrumWidth * _xIncrement / 2 + e.X);
-                //_changingCenterFrequency = true;
+                _oldX = e.X;
+                _oldCenterFrequency = _centerFrequency;
+                _changingCenterFrequency = true;
             }
         }
 
@@ -573,7 +575,7 @@ namespace SDRSharp.PanView
             }
             else if (_changingCenterFrequency)
             {
-                var f = (e.X + _delta) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _centerFrequency - _spectrumWidth / 2;
+                var f = (_oldX - e.X) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency;
                 UpdateCenterFrequency(f);
             }
         }
@@ -596,6 +598,21 @@ namespace SDRSharp.PanView
         {
             base.OnMouseWheel(e);
             UpdateFrequency(_frequency + e.Delta / 10);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            switch (e.KeyCode)
+            {
+                case Keys.Left:
+                    UpdateCenterFrequency(_centerFrequency - 1000);
+                    break;
+
+                case Keys.Right:
+                    UpdateCenterFrequency(_centerFrequency + 1000);
+                    break;
+            }
         }
     }
 

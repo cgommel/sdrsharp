@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Configuration;
 
 namespace SDRSharp.Radio
 {
     public class IQBalancer
     {
-        private const int FFTBins = 1024;
-        private const int AutomaticBalancePasses = 10;
+        private const int FFTBins = 128;
         private const double DcTimeConst = 0.00001;
         private const double Increment = 0.0001;
 
         private int _maxPasses = 5000;
+        private int _maxAutomaticPasses = GetDefaultAutomaticBalancePasses();
         private bool _balanceIQ;
         private bool _autoBalanceIQ = true;
         private double _meanI;
@@ -19,7 +20,7 @@ namespace SDRSharp.Radio
         private readonly Random _rng = new Random();
         private readonly Complex[] _fft = new Complex[FFTBins];
         private readonly double[] _spectrum = new double[FFTBins];
-        private readonly double[] _fftWindow = FilterBuilder.MakeWindow(WindowType.BlackmanHarris, FFTBins);
+        private readonly double[] _fftWindow = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
 
         public double Phase
         {
@@ -37,6 +38,12 @@ namespace SDRSharp.Radio
             set { _maxPasses = value; }
         }
 
+        public int MaxAutomaticPasses
+        {
+            get { return _maxAutomaticPasses; }
+            set { _maxAutomaticPasses = value; }
+        }
+
         public bool AutoBalanceIQ
         {
             get { return _autoBalanceIQ; }
@@ -46,6 +53,17 @@ namespace SDRSharp.Radio
         public event EventHandler ImbalanceEstimationSucceeded;
 
         public event EventHandler ImbalanceEstimationFailed;
+
+        private static int GetDefaultAutomaticBalancePasses()
+        {
+            var passesString = ConfigurationManager.AppSettings["automaticBalancePasses"];
+            int result;
+            if (int.TryParse(passesString, out result))
+            {
+                return result;
+            }
+            return 50;
+        }
 
         public void Process(Complex[] iq)
         {
@@ -59,7 +77,7 @@ namespace SDRSharp.Radio
             }
             else if (_autoBalanceIQ)
             {
-                EstimateImbalance(iq, AutomaticBalancePasses);
+                EstimateImbalance(iq, MaxAutomaticPasses);
             }
             Adjust(iq, _phase, _gain);
         }
@@ -157,7 +175,7 @@ namespace SDRSharp.Radio
             {
                 var distanceFromCenter = Math.Abs(i - halfLength);
 
-                if (distanceFromCenter / (double) halfLength > 0.2)
+                if (distanceFromCenter / (double) halfLength > 0.05)
                 {
                     result += Math.Abs(spectrum[i] - spectrum[spectrum.Length - 2 - i]);
                 }
