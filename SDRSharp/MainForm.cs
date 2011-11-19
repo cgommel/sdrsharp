@@ -4,11 +4,10 @@ using System.Configuration;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Drawing;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
-using SDRSharp.SoftRock;
-using System.Drawing;
 using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp
@@ -26,7 +25,7 @@ namespace SDRSharp
 
         private int _fftBins;
         private WindowType _fftWindowType;
-        private SoftRockIO _softRockIO;
+        private IFrontendController _frontendController;
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly AudioControl _audioControl = new AudioControl();
@@ -98,8 +97,9 @@ namespace SDRSharp
 
             try
             {
-                _softRockIO = new SoftRockIO();
-                centerFreqNumericUpDown.Value = _softRockIO.Frequency;
+                _frontendController = new SDRSharp.SoftRock.SoftRockIO();
+                _frontendController.Open();
+                centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
             }
             catch (DllNotFoundException)
@@ -137,10 +137,10 @@ namespace SDRSharp
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
             _audioControl.Stop();
-            if (_softRockIO != null)
+            if (_frontendController != null)
             {
-                _softRockIO.Close();
-                _softRockIO = null;
+                _frontendController.Close();
+                _frontendController = null;
             }
         }
 
@@ -332,9 +332,9 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - _vfo.SampleRate / 2;
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (_softRockIO != null)
+            if (_frontendController != null)
             {
-                _softRockIO.Frequency = newCenterFreq;
+                _frontendController.Frequency = newCenterFreq;
             }
         }
 

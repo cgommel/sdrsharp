@@ -1,18 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
+using System.Collections.Generic;
+using SDRSharp.Radio;
 
 namespace SDRSharp.SoftRock
 {
-    public class SoftRockIO : IDisposable
+    public class SoftRockIO : IFrontendController, IDisposable
     {
-        private readonly Thread _worker;
         private readonly Queue<int> _frequencyQueue = new Queue<int>();
+        private Thread _worker;
         private IntPtr _srHandle;
         private int _frequency;
         private bool _terminated;
 
-        public SoftRockIO()
+        public void Dispose()
+        {
+            Close();
+        }
+
+        public void Open()
         {
             _srHandle = NativeUsb.srOpen(
                 NativeUsb.Vid,
@@ -31,11 +37,6 @@ namespace SDRSharp.SoftRock
             }
         }
 
-        public void Dispose()
-        {
-            Close();
-        }
-
         public void Close()
         {
             if (IsOpen)
@@ -46,6 +47,7 @@ namespace SDRSharp.SoftRock
                 if (_worker != null)
                 {
                     _worker.Join();
+                    _worker = null;
                 }
             }
         }

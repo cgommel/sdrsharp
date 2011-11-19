@@ -67,6 +67,12 @@
     <Compile Include="SoftRockIO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Radio\SDRSharp.Radio.csproj">
+      <Project>{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}</Project>
+      <Name>SDRSharp.Radio</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
