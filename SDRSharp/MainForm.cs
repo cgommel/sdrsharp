@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
+using System.Collections;
 
 namespace SDRSharp
 {
@@ -26,6 +28,7 @@ namespace SDRSharp
         private int _fftBins;
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
+        private readonly Dictionary<string, IFrontendController> _frontendControllers = new Dictionary<string, IFrontendController>();
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly AudioControl _audioControl = new AudioControl();
@@ -95,17 +98,52 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Value = 0;
 
+            var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
+
+            foreach (string key in frontendPlugins.Keys)
+            {
+                frontEndComboBox.Items.Add(key);
+
+                var fullyQualifiedTypeName = (string) frontendPlugins[key];
+                var patterns = fullyQualifiedTypeName.Split(',');
+                var typeName = patterns[0];
+                var assemblyName = patterns[1];
+                var objectHandle = Activator.CreateInstance(assemblyName, typeName);
+                var controller = (IFrontendController) objectHandle.Unwrap();
+                _frontendControllers.Add(key, controller);
+            }
+
+            frontEndComboBox.Items.Add("Other");
+            frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+        }
+
+        private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var frontendName = (string)frontEndComboBox.SelectedItem;
+            if (frontendName == "Other")
+            {
+                if (_frontendController != null)
+                {
+                    _frontendController.Close();
+                    _frontendController = null;
+                }
+                return;
+            }
             try
             {
-                _frontendController = new SDRSharp.SoftRock.SoftRockIO();
+                if (_frontendController != null)
+                {
+                    _frontendController.Close();
+                }
+                _frontendController = _frontendControllers[frontendName];
                 _frontendController.Open();
                 centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
             }
-            catch (DllNotFoundException)
+            catch
             {
                 MessageBox.Show(
-                    "SRDLL.dll or SoftRock driver not found.\n\nSi570 support will be disabled.",
+                    frontendName + " driver is not working properly.\n\nIts support will be disabled.",
                     "Information",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);

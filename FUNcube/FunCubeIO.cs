@@ -7,28 +7,35 @@ namespace SDRSharp.FUNcube
     {
         public void Open()
         {
-            throw new NotImplementedException();
         }
 
         public void Close()
         {
-            throw new NotImplementedException();
         }
 
         public bool IsOpen
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                return true;
+            }
         }
 
         public int Frequency
         {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                
+            }
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Close();
         }
     }
 }

@@ -137,10 +137,6 @@
       <Project>{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}</Project>
       <Name>SDRSharp.Radio</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SoftRock\SDRSharp.SoftRock.csproj">
-      <Project>{905386A0-FCE6-4110-8EAA-DC75A239E330}</Project>
-      <Name>SDRSharp.SoftRock</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="mixer.ico" />

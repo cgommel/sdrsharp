@@ -57,6 +57,8 @@ namespace SDRSharp
             this.playButton = new System.Windows.Forms.Button();
             this.stopButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.frontEndComboBox = new System.Windows.Forms.ComboBox();
             this.fmRadioButton = new System.Windows.Forms.RadioButton();
             this.autoCorrectIQCheckBox = new System.Windows.Forms.CheckBox();
             this.correctIQButton = new System.Windows.Forms.Button();
@@ -108,8 +110,6 @@ namespace SDRSharp
             this.label7 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
-            this.label16 = new System.Windows.Forms.Label();
-            this.frontEndComboBox = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
@@ -178,6 +178,25 @@ namespace SDRSharp
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Radio settings";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(6, 139);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(52, 13);
+            this.label16.TabIndex = 26;
+            this.label16.Text = "Filter type";
+            // 
+            // frontEndComboBox
+            // 
+            this.frontEndComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.frontEndComboBox.FormattingEnabled = true;
+            this.frontEndComboBox.Location = new System.Drawing.Point(69, 109);
+            this.frontEndComboBox.Name = "frontEndComboBox";
+            this.frontEndComboBox.Size = new System.Drawing.Size(118, 21);
+            this.frontEndComboBox.TabIndex = 6;
+            this.frontEndComboBox.SelectedIndexChanged += new System.EventHandler(this.frontEndComboBox_SelectedIndexChanged);
             // 
             // fmRadioButton
             // 
@@ -866,28 +885,6 @@ namespace SDRSharp
             this.iqTimer.Enabled = true;
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(6, 139);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(52, 13);
-            this.label16.TabIndex = 26;
-            this.label16.Text = "Filter type";
-            // 
-            // frontEndComboBox
-            // 
-            this.frontEndComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.frontEndComboBox.FormattingEnabled = true;
-            this.frontEndComboBox.Items.AddRange(new object[] {
-            "SoftRock / Si570",
-            "FUNcube Dongle",
-            "Other"});
-            this.frontEndComboBox.Location = new System.Drawing.Point(69, 109);
-            this.frontEndComboBox.Name = "frontEndComboBox";
-            this.frontEndComboBox.Size = new System.Drawing.Size(118, 21);
-            this.frontEndComboBox.TabIndex = 6;
             // 
             // MainForm
             // 

@@ -20,6 +20,11 @@ namespace SDRSharp.SoftRock
 
         public void Open()
         {
+            if (IsOpen)
+            {
+                return;
+            }
+
             _srHandle = NativeUsb.srOpen(
                 NativeUsb.Vid,
                 NativeUsb.Pid,
