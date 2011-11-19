@@ -243,7 +243,7 @@ namespace SDRSharp.Radio
                 else
                 {
                     const int cutoff1 = MinBCAudioFrequency;
-                    int cutoff2 = Math.Min(_bandwidth, MaxBCAudioFrequency);
+                    int cutoff2 = Math.Min(_bandwidth / 2, MaxBCAudioFrequency);
                     coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
                 }
             }
