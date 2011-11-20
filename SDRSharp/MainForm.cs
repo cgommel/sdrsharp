@@ -142,6 +142,12 @@ namespace SDRSharp
             }
             catch
             {
+                frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+                if (_frontendController != null)
+                {
+                    _frontendController.Close();
+                }
+                _frontendController = null;
                 MessageBox.Show(
                     frontendName + " driver is not working properly.\n\nIts support will be disabled.",
                     "Information",
