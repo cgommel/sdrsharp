@@ -24,8 +24,10 @@ namespace SDRSharp.PanView
         private const float MinimumLevel = 120.0f;
 
         private Bitmap _buffer;
+        private Bitmap _buffer2;
         private Bitmap _cursor;
         private Graphics _graphics;
+        private Graphics _graphics2;
         private BandType _bandType;
         private int _filterBandwidth;
         private int _frequencyOffset;
@@ -48,8 +50,10 @@ namespace SDRSharp.PanView
         public Waterfall()
         {
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
+            _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
             _cursor = new Bitmap(10, 10);
             _graphics = Graphics.FromImage(_buffer);
+            _graphics2 = Graphics.FromImage(_buffer2);
         }
 
         private static ColorBlend GetGradientBlend()
@@ -264,11 +268,9 @@ namespace SDRSharp.PanView
             #region Shift image
 
             // Yes, GDI is such an abomination in .NET ...
-            using (var bmp = (Bitmap) _buffer.Clone())
-            {
-                var rect = new Rectangle(AxisMargin, 2, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2);
-                _graphics.DrawImage(bmp, rect, AxisMargin, 1, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2, GraphicsUnit.Pixel);
-            }
+            var rect = new Rectangle(AxisMargin, 2, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2);
+            _graphics2.DrawImage(_buffer, 0, 0);
+            _graphics.DrawImage(_buffer2, rect, AxisMargin, 1, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2, GraphicsUnit.Pixel);
 
             #endregion
 
@@ -438,8 +440,12 @@ namespace SDRSharp.PanView
             }
             var oldBuffer = _buffer;
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
+            var oldBuffer2 = _buffer2;
+            _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
             _graphics.Dispose();
             _graphics = Graphics.FromImage(_buffer);
+            _graphics2.Dispose();
+            _graphics2 = Graphics.FromImage(_buffer2);
             using (var bkgBrush = new SolidBrush(Color.Black))
             {
                 _graphics.FillRectangle(bkgBrush, ClientRectangle);
@@ -447,6 +453,7 @@ namespace SDRSharp.PanView
             var rect = new Rectangle(AxisMargin, 1, _buffer.Width - 2 * AxisMargin, _buffer.Height);
             _graphics.DrawImage(oldBuffer, rect, AxisMargin, 1, oldBuffer.Width - 2 * AxisMargin, oldBuffer.Height, GraphicsUnit.Pixel);
             oldBuffer.Dispose();
+            oldBuffer2.Dispose();
             if (_spectrumWidth > 0)
             {
                 _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;

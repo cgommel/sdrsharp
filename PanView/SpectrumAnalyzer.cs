@@ -60,8 +60,8 @@ namespace SDRSharp.PanView
                 {
                     _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
                 }
-                Draw();
                 GenerateCursor();
+                Draw();
                 Invalidate();
             }
         }
@@ -76,6 +76,7 @@ namespace SDRSharp.PanView
             {
                 _filterBandwidth = value;
                 GenerateCursor();
+                Draw();
                 Invalidate();
             }
         }
@@ -90,6 +91,7 @@ namespace SDRSharp.PanView
             {
                 _offset = value;
                 GenerateCursor();
+                Draw();
                 Invalidate();
             }
         }
@@ -104,6 +106,7 @@ namespace SDRSharp.PanView
             {
                 _bandType = value;
                 GenerateCursor();
+                Draw();
                 Invalidate();
             }
         }
@@ -118,6 +121,7 @@ namespace SDRSharp.PanView
             {
                 _frequency = value;
                 PositionCursor();
+                Draw();
                 Invalidate();
                 Update();
             }
@@ -327,6 +331,11 @@ namespace SDRSharp.PanView
 
             #endregion
 
+            if (_spectrum == null || _spectrum.Length == 0)
+            {
+                return;
+            }
+
             #region Draw Spectrum
 
             if (_highDefinition)
@@ -339,15 +348,16 @@ namespace SDRSharp.PanView
             }
 
             #endregion
+
+            #region Draw Cursor
+
+            _graphics.DrawImage(_cursor, _lower, 0f);
+
+            #endregion
         }
 
         private void DrawSpectrumHD()
         {
-            if (_spectrum == null || _spectrum.Length == 0)
-            {
-                return;
-            }
-
             var x = 0f;
             var y = 0f;
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrum.Length;
@@ -379,11 +389,6 @@ namespace SDRSharp.PanView
 
         private void DrawSpectrumLD()
         {
-            if (_spectrum == null || _spectrum.Length == 0)
-            {
-                return;
-            }
-
             var x = 0;
             var y = 0;
             var xPixelCount = ClientRectangle.Width - 2 * AxisMargin;
@@ -419,17 +424,7 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            using (var bmp = (Bitmap)_buffer.Clone())
-            using (var g = Graphics.FromImage(bmp))
-            {
-                g.DrawImage(_buffer, 0, 0);
-
-                if (_spectrumWidth > 0)
-                {
-                    g.DrawImage(_cursor, _lower, 0f);
-                }
-                e.Graphics.DrawImage(bmp, 0, 0);
-            }
+            e.Graphics.DrawImage(_buffer, 0, 0);
         }
 
         protected override void OnResize(EventArgs e)
@@ -445,8 +440,8 @@ namespace SDRSharp.PanView
                 {
                     _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
                 }
-                Draw();
                 GenerateCursor();
+                Draw();
                 Invalidate();
             }
         }
