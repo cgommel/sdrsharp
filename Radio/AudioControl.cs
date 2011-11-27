@@ -318,11 +318,12 @@ namespace SDRSharp.Radio
             {
                 _outputDevice = outputDevice;
                 _bufferSizeInMs = bufferSizeInMs;
+                _bufferSize = _bufferSizeInMs * _sampleRate / 1000;
                 _waveFile = new WaveFile(filename);
                 _sampleRate = _waveFile.SampleRate;
 
             }
-            catch (Exception)
+            catch
             {
                 Stop();
             }
