@@ -23,6 +23,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const float MinimumLevel = 120.0f;
 
+        private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
         private Bitmap _cursor;
@@ -106,6 +107,15 @@ namespace SDRSharp.PanView
             _cursor.Dispose();
         }
 
+        public void Perform()
+        {
+            if (_performNeeded)
+            {
+                _performNeeded = false;
+                Invalidate();
+            }
+        }
+
         public event ManualFrequencyChange FrequencyChanged;
 
         public event ManualFrequencyChange CenterFrequencyChanged;
@@ -120,13 +130,16 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _gradientColorBlend = value;
+                if (_gradientColorBlend != value)
+                {
+                    _gradientColorBlend = value;
 
-                _graphics.SmoothingMode = SmoothingMode.None;
-                DrawGradient();
-                _graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    _graphics.SmoothingMode = SmoothingMode.None;
+                    DrawGradient();
+                    _graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-                Invalidate();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -138,9 +151,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _centerFrequency = value;
-                PositionCursor();
-                Invalidate();
+                if (_centerFrequency != value)
+                {
+                    _centerFrequency = value;
+                    PositionCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -152,13 +168,16 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _spectrumWidth = value;
-                if (_spectrumWidth > 0)
+                if (_spectrumWidth != value)
                 {
-                    _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
+                    _spectrumWidth = value;
+                    if (_spectrumWidth > 0)
+                    {
+                        _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
+                    }
+                    GenerateCursor();
+                    _performNeeded = true;
                 }
-                GenerateCursor();
-                Invalidate();
             }
         }
 
@@ -170,10 +189,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _frequency = value;
-                PositionCursor();
-                Invalidate();
-                Update();
+                if (_frequency != value)
+                {
+                    _frequency = value;
+                    PositionCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -185,9 +206,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _filterBandwidth = value;
-                GenerateCursor();
-                Invalidate();
+                if (_filterBandwidth != value)
+                {
+                    _filterBandwidth = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -199,9 +223,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _frequencyOffset = value;
-                GenerateCursor();
-                Invalidate();
+                if (_frequencyOffset != value)
+                {
+                    _frequencyOffset = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -213,9 +240,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _bandType = value;
-                GenerateCursor();
-                Invalidate();
+                if (_bandType != value)
+                {
+                    _bandType = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -228,8 +258,6 @@ namespace SDRSharp.PanView
             set
             {
                 _highDefinition = value;
-                Draw();
-                Invalidate();
             }
         }
 
@@ -251,7 +279,7 @@ namespace SDRSharp.PanView
                 _spectrum[i] = _spectrum[i] * (1 - ratio) + spectrum[i] * ratio;
             }
             Draw();
-            Invalidate();
+            _performNeeded = true;
         }
 
         private void Draw()
@@ -591,14 +619,14 @@ namespace SDRSharp.PanView
         {
             base.OnMouseEnter(e);
             _mouseIn = true;
-            Invalidate();
+            _performNeeded = true;
         }
 
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
             _mouseIn = false;
-            Invalidate();
+            _performNeeded = true;
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)

@@ -205,32 +205,34 @@ namespace SDRSharp
             if (_fftStream.Length >= _fftBins)
             {
                 _fftStream.Read(_iqBuffer, 0, _fftBins);
-            }
-            var excessBuffer = _fftStream.Length - _audioControl.BufferSize;
-            if (excessBuffer > 0)
-            {
-                _fftStream.Advance(excessBuffer);
-            }
-            Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
-            Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-            Fourier.ForwardTransform(_fftBuffer, _fftBins);
-            Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
+                var excessBuffer = _fftStream.Length - _audioControl.BufferSize;
+                if (excessBuffer > 0)
+                {
+                    _fftStream.Advance(excessBuffer);
+                }
+                Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
+                Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+                Fourier.ForwardTransform(_fftBuffer, _fftBins);
+                Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
 
-            if (!panSplitContainer.Panel1Collapsed)
-            {
-                spectrumAnalyzer.Render(_spectrumPower, _fftBins);
+                if (!panSplitContainer.Panel1Collapsed)
+                {
+                    spectrumAnalyzer.Render(_spectrumPower, _fftBins);
+                }
+                if (!panSplitContainer.Panel2Collapsed)
+                {
+                    waterfall.Render(_spectrumPower, _fftBins);
+                }
             }
-            if (!panSplitContainer.Panel2Collapsed)
-            {
-                waterfall.Render(_spectrumPower, _fftBins);
-            }
+
+            spectrumAnalyzer.Perform();
+            waterfall.Perform();
         }
 
         private void soundCardRadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (soundCardRadioButton.Checked)
             {
-                displayTimer.Enabled = false;
                 _audioControl.Stop();
                 wavFileTextBox.Enabled = false;
                 fileSelectButton.Enabled = false;
@@ -247,7 +249,6 @@ namespace SDRSharp
         {
             if (wavFileRadioButton.Checked)
             {
-                displayTimer.Enabled = false;
                 _audioControl.Stop();
                 wavFileTextBox.Enabled = true;
                 fileSelectButton.Enabled = true;
@@ -321,7 +322,6 @@ namespace SDRSharp
             try
             {
                 _audioControl.Play();
-                displayTimer.Enabled = true;
                 playButton.Enabled = false;
                 stopButton.Enabled = true;
                 sampleRateComboBox.Enabled = false;
@@ -337,13 +337,15 @@ namespace SDRSharp
 
         private void stopButton_Click(object sender, EventArgs e)
         {
-            displayTimer.Enabled = false;
             _audioControl.Stop();
-            _fftStream.Close();
+            _fftStream.Flush();
             playButton.Enabled = true;
             stopButton.Enabled = false;
-            sampleRateComboBox.Enabled = true;
-            inputDeviceComboBox.Enabled = true;
+            if (soundCardRadioButton.Checked)
+            {
+                sampleRateComboBox.Enabled = true;
+                inputDeviceComboBox.Enabled = true;
+            }
             outputDeviceComboBox.Enabled = true;
             bufferSizeNumericUpDown.Enabled = true;
         }
@@ -358,17 +360,11 @@ namespace SDRSharp
             waterfall.Frequency = (int) frequencyNumericUpDown.Value;
             spectrumAnalyzer.Frequency = (int) frequencyNumericUpDown.Value;
             _vfo.Frequency = waterfall.Frequency - (int) centerFreqNumericUpDown.Value;
-            frequencyNumericUpDown.Update();
-            if (_audioControl.SampleRate > 0)
-            {
-                displayTimer_Tick(null, null);
-            }
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             var newCenterFreq = (int) centerFreqNumericUpDown.Value;
-            spectrumAnalyzer.CenterFrequency = newCenterFreq;
             waterfall.CenterFrequency = newCenterFreq;
             spectrumAnalyzer.CenterFrequency = newCenterFreq;
 

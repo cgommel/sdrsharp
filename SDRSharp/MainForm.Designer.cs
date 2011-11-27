@@ -245,6 +245,7 @@ namespace SDRSharp
             // 
             // centerFreqNumericUpDown
             // 
+            this.centerFreqNumericUpDown.CausesValidation = false;
             this.centerFreqNumericUpDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.centerFreqNumericUpDown.Increment = new decimal(new int[] {
             1000,
@@ -715,6 +716,7 @@ namespace SDRSharp
             // 
             // displayTimer
             // 
+            this.displayTimer.Enabled = true;
             this.displayTimer.Interval = 50;
             this.displayTimer.Tick += new System.EventHandler(this.displayTimer_Tick);
             // 

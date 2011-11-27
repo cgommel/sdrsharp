@@ -10,6 +10,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
 
+        private bool _performNeeded;
         private double[] _spectrum;
         private Bitmap _buffer;
         private Graphics _graphics;
@@ -55,14 +56,16 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _spectrumWidth = value;
-                if (_spectrumWidth > 0)
+                if (_spectrumWidth != value)
                 {
-                    _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
+                    _spectrumWidth = value;
+                    if (_spectrumWidth > 0)
+                    {
+                        _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
+                    }
+                    GenerateCursor();
+                    _performNeeded = true;
                 }
-                GenerateCursor();
-                Draw();
-                Invalidate();
             }
         }
 
@@ -74,10 +77,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _filterBandwidth = value;
-                GenerateCursor();
-                Draw();
-                Invalidate();
+                if (_filterBandwidth != value)
+                {
+                    _filterBandwidth = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -89,10 +94,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _offset = value;
-                GenerateCursor();
-                Draw();
-                Invalidate();
+                if (_offset != value)
+                {
+                    _offset = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -104,10 +111,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _bandType = value;
-                GenerateCursor();
-                Draw();
-                Invalidate();
+                if (_bandType != value)
+                {
+                    _bandType = value;
+                    GenerateCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -119,11 +128,12 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _frequency = value;
-                PositionCursor();
-                Draw();
-                Invalidate();
-                Update();
+                if (_frequency != value)
+                {
+                    _frequency = value;
+                    PositionCursor();
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -135,9 +145,11 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _centerFrequency = value;
-                Draw();
-                Invalidate();
+                if (_centerFrequency != value)
+                {
+                    _centerFrequency = value;
+                    _performNeeded = true;
+                }
             }
         }
 
@@ -149,7 +161,19 @@ namespace SDRSharp.PanView
             }
             set
             {
-                _highDefinition = value;
+                if (_highDefinition != value)
+                {
+                    _highDefinition = value;
+                    _performNeeded = true;
+                }
+            }
+        }
+
+        public void Perform()
+        {
+            if (_performNeeded)
+            {
+                _performNeeded = false;
                 Draw();
                 Invalidate();
             }
@@ -239,8 +263,7 @@ namespace SDRSharp.PanView
                 var ratio = _spectrum[i] < spectrum[i] ? attack : decay;
                 _spectrum[i] = _spectrum[i] * (1 - ratio) + spectrum[i] * ratio;
             }
-            Draw();
-            Invalidate();
+            _performNeeded = true;
         }
 
         private void Draw()
