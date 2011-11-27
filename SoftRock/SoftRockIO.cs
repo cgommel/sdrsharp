@@ -7,11 +7,7 @@ namespace SDRSharp.SoftRock
 {
     public class SoftRockIO : IFrontendController, IDisposable
     {
-        private readonly Queue<int> _frequencyQueue = new Queue<int>();
-        private Thread _worker;
         private IntPtr _srHandle;
-        private int _frequency;
-        private bool _terminated;
 
         public void Dispose()
         {
@@ -31,19 +27,6 @@ namespace SDRSharp.SoftRock
                 string.Empty,
                 string.Empty,
                 string.Empty);
-
-            _frequency = Frequency;
-
-            if (IsOpen)
-            {
-                _terminated = false;
-                _worker = new Thread(SetFrequency);
-                _worker.Start();
-            }
-            else
-            {
-                throw new ApplicationException("Unable to acquire SoftRock driver");
-            }
         }
 
         public void Close()
@@ -52,12 +35,6 @@ namespace SDRSharp.SoftRock
             {
                 NativeUsb.srClose();
                 _srHandle = IntPtr.Zero;
-                _terminated = true;
-                if (_worker != null)
-                {
-                    _worker.Join();
-                    _worker = null;
-                }
             }
         }
 
@@ -77,49 +54,7 @@ namespace SDRSharp.SoftRock
             }
             set
             {
-                _frequencyQueue.Enqueue(value);
-            }
-        }
-
-        private void SetFrequency(object parameter)
-        {
-            while (!_terminated)
-            {
-                if (_frequencyQueue.Count > 0)
-                {
-                    var frequency = _frequencyQueue.Dequeue();
-
-                    #region Change the frequency slowly
-
-                    if (frequency != _frequency)
-                    {
-                        var diff = frequency - _frequency;
-                        if (Math.Abs(diff) > 10000)
-                        {
-                            SetSi570Frequency(frequency);
-                        }
-                        else
-                        {
-                            var start = DateTime.Now;
-                            var direction = Math.Sign(diff);
-                            var maxStep = 200;//frequency / 1000000;
-                            for (var f = _frequency; direction > 0 ? f < frequency : f > frequency; f += direction * maxStep)
-                            {
-                                SetSi570Frequency(f);
-                            }
-                            SetSi570Frequency(frequency);
-                            var ts = (DateTime.Now - start).TotalMilliseconds;
-                            Console.WriteLine("Changed frequency in " + ts + "ms");
-                        }
-                        _frequency = frequency;
-                    }
-
-                    #endregion
-                }
-                else
-                {
-                    Thread.Sleep(100);
-                }
+                SetSi570Frequency(value);
             }
         }
 
