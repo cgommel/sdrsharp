@@ -149,7 +149,7 @@ namespace SDRSharp
                 }
                 _frontendController = null;
                 MessageBox.Show(
-                    frontendName + " driver is not working properly.\n\nIts support will be disabled.",
+                    frontendName + " is either not connected or its driver is not working properly.",
                     "Information",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);

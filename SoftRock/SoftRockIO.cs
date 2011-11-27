@@ -40,6 +40,10 @@ namespace SDRSharp.SoftRock
                 _worker = new Thread(SetFrequency);
                 _worker.Start();
             }
+            else
+            {
+                throw new ApplicationException("Unable to acquire SoftRock driver");
+            }
         }
 
         public void Close()
