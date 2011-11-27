@@ -19,7 +19,8 @@
         {
             for (var i = 0; i < buffer.Length; i++)
             {
-                _mean = _mean * (1 - _ratio) + buffer[i] * _ratio;
+                var m = _mean * (1 - _ratio) + buffer[i] * _ratio;
+                _mean = double.IsNaN(m) || double.IsInfinity(m) ? _mean : m;
                 buffer[i] = buffer[i] - _mean;
             }
         }
