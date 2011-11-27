@@ -28,7 +28,7 @@ namespace PortAudioSharp
 	///	<summary>
 	///		PortAudio v.19 bindings for .NET
 	///	</summary>
-	public static class PortAudioAPI
+	static class PortAudioAPI
     {
         #region **** PORTAUDIO CONSTANTS ****
 
@@ -327,7 +327,7 @@ namespace PortAudioSharp
     #region **** PORTAUDIO CALLBACKS ****
     
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate PaStreamCallbackResult PaStreamCallbackDelegate(
+    delegate PaStreamCallbackResult PaStreamCallbackDelegate(
  		IntPtr input,
  		IntPtr output,
  		uint frameCount, 
@@ -343,7 +343,7 @@ namespace PortAudioSharp
 	#region **** PORTAUDIO DATA STRUCTURES ****
 	
 	[StructLayout (LayoutKind.Sequential)]
-	public struct PaDeviceInfo {
+	struct PaDeviceInfo {
 		
 		public int structVersion;
 		[MarshalAs (UnmanagedType.LPStr)]
@@ -372,7 +372,7 @@ namespace PortAudioSharp
 	}
 	
 	[StructLayout (LayoutKind.Sequential)]
-	public struct PaHostApiInfo {
+	struct PaHostApiInfo {
 		
 		public int structVersion;
 		public PaHostApiTypeId type;
@@ -394,7 +394,7 @@ namespace PortAudioSharp
 	}
 	
 	[StructLayout (LayoutKind.Sequential)]
-	public struct PaHostErrorInfo {
+	struct PaHostErrorInfo {
 		
 		public PaHostApiTypeId 	hostApiType;
 		public int errorCode;
@@ -410,7 +410,7 @@ namespace PortAudioSharp
 	}
 	
 	[StructLayout (LayoutKind.Sequential)]
-	public struct PaStreamCallbackTimeInfo {
+	struct PaStreamCallbackTimeInfo {
 		
 		public double inputBufferAdcTime;
  		public double currentTime;
@@ -425,7 +425,7 @@ namespace PortAudioSharp
  	}
  	
  	[StructLayout (LayoutKind.Sequential)]
-	public struct PaStreamInfo {
+	struct PaStreamInfo {
  		
 		public int structVersion;
 		public double inputLatency;
@@ -442,7 +442,7 @@ namespace PortAudioSharp
 	}
  	
 	[StructLayout (LayoutKind.Sequential)]
-	public struct PaStreamParameters {
+	struct PaStreamParameters {
 		
 		public int device;
 		public int channelCount;
@@ -463,13 +463,13 @@ namespace PortAudioSharp
 	
 	#region **** PORTAUDIO DEFINES ****
 	
-	public enum PaDeviceIndex
+	enum PaDeviceIndex
 	{
 		PaNoDevice = -1,
 		PaUseHostApiSpecificDeviceSpecification = -2
 	}
 
-	public enum PaSampleFormat: uint
+	enum PaSampleFormat: uint
 	{
 	   PaFloat32 = 0x00000001,
 	   PaInt32 = 0x00000002,
@@ -481,7 +481,7 @@ namespace PortAudioSharp
 	   PaNonInterleaved = 0x80000000,
 	}
 	
-	public enum PaStreamFlags: uint
+	enum PaStreamFlags: uint
 	{
 		PaNoFlag = 0,
 		PaClipOff = 0x00000001,
@@ -491,7 +491,7 @@ namespace PortAudioSharp
 		PaPlatformSpecificFlags = 0xFFFF0000
 	}
 	
-	public enum PaStreamCallbackFlags: uint
+	enum PaStreamCallbackFlags: uint
 	{
 		PaInputUnderflow = 0x00000001,
 		PaInputOverflow = 0x00000002,
@@ -504,7 +504,7 @@ namespace PortAudioSharp
 	
 	#region **** PORTAUDIO ENUMERATIONS ****
 	
-	public enum PaError {
+	enum PaError {
 		paNoError = 0,
 		paNotInitialized = -10000,
 		paUnanticipatedHostError,
@@ -537,7 +537,7 @@ namespace PortAudioSharp
 	    paBadBufferPtr
 	}
 	
-	public enum PaHostApiTypeId : uint {
+	enum PaHostApiTypeId : uint {
 		paInDevelopment=0,
 	    paDirectSound=1,
 	    paMME=2,
@@ -554,7 +554,7 @@ namespace PortAudioSharp
 	    paAudioScienceHPI=14
 	}
 	
-	public enum PaStreamCallbackResult : uint { 
+	enum PaStreamCallbackResult : uint { 
 		PaContinue = 0, 
 		PaComplete = 1, 
 		PaAbort = 2 
