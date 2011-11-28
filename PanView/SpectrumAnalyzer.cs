@@ -327,17 +327,13 @@ namespace SDRSharp.PanView
                         {
                             f = "DC";
                         }
-                        else if (frequency % 1000000 == 0)
+                        else if (Math.Abs(frequency) > 30000000)
                         {
-                            f = (frequency / 1000000) + "MHz";
+                            f = string.Format("{0:0,0.000}MHz", frequency / 1000000.0);
                         }
-                        else if (frequency % 1000 == 0)
+                        else if (Math.Abs(frequency) > 1000)
                         {
-                            f = (frequency / 1000) + "kHz";
-                        }
-                        else if (frequency % 100 == 0)
-                        {
-                            f = (frequency / 1000.0) + "kHz";
+                            f = string.Format("{0:0,0}kHz", frequency / 1000.0);
                         }
                         else
                         {
@@ -447,7 +443,7 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.DrawImage(_buffer, 0, 0);
+            e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
         }
 
         protected override void OnResize(EventArgs e)

@@ -46,6 +46,7 @@ namespace SDRSharp.PanView
         private bool _mouseIn;
         private int _oldX;
         private int _oldCenterFrequency;
+        private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
         public Waterfall()
@@ -55,6 +56,8 @@ namespace SDRSharp.PanView
             _cursor = new Bitmap(10, 10);
             _graphics = Graphics.FromImage(_buffer);
             _graphics2 = Graphics.FromImage(_buffer2);
+            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+            _gradientBrush.InterpolationColors = _gradientColorBlend;
         }
 
         private static ColorBlend GetGradientBlend()
@@ -104,7 +107,9 @@ namespace SDRSharp.PanView
         {
             _buffer.Dispose();
             _graphics.Dispose();
+            _graphics2.Dispose();
             _cursor.Dispose();
+            _gradientBrush.Dispose();
         }
 
         public void Perform()
@@ -134,9 +139,7 @@ namespace SDRSharp.PanView
                 {
                     _gradientColorBlend = value;
 
-                    _graphics.SmoothingMode = SmoothingMode.None;
                     DrawGradient();
-                    _graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
                     _performNeeded = true;
                 }
@@ -296,9 +299,10 @@ namespace SDRSharp.PanView
             #region Shift image
 
             // Yes, GDI is such an abomination in .NET ...
-            var rect = new Rectangle(AxisMargin, 2, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2);
-            _graphics2.DrawImage(_buffer, 0, 0);
-            _graphics.DrawImage(_buffer2, rect, AxisMargin, 1, _buffer.Width - 2 * AxisMargin, _buffer.Height - 2, GraphicsUnit.Pixel);
+            _graphics.SmoothingMode = SmoothingMode.HighSpeed;
+            _graphics2.DrawImageUnscaled(_buffer, 0, 0);
+            _graphics.DrawImageUnscaled(_buffer2, 0, 1);
+            DrawGradient();
 
             #endregion
 
@@ -322,6 +326,8 @@ namespace SDRSharp.PanView
             {
                 return;
             }
+
+            _graphics.SmoothingMode = SmoothingMode.HighQuality;
 
             var x = 0f;
             var xIncrement = (ClientRectangle.Width - 2f * AxisMargin) / _spectrum.Length;
@@ -377,18 +383,18 @@ namespace SDRSharp.PanView
                 using (var bmp = (Bitmap) _buffer.Clone())
                 using (var g = Graphics.FromImage(bmp))
                 {
-                    g.DrawImage(_buffer, 0, 0);
+                    g.DrawImageUnscaled(_buffer, 0, 0);
 
                     if (_spectrumWidth > 0)
                     {
                         g.DrawImage(_cursor, _lower, 0f);
                     }
-                    e.Graphics.DrawImage(bmp, 0, 0);
+                    e.Graphics.DrawImageUnscaled(bmp, 0, 0);
                 }
             }
             else
             {
-                e.Graphics.DrawImage(_buffer, 0, 0);
+                e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
             }
         }
 
@@ -486,27 +492,32 @@ namespace SDRSharp.PanView
             {
                 _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
             }
+            _gradientBrush.Dispose();
+            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+            _gradientBrush.InterpolationColors = _gradientColorBlend;
             DrawGradient();
 
             _graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            _graphics2.SmoothingMode = SmoothingMode.HighSpeed;
             GenerateCursor();
             Invalidate();
         }
 
         private void DrawGradient()
         {
-            using (var gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical))
+            _graphics.SmoothingMode = SmoothingMode.HighSpeed;
+            using (var pen = new Pen(_gradientBrush, 10))
             {
-                gradientBrush.InterpolationColors = _gradientColorBlend;
-                using (var pen = new Pen(gradientBrush))
-                {
-                    pen.Width = 10;
-                    _graphics.DrawLine(pen,
-                                       ClientRectangle.Width - AxisMargin/2,
-                                       ClientRectangle.Height - AxisMargin/2,
-                                       ClientRectangle.Width - AxisMargin/2,
-                                       AxisMargin / 2);
-                }
+                _graphics.FillRectangle(Brushes.Black,
+                                   ClientRectangle.Width - AxisMargin,
+                                   0,
+                                   AxisMargin,
+                                   ClientRectangle.Height);
+                _graphics.DrawLine(pen,
+                                   ClientRectangle.Width - AxisMargin / 2,
+                                   ClientRectangle.Height - AxisMargin / 2,
+                                   ClientRectangle.Width - AxisMargin / 2,
+                                   AxisMargin / 2);
             }
         }
 
