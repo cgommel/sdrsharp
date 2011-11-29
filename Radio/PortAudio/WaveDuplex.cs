@@ -47,7 +47,7 @@ namespace SDRSharp.Radio.PortAudio
                 throw new ApplicationException(pe.ToString());
             }
 
-            PortAudioAPI.Pa_StartStream(_streamHandle);
+            pe = PortAudioAPI.Pa_StartStream(_streamHandle);
             if (pe != PaError.paNoError)
             {
                 PortAudioAPI.Pa_CloseStream(_streamHandle);
@@ -57,12 +57,12 @@ namespace SDRSharp.Radio.PortAudio
         }
 
         private static PaStreamCallbackResult PaStreamCallback(
-	 		IntPtr input,
-	 		IntPtr output,
-	 		uint frameCount,
+             IntPtr input,
+             IntPtr output,
+             uint frameCount,
             ref PaStreamCallbackTimeInfo timeInfo,
             PaStreamCallbackFlags statusFlags,
-	 		IntPtr userData)
+             IntPtr userData)
         {
             #region GC boilerplate
 
@@ -81,21 +81,21 @@ namespace SDRSharp.Radio.PortAudio
             }
 
             try
-	 		{
+            {
                 if (instance._bufferAvailable != null)
                 {
                     Marshal.Copy(input, instance._callbackBuffer, 0, (int) frameCount * 2);
                     instance._bufferAvailable(instance._callbackBuffer);
                     Marshal.Copy(instance._callbackBuffer, 0, output, (int) frameCount * 2);
                 }
-	 		}
+            }
             catch
             {
                 return PaStreamCallbackResult.PaAbort;
             }
 
             return PaStreamCallbackResult.PaContinue;
-	 	}
+         }
 
         public void Dispose()
         {
