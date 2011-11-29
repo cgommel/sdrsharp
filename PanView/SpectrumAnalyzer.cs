@@ -16,8 +16,7 @@ namespace SDRSharp.PanView
         private Graphics _graphics;
         private int _spectrumWidth;
         private int _centerFrequency;
-        private bool _highDefinition;
-
+        private PointF[] _points;
         private Bitmap _cursor;
         private BandType _bandType;
         private int _filterBandwidth;
@@ -153,22 +152,6 @@ namespace SDRSharp.PanView
             }
         }
 
-        public bool HighDefinition
-        {
-            get
-            {
-                return _highDefinition;
-            }
-            set
-            {
-                if (_highDefinition != value)
-                {
-                    _highDefinition = value;
-                    _performNeeded = true;
-                }
-            }
-        }
-
         public void Perform()
         {
             if (_performNeeded)
@@ -250,6 +233,7 @@ namespace SDRSharp.PanView
         {
             if (_spectrum == null || _spectrum.Length != length)
             {
+                _points = new PointF[length];
                 _spectrum = new double[length];
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
@@ -297,12 +281,12 @@ namespace SDRSharp.PanView
                 var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / 10.0f;
                 for (var i = 1; i <= 10; i++)
                 {
-                    _graphics.DrawLine(squarePen, AxisMargin + xIncrement * i, AxisMargin, AxisMargin + xIncrement * i, ClientRectangle.Height - AxisMargin);
+                    _graphics.DrawLine(squarePen, (int) (AxisMargin + xIncrement * i), AxisMargin, (int) (AxisMargin + xIncrement * i), ClientRectangle.Height - AxisMargin);
                 }
                 var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 12.0f;
                 for (var i = 1; i <= 12; i++)
                 {
-                    _graphics.DrawLine(squarePen, AxisMargin, ClientRectangle.Height - AxisMargin - i * yIncrement, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin - i * yIncrement);
+                    _graphics.DrawLine(squarePen, AxisMargin, (int) (ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int) (ClientRectangle.Height - AxisMargin - i * yIncrement));
                 }
                 
                 // Decibel line
@@ -357,14 +341,7 @@ namespace SDRSharp.PanView
 
             #region Draw Spectrum
 
-            if (_highDefinition)
-            {
-                DrawSpectrumHD();
-            }
-            else
-            {
-                DrawSpectrumLD();
-            }
+            DrawSpectrum();
 
             #endregion
 
@@ -375,10 +352,8 @@ namespace SDRSharp.PanView
             #endregion
         }
 
-        private void DrawSpectrumHD()
+        private void DrawSpectrum()
         {
-            var x = 0f;
-            var y = 0f;
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrum.Length;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 120f;
 
@@ -391,53 +366,11 @@ namespace SDRSharp.PanView
                     strenght = Math.Min(strenght, 120f);
                     var newX = i*xIncrement;
                     var newY = ClientRectangle.Height - AxisMargin - strenght*yIncrement;
-                    if (y == 0)
-                    {
-                        y = newY;
-                    }
-                    _graphics.DrawLine(spectrumPen,
-                                       AxisMargin + x,
-                                       y,
-                                       AxisMargin + newX,
-                                       newY);
-                    x = newX;
-                    y = newY;
+                    
+                    _points[i].X = AxisMargin + newX;
+                    _points[i].Y = newY;
                 }
-            }
-        }
-
-        private void DrawSpectrumLD()
-        {
-            var x = 0;
-            var y = 0;
-            var xPixelCount = ClientRectangle.Width - 2 * AxisMargin;
-            var xPixelsPerFFTBins = _spectrum.Length / (float)xPixelCount;
-            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 120f;
-
-            _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
-
-            using (var spectrumPen = new Pen(Color.LimeGreen))
-            {
-                for (var i = 0; i < xPixelCount; i++)
-                {
-                    var strenght = (float) _spectrum[(int)(i * xPixelsPerFFTBins)] + 120f;
-                    strenght = Math.Max(strenght, 0);
-                    strenght = Math.Min(strenght, 120f);
-
-                    var newX = i;
-                    var newY = ClientRectangle.Height - AxisMargin - (int)(strenght * yIncrement);
-                    if (y == 0)
-                    {
-                        y = newY;
-                    }
-                    _graphics.DrawLine(spectrumPen,
-                                       AxisMargin + x,
-                                       y,
-                                       AxisMargin + newX,
-                                       newY);
-                    x = newX;
-                    y = newY;
-                }
+                _graphics.DrawLines(spectrumPen, _points);
             }
         }
 

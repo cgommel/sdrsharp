@@ -509,7 +509,6 @@ namespace SDRSharp
         private void highDefinitionCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             waterfall.HighDefinition = highDefinitionCheckBox.Checked;
-            spectrumAnalyzer.HighDefinition = highDefinitionCheckBox.Checked;
             _fftBins = highDefinitionCheckBox.Checked ? MaxFFTBins : MinFFTBins;
             BuildFFTWindow();
         }
