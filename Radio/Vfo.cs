@@ -3,13 +3,17 @@
 #endif
 
 using System;
+#if !MANAGED_ONLY
 using System.Runtime.InteropServices;
+#endif
 
 namespace SDRSharp.Radio
 {
     public class Vfo
     {
         #region FIR Filter PInvokes
+
+#if !MANAGED_ONLY
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void InitAudio(double[] coeffs, int len);
@@ -22,6 +26,8 @@ namespace SDRSharp.Radio
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessIQ([In, Out] Complex[] buffer, int len);
+
+#endif
 
         #endregion
 
