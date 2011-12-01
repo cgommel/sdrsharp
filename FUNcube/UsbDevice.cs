@@ -11,7 +11,6 @@ namespace SDRSharp.FUNcube
         {
             deviceId = deviceId.ToLower();
             FileStream file = null;
-            PspDeviceInterfaceDetailData interfaceDetail;
 
             Guid guid;
             UsbAPI.HidD_GetHidGuid(out guid);
@@ -43,7 +42,7 @@ namespace SDRSharp.FUNcube
                     out requiredSize,
                     IntPtr.Zero);
                 
-                interfaceDetail = new PspDeviceInterfaceDetailData();
+                var interfaceDetail = new PspDeviceInterfaceDetailData();
                 interfaceDetail.cbSize = 5;
                 UsbAPI.SetupDiGetDeviceInterfaceDetail(
                     hDevInfo,
