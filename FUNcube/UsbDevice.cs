@@ -76,6 +76,11 @@ namespace SDRSharp.FUNcube
             }
 
             UsbAPI.SetupDiDestroyDeviceInfoList(hDevInfo);
+
+            if (file == null)
+            {
+                throw new ApplicationException("Device not found");
+            }
             
             return file;
         }
