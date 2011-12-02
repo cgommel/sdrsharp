@@ -209,6 +209,10 @@ namespace SDRSharp.Radio
                 _lsbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency += _lsbDetector.BfoFrequency;
             }
+            else if (_detectorType == DetectorType.FM)
+            {
+                _fmDetector.SampleRate = _sampleRate;
+            }
         }
 
         private void InitFilters()
