@@ -16,7 +16,8 @@ namespace SDRSharp.Radio
         private double _noiseLevel;
         private int _sampleRate;
         private double _noiseAveragingRatio;
-        private double _squelchThreshold = 0.07;
+        private int _squelchThreshold;
+        private double _noiseThreshold;
 
         public void Demodulate(Complex[] iq, double[] audio)
         {
@@ -39,19 +40,23 @@ namespace SDRSharp.Radio
             {
                 f /= m;
             }
+
             // Angle estimate
             var a = f.Argument();
 
             // Squelch
-            var hiss = _hissFilter.Process(a);
-            var n = (1 - _noiseAveragingRatio) * _noiseLevel + _noiseAveragingRatio * Math.Abs(hiss);
-            if (!double.IsNaN(n))
+            if (_squelchThreshold > 0)
             {
-                _noiseLevel = n;
-            }
-            if (_noiseLevel > SquelchThreshold)
-            {
-                return 0;
+                var hiss = _hissFilter.Process(a);
+                var n = (1 - _noiseAveragingRatio) * _noiseLevel + _noiseAveragingRatio * Math.Abs(hiss);
+                if (!double.IsNaN(n))
+                {
+                    _noiseLevel = n;
+                }
+                if (_noiseLevel > _noiseThreshold)
+                {
+                    return 0;
+                }
             }
 
             return a * AFGain;
@@ -71,15 +76,20 @@ namespace SDRSharp.Radio
             set
             {
                 _sampleRate = value;
-                _noiseAveragingRatio = 100.0 / _sampleRate;
-                _hissFilter = new FirFilter(FilterBuilder.MakeHighPassKernel(_sampleRate, 5, 10000, WindowType.Blackman));
+                _noiseAveragingRatio = 150.0 / _sampleRate;
+                var hpf = FilterBuilder.MakeHighPassKernel(_sampleRate, 5, 3000, WindowType.Blackman);
+                _hissFilter = new FirFilter(hpf);
             }
         }
 
-        public double SquelchThreshold
+        public int SquelchThreshold
         {
             get { return _squelchThreshold; }
-            set { _squelchThreshold = value; }
+            set
+            {
+                _squelchThreshold = value;
+                _noiseThreshold = Math.Log10(2 - _squelchThreshold / 100.0);
+            }
         }
     }
 }

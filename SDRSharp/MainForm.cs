@@ -77,6 +77,7 @@ namespace SDRSharp
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
             _vfo.FilterOrder = 300;
+            _vfo.FmSquelch = 50;
             _vfo.UseAGC = true;
             _vfo.AgcAttack = 800;
             _vfo.AgcDecay = 50;
@@ -360,6 +361,7 @@ namespace SDRSharp
 
         private void fmRadioButton_CheckedChanged(object sender, EventArgs e)
         {
+            fmSquelchNumericUpDown.Enabled = fmRadioButton.Checked;
             if (fmRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultFMBandwidth;
@@ -532,6 +534,11 @@ namespace SDRSharp
                 sb.AppendFormat(",{0:X2}{1:X2}{2:X2}", colors[i].R, colors[i].G, colors[i].B);
             }
             return sb.ToString().Substring(1);
+        }
+
+        private void fmSquelchNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _vfo.FmSquelch = (int) fmSquelchNumericUpDown.Value;
         }
     }
 }

@@ -167,6 +167,12 @@ namespace SDRSharp.Radio
             set { _agc.Decay = value; }
         }
 
+        public int FmSquelch
+        {
+            get { return _fmDetector.SquelchThreshold; }
+            set { _fmDetector.SquelchThreshold = value; }
+        }
+
         private void Configure()
         {
             _agc.SampleRate = _sampleRate;
