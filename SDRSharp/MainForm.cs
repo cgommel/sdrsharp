@@ -67,9 +67,6 @@ namespace SDRSharp
             }
             _fftBins = MinFFTBins;
 
-            _iqBalancer.ImbalanceEstimationSucceeded += iqBalancer_ImbalanceEstimationSucceeded;
-            _iqBalancer.ImbalanceEstimationFailed += iqBalancer_ImbalanceEstimationFailed;
-
             viewComboBox.SelectedIndex = 2;
             sampleRateComboBox.SelectedIndex = 4;
 
@@ -156,28 +153,6 @@ namespace SDRSharp
             }
         }
 
-        private void iqBalancer_ImbalanceEstimationSucceeded(object sender, EventArgs e)
-        {
-            BeginInvoke(new Action(ShowImbalance));
-        }
-
-        private void ShowImbalance()
-        {
-            var msg = string.Format("Gain\t= {0:F3}\r\nPhase\t= {1:F3}°", _iqBalancer.Gain, _iqBalancer.Phase * 180 / Math.PI);
-            MessageBox.Show(this, msg, "IQ Optimization Finished", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void iqBalancer_ImbalanceEstimationFailed(object sender, EventArgs e)
-        {
-            BeginInvoke(new Action(ShowOptimizationFailure));
-        }
-
-        private void ShowOptimizationFailure()
-        {
-            const string msg = "The IQ balancer was unable to improve the current image rejection.\r\nThere must be other parameters than phase and gain imbalance involved.\r\nYou may have more luck next time :-)";
-            MessageBox.Show(this, msg, "IQ Optimization Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
             _audioControl.Stop();
@@ -193,11 +168,6 @@ namespace SDRSharp
             _iqBalancer.Process(iqBuffer);
             _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
             _vfo.ProcessBuffer(iqBuffer, audioBuffer);
-        }
-
-        private void correctIQButton_Click(object sender, EventArgs e)
-        {
-            _iqBalancer.BalanceIQ();
         }
 
         private void displayTimer_Tick(object sender, EventArgs e)
@@ -521,8 +491,7 @@ namespace SDRSharp
 
         private void autoCorrectIQCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            correctIQButton.Enabled = !autoCorrectIQCheckBox.Checked;
-            _iqBalancer.AutoBalanceIQ = autoCorrectIQCheckBox.Checked;
+            _iqBalancer.AutoBalanceIQ = correctIQCheckBox.Checked;
         }
 
         private void BuildFFTWindow()

@@ -57,7 +57,13 @@ namespace SDRSharp.Radio
                 if (double.IsNaN(buffer[i]))
                 {
                     buffer[i] = 0.0;
+                    continue;
                 }
+                if (buffer[i] == 0.0)
+                {
+                    continue;
+                }
+
                 var peak = Math.Log10(1.0 + 10.0 * Math.Abs(buffer[i]));
 
                 var ratio = (peak > _mean ? _attack : _decay) * TimeConst / _sampleRate;
