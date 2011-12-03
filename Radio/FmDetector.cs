@@ -76,9 +76,9 @@ namespace SDRSharp.Radio
             set
             {
                 _sampleRate = value;
-                _noiseAveragingRatio = 150.0 / _sampleRate;
-                var hpf = FilterBuilder.MakeHighPassKernel(_sampleRate, 5, 3000, WindowType.Blackman);
-                _hissFilter = new FirFilter(hpf);
+                _noiseAveragingRatio = 30.0 / _sampleRate;
+                var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, 21, 3000, 6000, WindowType.BlackmanHarris);
+                _hissFilter = new FirFilter(bpk);
             }
         }
 
