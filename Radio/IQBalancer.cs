@@ -55,10 +55,9 @@ namespace SDRSharp.Radio
 
         public void Process(Complex[] iq)
         {
-            RemoveDC(iq);
-
             if (_autoBalanceIQ)
             {
+                RemoveDC(iq);
                 EstimateImbalance(iq, MaxAutomaticPasses);
                 Adjust(iq, _phase, _gain);
             }
