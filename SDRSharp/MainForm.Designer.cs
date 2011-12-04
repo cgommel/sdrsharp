@@ -109,6 +109,8 @@ namespace SDRSharp
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.label17 = new System.Windows.Forms.Label();
             this.fmSquelchNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label18 = new System.Windows.Forms.Label();
+            this.stepSizeComboBox = new System.Windows.Forms.ComboBox();
             this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
             this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox1.SuspendLayout();
@@ -155,6 +157,8 @@ namespace SDRSharp
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label18);
+            this.groupBox1.Controls.Add(this.stepSizeComboBox);
             this.groupBox1.Controls.Add(this.label17);
             this.groupBox1.Controls.Add(this.fmSquelchNumericUpDown);
             this.groupBox1.Controls.Add(this.label16);
@@ -177,8 +181,8 @@ namespace SDRSharp
             this.groupBox1.Controls.Add(this.frequencyNumericUpDown);
             this.groupBox1.Location = new System.Drawing.Point(12, 42);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(211, 263);
-            this.groupBox1.TabIndex = 6;
+            this.groupBox1.Size = new System.Drawing.Size(211, 288);
+            this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Radio settings";
             // 
@@ -218,11 +222,11 @@ namespace SDRSharp
             this.correctIQCheckBox.AutoSize = true;
             this.correctIQCheckBox.Checked = true;
             this.correctIQCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.correctIQCheckBox.Location = new System.Drawing.Point(44, 238);
+            this.correctIQCheckBox.Location = new System.Drawing.Point(44, 263);
             this.correctIQCheckBox.Name = "correctIQCheckBox";
             this.correctIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.correctIQCheckBox.Size = new System.Drawing.Size(74, 17);
-            this.correctIQCheckBox.TabIndex = 11;
+            this.correctIQCheckBox.TabIndex = 13;
             this.correctIQCheckBox.Text = "Correct IQ";
             this.correctIQCheckBox.UseVisualStyleBackColor = true;
             this.correctIQCheckBox.CheckedChanged += new System.EventHandler(this.autoCorrectIQCheckBox_CheckedChanged);
@@ -262,11 +266,11 @@ namespace SDRSharp
             // 
             this.swapInQCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.swapInQCheckBox.AutoSize = true;
-            this.swapInQCheckBox.Location = new System.Drawing.Point(125, 238);
+            this.swapInQCheckBox.Location = new System.Drawing.Point(125, 263);
             this.swapInQCheckBox.Name = "swapInQCheckBox";
             this.swapInQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.swapInQCheckBox.Size = new System.Drawing.Size(79, 17);
-            this.swapInQCheckBox.TabIndex = 12;
+            this.swapInQCheckBox.TabIndex = 14;
             this.swapInQCheckBox.Text = "Swap I && Q";
             this.swapInQCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.swapInQCheckBox.UseVisualStyleBackColor = true;
@@ -522,7 +526,7 @@ namespace SDRSharp
             this.groupBox2.Controls.Add(this.inputDeviceComboBox);
             this.groupBox2.Controls.Add(this.audioGainNumericUpDown);
             this.groupBox2.Controls.Add(this.label3);
-            this.groupBox2.Location = new System.Drawing.Point(12, 306);
+            this.groupBox2.Location = new System.Drawing.Point(12, 331);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(211, 153);
             this.groupBox2.TabIndex = 6;
@@ -748,8 +752,8 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(720, 613);
-            this.panSplitContainer.SplitterDistance = 232;
+            this.panSplitContainer.Size = new System.Drawing.Size(720, 636);
+            this.panSplitContainer.SplitterDistance = 240;
             this.panSplitContainer.TabIndex = 13;
             // 
             // groupBox3
@@ -759,7 +763,7 @@ namespace SDRSharp
             this.groupBox3.Controls.Add(this.label4);
             this.groupBox3.Controls.Add(this.agcDecayNumericUpDown);
             this.groupBox3.Controls.Add(this.label10);
-            this.groupBox3.Location = new System.Drawing.Point(12, 460);
+            this.groupBox3.Location = new System.Drawing.Point(12, 485);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(211, 71);
             this.groupBox3.TabIndex = 14;
@@ -774,7 +778,7 @@ namespace SDRSharp
             this.groupBox4.Controls.Add(this.label7);
             this.groupBox4.Controls.Add(this.viewComboBox);
             this.groupBox4.Controls.Add(this.highDefinitionCheckBox);
-            this.groupBox4.Location = new System.Drawing.Point(12, 532);
+            this.groupBox4.Location = new System.Drawing.Point(12, 557);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(211, 122);
             this.groupBox4.TabIndex = 15;
@@ -881,6 +885,40 @@ namespace SDRSharp
             0});
             this.fmSquelchNumericUpDown.ValueChanged += new System.EventHandler(this.fmSquelchNumericUpDown_ValueChanged);
             // 
+            // label18
+            // 
+            this.label18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(77, 241);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(50, 13);
+            this.label18.TabIndex = 30;
+            this.label18.Text = "Step size";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // stepSizeComboBox
+            // 
+            this.stepSizeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.stepSizeComboBox.FormattingEnabled = true;
+            this.stepSizeComboBox.Items.AddRange(new object[] {
+            "10 Hz",
+            "100 Hz",
+            "1 kHz",
+            "2.5 kHz",
+            "5 kHz",
+            "8.33 kHz",
+            "9 kHz",
+            "10 kHz",
+            "12.5 kHz",
+            "25 kHz",
+            "50 kHz",
+            "100 kHz"});
+            this.stepSizeComboBox.Location = new System.Drawing.Point(132, 237);
+            this.stepSizeComboBox.Name = "stepSizeComboBox";
+            this.stepSizeComboBox.Size = new System.Drawing.Size(72, 21);
+            this.stepSizeComboBox.TabIndex = 11;
+            this.stepSizeComboBox.SelectedIndexChanged += new System.EventHandler(this.stepSizeComboBox_SelectedIndexChanged);
+            // 
             // spectrumAnalyzer
             // 
             this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
@@ -891,7 +929,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
             this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(720, 232);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(720, 240);
             this.spectrumAnalyzer.SpectrumWidth = 0;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
@@ -907,7 +945,7 @@ namespace SDRSharp
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
             this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(720, 377);
+            this.waterfall.Size = new System.Drawing.Size(720, 392);
             this.waterfall.SpectrumWidth = 0;
             this.waterfall.TabIndex = 0;
             this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
@@ -917,7 +955,7 @@ namespace SDRSharp
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(961, 664);
+            this.ClientSize = new System.Drawing.Size(961, 687);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.panSplitContainer);
@@ -982,5 +1020,7 @@ namespace SDRSharp
         private ComboBox frontEndComboBox;
         private Label label17;
         private NumericUpDown fmSquelchNumericUpDown;
+        private Label label18;
+        private ComboBox stepSizeComboBox;
     }
 }

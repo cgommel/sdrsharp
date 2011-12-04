@@ -96,12 +96,12 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Value = 0;
 
+            stepSizeComboBox.SelectedIndex = 2;
+
             var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
 
             foreach (string key in frontendPlugins.Keys)
             {
-                frontEndComboBox.Items.Add(key);
-
                 var fullyQualifiedTypeName = (string) frontendPlugins[key];
                 var patterns = fullyQualifiedTypeName.Split(',');
                 var typeName = patterns[0];
@@ -109,6 +109,7 @@ namespace SDRSharp
                 var objectHandle = Activator.CreateInstance(assemblyName, typeName);
                 var controller = (IFrontendController) objectHandle.Unwrap();
                 _frontendControllers.Add(key, controller);
+                frontEndComboBox.Items.Add(key);
             }
 
             frontEndComboBox.Items.Add("Other");
@@ -539,6 +540,23 @@ namespace SDRSharp
         private void fmSquelchNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.FmSquelch = (int) fmSquelchNumericUpDown.Value;
+        }
+
+        private void stepSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var match = Regex.Match(stepSizeComboBox.Text, "([0-9\\.]+) kHz", RegexOptions.None);
+            if (match.Success)
+            {
+                centerFreqNumericUpDown.Increment = (int) (double.Parse(match.Groups[1].Value) * 1000);
+            }
+            else
+            {
+                match = Regex.Match(stepSizeComboBox.Text, "([0-9]+) Hz", RegexOptions.None);
+                if (match.Success)
+                {
+                    centerFreqNumericUpDown.Increment = int.Parse(match.Groups[1].Value);
+                }
+            }
         }
     }
 }
