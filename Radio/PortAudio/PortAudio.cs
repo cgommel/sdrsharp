@@ -35,11 +35,7 @@ namespace PortAudioSharp
         public const int PaFormatIsSupported = 0;
         public const int PaFramesPerBufferUnspecified = 0;
 		
-#if __MonoCS__
-		private const string PortAudioLibrary = "libportaudio.so";
-#else
-		private const string PortAudioLibrary = "PortAudio.dll";
-#endif		
+        private const string PortAudioLibrary = "portaudio";
 
         #endregion
 
