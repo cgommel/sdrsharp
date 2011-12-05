@@ -102,14 +102,21 @@ namespace SDRSharp
 
             foreach (string key in frontendPlugins.Keys)
             {
-                var fullyQualifiedTypeName = (string) frontendPlugins[key];
-                var patterns = fullyQualifiedTypeName.Split(',');
-                var typeName = patterns[0];
-                var assemblyName = patterns[1];
-                var objectHandle = Activator.CreateInstance(assemblyName, typeName);
-                var controller = (IFrontendController) objectHandle.Unwrap();
-                _frontendControllers.Add(key, controller);
-                frontEndComboBox.Items.Add(key);
+                try
+                {
+                    var fullyQualifiedTypeName = (string) frontendPlugins[key];
+                    var patterns = fullyQualifiedTypeName.Split(',');
+                    var typeName = patterns[0];
+                    var assemblyName = patterns[1];
+                    var objectHandle = Activator.CreateInstance(assemblyName, typeName);
+                    var controller = (IFrontendController) objectHandle.Unwrap();
+                    _frontendControllers.Add(key, controller);
+                    frontEndComboBox.Items.Add(key);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading '" + frontendPlugins[key] + "' - " + ex.Message);
+                }
             }
 
             frontEndComboBox.Items.Add("Other");
