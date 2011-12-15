@@ -193,7 +193,9 @@ namespace SDRSharp
                 Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
                 Fourier.ForwardTransform(_fftBuffer, _fftBins);
                 Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
-
+            }
+            if (!playButton.Enabled)
+            {
                 if (!panSplitContainer.Panel1Collapsed)
                 {
                     spectrumAnalyzer.Render(_spectrumPower, _fftBins);
