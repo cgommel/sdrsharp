@@ -155,6 +155,7 @@ namespace SDRSharp.PanView
                     _gradientBrush.InterpolationColors = _gradientColorBlend;
                     
                     DrawGradient();
+                    BuildGradientVector();
 
                     _performNeeded = true;
                 }
@@ -481,8 +482,8 @@ namespace SDRSharp.PanView
             {
                 _graphics.FillRectangle(bkgBrush, ClientRectangle);
             }
-            var rect = new Rectangle(AxisMargin, 1, _buffer.Width - 2 * AxisMargin, _buffer.Height);
-            _graphics.DrawImage(oldBuffer, rect, AxisMargin, 1, oldBuffer.Width - 2 * AxisMargin, oldBuffer.Height, GraphicsUnit.Pixel);
+            var rect = new Rectangle(AxisMargin, 0, _buffer.Width - 2 * AxisMargin, _buffer.Height);
+            _graphics.DrawImage(oldBuffer, rect, AxisMargin, 0, oldBuffer.Width - 2 * AxisMargin, oldBuffer.Height, GraphicsUnit.Pixel);
             oldBuffer.Dispose();
             oldBuffer2.Dispose();
             if (_spectrumWidth > 0)
@@ -494,6 +495,7 @@ namespace SDRSharp.PanView
             _gradientPixels = null;
             _gradientBrush.InterpolationColors = _gradientColorBlend;
             DrawGradient();
+            BuildGradientVector();
             _graphics.SmoothingMode = SmoothingMode.AntiAlias;
             _graphics2.SmoothingMode = SmoothingMode.HighSpeed;
             GenerateCursor();
@@ -515,15 +517,18 @@ namespace SDRSharp.PanView
                                    ClientRectangle.Height - AxisMargin / 2,
                                    ClientRectangle.Width - AxisMargin / 2,
                                    AxisMargin / 2);
+            }
+        }
 
-                if (_gradientPixels == null || _gradientPixels.Length != ClientRectangle.Height - AxisMargin)
-                {
-                    _gradientPixels = new int[ClientRectangle.Height - AxisMargin];
-                }
-                for (var i = 0; i < _gradientPixels.Length; i++)
-                {
-                    _gradientPixels[_gradientPixels.Length - i - 1] = _buffer.GetPixel(ClientRectangle.Width - AxisMargin / 2, i + AxisMargin / 2).ToArgb();
-                }
+        private void BuildGradientVector()
+        {
+            if (_gradientPixels == null || _gradientPixels.Length != ClientRectangle.Height - AxisMargin)
+            {
+                _gradientPixels = new int[ClientRectangle.Height - AxisMargin];
+            }
+            for (var i = 0; i < _gradientPixels.Length; i++)
+            {
+                _gradientPixels[_gradientPixels.Length - i - 1] = _buffer.GetPixel(ClientRectangle.Width - AxisMargin / 2, i + AxisMargin / 2).ToArgb();
             }
         }
 

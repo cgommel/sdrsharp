@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace SDRSharp.PanView
@@ -12,6 +13,7 @@ namespace SDRSharp.PanView
 
         private bool _performNeeded;
         private double[] _spectrum;
+        private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
         private int _spectrumWidth;
@@ -31,6 +33,7 @@ namespace SDRSharp.PanView
 
         public SpectrumAnalyzer()
         {
+            _bkgBuffer = new Bitmap(Width, Height);
             _buffer = new Bitmap(Width, Height);
             _graphics = Graphics.FromImage(_buffer);
             _cursor = new Bitmap(10, 10);
@@ -63,6 +66,7 @@ namespace SDRSharp.PanView
                         _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
                     }
                     GenerateCursor();
+                    DrawBackground();
                     _performNeeded = true;
                 }
             }
@@ -147,6 +151,7 @@ namespace SDRSharp.PanView
                 if (_centerFrequency != value)
                 {
                     _centerFrequency = value;
+                    DrawBackground();
                     _performNeeded = true;
                 }
             }
@@ -250,17 +255,8 @@ namespace SDRSharp.PanView
             _performNeeded = true;
         }
 
-        private void Draw()
+        private void DrawBackground()
         {
-            #region Draw only if needed
-
-            if (ClientRectangle.Width <= AxisMargin || ClientRectangle.Height <= AxisMargin)
-            {
-                return;
-            }
-
-            #endregion
-
             #region Draw grid
 
             using (var bkgBrush = new SolidBrush(Color.Black))
@@ -268,35 +264,36 @@ namespace SDRSharp.PanView
             using (var squarePen = new Pen(Color.FromArgb(80, 80, 80)))
             using (var axisPen = new Pen(Color.DarkGray))
             using (var font = new Font("Arial", 8f))
+            using (var graphics = Graphics.FromImage(_bkgBuffer))
             {
                 // Background
-                _graphics.FillRectangle(bkgBrush, ClientRectangle);
+                graphics.FillRectangle(bkgBrush, ClientRectangle);
 
                 // Axis
-                _graphics.DrawLine(axisPen, AxisMargin, AxisMargin, AxisMargin, ClientRectangle.Height - AxisMargin);
-                _graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
+                graphics.DrawLine(axisPen, AxisMargin, AxisMargin, AxisMargin, ClientRectangle.Height - AxisMargin);
+                graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
 
                 // Grid
                 squarePen.DashStyle = DashStyle.Dash;
                 var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / 10.0f;
                 for (var i = 1; i <= 10; i++)
                 {
-                    _graphics.DrawLine(squarePen, (int) (AxisMargin + xIncrement * i), AxisMargin, (int) (AxisMargin + xIncrement * i), ClientRectangle.Height - AxisMargin);
+                    graphics.DrawLine(squarePen, (int)(AxisMargin + xIncrement * i), AxisMargin, (int)(AxisMargin + xIncrement * i), ClientRectangle.Height - AxisMargin);
                 }
                 var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 12.0f;
                 for (var i = 1; i <= 12; i++)
                 {
-                    _graphics.DrawLine(squarePen, AxisMargin, (int) (ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int) (ClientRectangle.Height - AxisMargin - i * yIncrement));
+                    graphics.DrawLine(squarePen, AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement));
                 }
-                
+
                 // Decibel line
                 for (var i = 0; i <= 12; i++)
                 {
                     var db = (-(12 - i) * 10).ToString();
-                    var sizeF = _graphics.MeasureString(db, font);
+                    var sizeF = graphics.MeasureString(db, font);
                     var width = sizeF.Width;
                     var height = sizeF.Height;
-                    _graphics.DrawString(db, font, fontBrush, AxisMargin - width - 5, ClientRectangle.Height - AxisMargin - i * yIncrement - height / 2f);
+                    graphics.DrawString(db, font, fontBrush, AxisMargin - width - 5, ClientRectangle.Height - AxisMargin - i * yIncrement - height / 2f);
                 }
 
                 // Frequency line
@@ -323,33 +320,38 @@ namespace SDRSharp.PanView
                         {
                             f = frequency.ToString();
                         }
-                        var sizeF = _graphics.MeasureString(f, font);
+                        var sizeF = graphics.MeasureString(f, font);
                         var width = sizeF.Width;
 
-                        _graphics.DrawString(f, font, fontBrush, AxisMargin + xIncrement * i - width / 2f, ClientRectangle.Height - AxisMargin + 5f);
+                        graphics.DrawString(f, font, fontBrush, AxisMargin + xIncrement * i - width / 2f, ClientRectangle.Height - AxisMargin + 5f);
                     }
                 }
 
             }
 
             #endregion
+        }
+
+        private void Draw()
+        {
+            if (ClientRectangle.Width <= AxisMargin || ClientRectangle.Height <= AxisMargin)
+            {
+                return;
+            }
+
+            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            Waterfall.Memcpy(data1.Scan0, data2.Scan0, new UIntPtr((ulong) (data1.Width * data1.Height * 4)));
+            _buffer.UnlockBits(data1);
+            _bkgBuffer.UnlockBits(data2);
 
             if (_spectrum == null || _spectrum.Length == 0)
             {
                 return;
             }
 
-            #region Draw Spectrum
-
             DrawSpectrum();
-
-            #endregion
-
-            #region Draw Cursor
-
-            _graphics.DrawImage(_cursor, _lower, 0f);
-
-            #endregion
+            _graphics.DrawImage(_cursor, (int) _lower, 0);
         }
 
         private void DrawSpectrum()
@@ -388,10 +390,12 @@ namespace SDRSharp.PanView
                 _graphics.Dispose();
                 _buffer = new Bitmap(Width, Height);
                 _graphics = Graphics.FromImage(_buffer);
+                _bkgBuffer = new Bitmap(Width, Height);
                 if (_spectrumWidth > 0)
                 {
                     _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
                 }
+                DrawBackground();
                 GenerateCursor();
                 Draw();
                 Invalidate();
