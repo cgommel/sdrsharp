@@ -388,6 +388,7 @@ namespace SDRSharp.PanView
             {
                 _buffer.Dispose();
                 _graphics.Dispose();
+                _bkgBuffer.Dispose();
                 _buffer = new Bitmap(Width, Height);
                 _graphics = Graphics.FromImage(_buffer);
                 _bkgBuffer = new Bitmap(Width, Height);
