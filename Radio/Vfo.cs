@@ -10,6 +10,8 @@ namespace SDRSharp.Radio
         public const int MinBCAudioFrequency = 20;
         public const int MaxBCAudioFrequency = 20000;
         public const int MaxQuadratureFilterOrder = 300;
+        public const int MaxNFMBandwidth = 10000;
+        public const int MinNFMAudioFrequency = 300;
 
         private readonly AutomaticGainControl _agc = new AutomaticGainControl();
         private readonly Oscillator _localOscillator = new Oscillator();
@@ -192,44 +194,48 @@ namespace SDRSharp.Radio
 
         private void InitFilters()
         {
-            var cwMode = _bandwidth <= DefaultCwSideTone;
+            int iqBW;
+            int cutoff1;
+            int cutoff2;
             var iqOrder = Math.Min(_filterOrder, MaxQuadratureFilterOrder);
+            var cwMode = ((_detectorType == DetectorType.LSB) || (_detectorType == DetectorType.USB)) && (_bandwidth <= DefaultCwSideTone);
 
-            double[] coeffs;
             if (cwMode)
             {
-                const int iqBW = DefaultCwSideTone / 2;
-                coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate, iqOrder, iqBW, _windowType);
+                iqBW = DefaultCwSideTone / 2;
+            }
+            else if (_detectorType == DetectorType.FM)
+            {
+                iqBW = Math.Max(_bandwidth, MaxNFMBandwidth) / 2;
             }
             else
             {
-                coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate, iqOrder, _bandwidth / 2, _windowType);
+                iqBW = _bandwidth / 2;
             }
-            
+            var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate, iqOrder, iqBW, _windowType);
             _iqFilter = new IQFirFilter(coeffs);
 
             if (cwMode)
             {
-                var cutoff1 = DefaultCwSideTone - _bandwidth / 2;
-                var cutoff2 = DefaultCwSideTone + _bandwidth / 2;
-                coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
+                cutoff1 = DefaultCwSideTone - _bandwidth / 2;
+                cutoff2 = DefaultCwSideTone + _bandwidth / 2;
+            }
+            else if (_detectorType == DetectorType.LSB || _detectorType == DetectorType.USB)
+            {
+                    cutoff1 = MinSSBAudioFrequency;
+                    cutoff2 = _bandwidth;
+            }
+            else if (_detectorType == DetectorType.FM && _bandwidth <= MaxNFMBandwidth)
+            {
+                cutoff1 = MinNFMAudioFrequency;
+                cutoff2 = _bandwidth / 2;
             }
             else
             {
-                if (_detectorType == DetectorType.LSB || _detectorType == DetectorType.USB)
-                {
-                    const int cutoff1 = MinSSBAudioFrequency;
-                    var cutoff2 = _bandwidth - cutoff1;
-                    coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
-                }
-                else
-                {
-                    const int cutoff1 = MinBCAudioFrequency;
-                    int cutoff2 = Math.Min(_bandwidth / 2, MaxBCAudioFrequency);
-                    coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
-                }
+                cutoff1 = MinBCAudioFrequency;
+                cutoff2 = Math.Min(_bandwidth / 2, MaxBCAudioFrequency);
             }
-
+            coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
             _audioFilter = new FirFilter(coeffs);
         }
 

@@ -10,6 +10,11 @@ namespace SDRSharp.Radio
     {
         private const double AFGain = 0.001;
         private const double TimeConst = 0.000001;
+
+        private const int MinHysteresisFrequency = 4000;
+        private const int MaxHysteresisFrequency = 5000;
+        private const int HysteresisFilterOrder = 21;
+
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private FirFilter _hissFilter;
         private Complex _iqState;
@@ -77,7 +82,7 @@ namespace SDRSharp.Radio
             {
                 _sampleRate = value;
                 _noiseAveragingRatio = 30.0 / _sampleRate;
-                var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, 21, 3000, 6000, WindowType.BlackmanHarris);
+                var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HysteresisFilterOrder, MinHysteresisFrequency, MaxHysteresisFrequency, WindowType.BlackmanHarris);
                 _hissFilter = new FirFilter(bpk);
             }
         }
