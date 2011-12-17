@@ -3,33 +3,37 @@
 #endif
 
 #if !MANAGED_ONLY
+using System;
 using System.Runtime.InteropServices;
 #endif
 
 namespace SDRSharp.Radio
 {
-    public class IQFirFilter
+    public class IQFirFilter : IDisposable
     {
 #if MANAGED_ONLY
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
 #else
-        private int _indexR;
-        private int _indexI;
-        private readonly double[] _coefficients;
-        private readonly double[] _rQueue;
-        private readonly double[] _iQueue;
+        #region Native API
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessComplexBuffer(
             [In, Out] Complex[] buffer,
             int bufferSize,
-            [In, Out] double[] queueR,
-            [In, Out] double[] queueI,
+            IntPtr filterHandle);
+
+        [DllImport("SDRSharp.Filters.dll")]
+        private static extern IntPtr MakeComplexFilter(
             double[] coeffs,
-            int queueSize,
-            ref int indexR,
-            ref int indexI);
+            int bufferSize);
+
+        [DllImport("SDRSharp.Filters.dll")]
+        private static extern void FreeComplexFilter(IntPtr filterHandle);
+
+        #endregion
+
+        private readonly IntPtr _filterHandle;
 #endif
 
         public IQFirFilter(double[] coefficients)
@@ -38,9 +42,14 @@ namespace SDRSharp.Radio
             _rFilter = new FirFilter(coefficients);
             _iFilter = new FirFilter(coefficients);
 #else
-            _coefficients = coefficients;
-            _rQueue = new double[_coefficients.Length];
-            _iQueue = new double[_coefficients.Length];
+            _filterHandle = MakeComplexFilter(coefficients, coefficients.Length);
+#endif
+        }
+
+        public void Dispose()
+        {
+#if !MANAGED_ONLY
+            FreeComplexFilter(_filterHandle);
 #endif
         }
 
@@ -53,7 +62,7 @@ namespace SDRSharp.Radio
                 iq[i].Imag = _iFilter.Process(iq[i].Imag);
             }
 #else
-            FirProcessComplexBuffer(iq, iq.Length, _rQueue, _iQueue, _coefficients, _iQueue.Length, ref _indexR, ref _indexI);
+            FirProcessComplexBuffer(iq, iq.Length, _filterHandle);
 #endif
         }
     }

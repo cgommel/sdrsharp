@@ -4,10 +4,10 @@
 #define PI 3.141592653589793238462
 
 typedef struct
-		{
-			double real;
-			double imag;
-		} complex;
+{
+	double real;
+	double imag;
+} complex;
 
 EXPORT void __stdcall FFT(complex *samples, int len)
 {
