@@ -57,6 +57,10 @@ namespace SDRSharp
             this.playButton = new System.Windows.Forms.Button();
             this.stopButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.stepSizeComboBox = new System.Windows.Forms.ComboBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.fmSquelchNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label16 = new System.Windows.Forms.Label();
             this.frontEndComboBox = new System.Windows.Forms.ComboBox();
             this.fmRadioButton = new System.Windows.Forms.RadioButton();
@@ -98,6 +102,8 @@ namespace SDRSharp
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
             this.highDefinitionCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label14 = new System.Windows.Forms.Label();
@@ -107,13 +113,8 @@ namespace SDRSharp
             this.label7 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
-            this.label17 = new System.Windows.Forms.Label();
-            this.fmSquelchNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label18 = new System.Windows.Forms.Label();
-            this.stepSizeComboBox = new System.Windows.Forms.ComboBox();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterBandwidthNumericUpDown)).BeginInit();
@@ -128,7 +129,6 @@ namespace SDRSharp
             this.panSplitContainer.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // openDlg
@@ -185,6 +185,66 @@ namespace SDRSharp
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Radio settings";
+            // 
+            // label18
+            // 
+            this.label18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(77, 241);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(50, 13);
+            this.label18.TabIndex = 30;
+            this.label18.Text = "Step size";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // stepSizeComboBox
+            // 
+            this.stepSizeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.stepSizeComboBox.FormattingEnabled = true;
+            this.stepSizeComboBox.Items.AddRange(new object[] {
+            "10 Hz",
+            "100 Hz",
+            "1 kHz",
+            "2.5 kHz",
+            "5 kHz",
+            "8.33 kHz",
+            "9 kHz",
+            "10 kHz",
+            "12.5 kHz",
+            "25 kHz",
+            "50 kHz",
+            "100 kHz"});
+            this.stepSizeComboBox.Location = new System.Drawing.Point(132, 237);
+            this.stepSizeComboBox.Name = "stepSizeComboBox";
+            this.stepSizeComboBox.Size = new System.Drawing.Size(72, 21);
+            this.stepSizeComboBox.TabIndex = 11;
+            this.stepSizeComboBox.SelectedIndexChanged += new System.EventHandler(this.stepSizeComboBox_SelectedIndexChanged);
+            // 
+            // label17
+            // 
+            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(63, 213);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(64, 13);
+            this.label17.TabIndex = 28;
+            this.label17.Text = "FM Squelch";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // fmSquelchNumericUpDown
+            // 
+            this.fmSquelchNumericUpDown.Enabled = false;
+            this.fmSquelchNumericUpDown.Location = new System.Drawing.Point(132, 211);
+            this.fmSquelchNumericUpDown.Name = "fmSquelchNumericUpDown";
+            this.fmSquelchNumericUpDown.Size = new System.Drawing.Size(72, 20);
+            this.fmSquelchNumericUpDown.TabIndex = 10;
+            this.fmSquelchNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.fmSquelchNumericUpDown.Value = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            this.fmSquelchNumericUpDown.ValueChanged += new System.EventHandler(this.fmSquelchNumericUpDown_ValueChanged);
             // 
             // label16
             // 
@@ -753,8 +813,41 @@ namespace SDRSharp
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
             this.panSplitContainer.Size = new System.Drawing.Size(720, 636);
-            this.panSplitContainer.SplitterDistance = 240;
+            this.panSplitContainer.SplitterDistance = 200;
             this.panSplitContainer.TabIndex = 13;
+            // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
+            this.spectrumAnalyzer.CenterFrequency = 0;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 0;
+            this.spectrumAnalyzer.Frequency = 0;
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Offset = 0;
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(720, 200);
+            this.spectrumAnalyzer.SpectrumWidth = 0;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.CenterFrequency = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.Frequency = 0;
+            this.waterfall.HighDefinition = false;
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Offset = 0;
+            this.waterfall.Size = new System.Drawing.Size(720, 432);
+            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
             // 
             // groupBox3
             // 
@@ -859,99 +952,6 @@ namespace SDRSharp
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
             // 
-            // label17
-            // 
-            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(63, 213);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(64, 13);
-            this.label17.TabIndex = 28;
-            this.label17.Text = "FM Squelch";
-            this.label17.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // fmSquelchNumericUpDown
-            // 
-            this.fmSquelchNumericUpDown.Enabled = false;
-            this.fmSquelchNumericUpDown.Location = new System.Drawing.Point(132, 211);
-            this.fmSquelchNumericUpDown.Name = "fmSquelchNumericUpDown";
-            this.fmSquelchNumericUpDown.Size = new System.Drawing.Size(72, 20);
-            this.fmSquelchNumericUpDown.TabIndex = 10;
-            this.fmSquelchNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.fmSquelchNumericUpDown.Value = new decimal(new int[] {
-            50,
-            0,
-            0,
-            0});
-            this.fmSquelchNumericUpDown.ValueChanged += new System.EventHandler(this.fmSquelchNumericUpDown_ValueChanged);
-            // 
-            // label18
-            // 
-            this.label18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(77, 241);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(50, 13);
-            this.label18.TabIndex = 30;
-            this.label18.Text = "Step size";
-            this.label18.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // stepSizeComboBox
-            // 
-            this.stepSizeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.stepSizeComboBox.FormattingEnabled = true;
-            this.stepSizeComboBox.Items.AddRange(new object[] {
-            "10 Hz",
-            "100 Hz",
-            "1 kHz",
-            "2.5 kHz",
-            "5 kHz",
-            "8.33 kHz",
-            "9 kHz",
-            "10 kHz",
-            "12.5 kHz",
-            "25 kHz",
-            "50 kHz",
-            "100 kHz"});
-            this.stepSizeComboBox.Location = new System.Drawing.Point(132, 237);
-            this.stepSizeComboBox.Name = "stepSizeComboBox";
-            this.stepSizeComboBox.Size = new System.Drawing.Size(72, 21);
-            this.stepSizeComboBox.TabIndex = 11;
-            this.stepSizeComboBox.SelectedIndexChanged += new System.EventHandler(this.stepSizeComboBox_SelectedIndexChanged);
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 0;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(720, 240);
-            this.spectrumAnalyzer.SpectrumWidth = 0;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.HighDefinition = false;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(720, 392);
-            this.waterfall.SpectrumWidth = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -974,6 +974,7 @@ namespace SDRSharp
             this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterBandwidthNumericUpDown)).EndInit();
@@ -991,7 +992,6 @@ namespace SDRSharp
             this.groupBox3.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
