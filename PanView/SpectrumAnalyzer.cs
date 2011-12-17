@@ -12,6 +12,7 @@ namespace SDRSharp.PanView
         private const int CarrierPenWidth = 1;
 
         private bool _performNeeded;
+        private bool _drawBackgroundNeeded;
         private double[] _spectrum;
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
@@ -66,7 +67,7 @@ namespace SDRSharp.PanView
                         _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
                     }
                     GenerateCursor();
-                    DrawBackground();
+                    _drawBackgroundNeeded = true;
                     _performNeeded = true;
                 }
             }
@@ -151,7 +152,7 @@ namespace SDRSharp.PanView
                 if (_centerFrequency != value)
                 {
                     _centerFrequency = value;
-                    DrawBackground();
+                    _drawBackgroundNeeded = true;
                     _performNeeded = true;
                 }
             }
@@ -159,6 +160,11 @@ namespace SDRSharp.PanView
 
         public void Perform()
         {
+            if (_drawBackgroundNeeded)
+            {
+                _drawBackgroundNeeded = false;
+                DrawBackground();
+            }
             if (_performNeeded)
             {
                 _performNeeded = false;
@@ -396,8 +402,8 @@ namespace SDRSharp.PanView
                 {
                     _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
                 }
-                DrawBackground();
                 GenerateCursor();
+                DrawBackground();
                 Draw();
                 Invalidate();
             }
