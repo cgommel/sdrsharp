@@ -1,6 +1,15 @@
-#include "fft.h"
+#include <math.h>
 
-void __stdcall FFT(Sample *samples, int len)
+#define EXPORT __declspec(dllexport)
+#define PI 3.141592653589793238462
+
+typedef struct
+		{
+			double real;
+			double imag;
+		} complex;
+
+EXPORT void __stdcall FFT(complex *samples, int len)
 {
     int I, J, JM1, K, L, M, LE, LE2, IP;
     int NM1 = len - 1;
@@ -24,12 +33,12 @@ void __stdcall FFT(Sample *samples, int len)
     {
         if (I < J)                // 1120   IF I% >= J% THEN GOTO 1190
         {
-            TR = samples[J].Real;
-            TI = samples[J].Imag;
-            samples[J].Real = samples[I].Real;
-            samples[J].Imag = samples[I].Imag;
-            samples[I].Real = TR;
-            samples[I].Imag = TI;
+            TR = samples[J].real;
+            TI = samples[J].imag;
+            samples[J].real = samples[I].real;
+            samples[J].imag = samples[I].imag;
+            samples[I].real = TR;
+            samples[I].imag = TI;
         }
 
         K = ND2;                  // 1190
@@ -63,12 +72,12 @@ void __stdcall FFT(Sample *samples, int len)
             for (I = JM1; I <= NM1; I += LE)          // 1360 Loop for each butterfly
             {
                 IP = I + LE2;
-                TR = samples[IP].Real * UR - samples[IP].Imag * UI;     // Butterfly calculation
-                TI = samples[IP].Real * UI + samples[IP].Imag * UR;
-                samples[IP].Real = samples[I].Real - TR;
-                samples[IP].Imag = samples[I].Imag - TI;
-                samples[I].Real = samples[I].Real + TR;
-                samples[I].Imag = samples[I].Imag + TI;
+                TR = samples[IP].real * UR - samples[IP].imag * UI;     // Butterfly calculation
+                TI = samples[IP].real * UI + samples[IP].imag * UR;
+                samples[IP].real = samples[I].real - TR;
+                samples[IP].imag = samples[I].imag - TI;
+                samples[I].real = samples[I].real + TR;
+                samples[I].imag = samples[I].imag + TI;
             } // NEXT I
 
             TR = UR;                                  // 1450
@@ -79,7 +88,7 @@ void __stdcall FFT(Sample *samples, int len)
     ND4 = ND2 / 2;
     for (I = 0; I < ND4; I++)
     {
-        Sample tmp = samples[I];
+        complex tmp = samples[I];
         samples[I] = samples[ND2 - I - 1];
         samples[ND2 - I - 1] = tmp;
 

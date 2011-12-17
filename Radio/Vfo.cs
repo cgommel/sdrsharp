@@ -1,36 +1,9 @@
-#if __MonoCS__
-#define MANAGED_ONLY
-#endif
-
 using System;
-#if !MANAGED_ONLY
-using System.Runtime.InteropServices;
-#endif
 
 namespace SDRSharp.Radio
 {
     public class Vfo
     {
-        #region FIR Filter PInvokes
-
-#if !MANAGED_ONLY
-
-        [DllImport("SDRSharp.Filters.dll")]
-        private static extern void InitAudio(double[] coeffs, int len);
-
-        [DllImport("SDRSharp.Filters.dll")]
-        private static extern void FirProcessAudio([In, Out] double[] sample, int len);
-
-        [DllImport("SDRSharp.Filters.dll")]
-        private static extern void InitIQ(double[] coeffs, int len);
-
-        [DllImport("SDRSharp.Filters.dll")]
-        private static extern void FirProcessIQ([In, Out] Complex[] buffer, int len);
-
-#endif
-
-        #endregion
-
         public const int DefaultCwSideTone = 600;
         public const int DefaultBandwidth = 2400;
         public const int MinSSBAudioFrequency = 200;
@@ -45,12 +18,8 @@ namespace SDRSharp.Radio
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
-
-#if MANAGED_ONLY
         private FirFilter _audioFilter;
         private IQFirFilter _iqFilter;
-#endif
-
         private DetectorType _detectorType;
         private WindowType _windowType;
         private int _sampleRate;
@@ -237,11 +206,8 @@ namespace SDRSharp.Radio
                 coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate, iqOrder, _bandwidth / 2, _windowType);
             }
             
-#if MANAGED_ONLY
             _iqFilter = new IQFirFilter(coeffs);
-#else
-            InitIQ(coeffs, coeffs.Length);
-#endif
+
             if (cwMode)
             {
                 var cutoff1 = DefaultCwSideTone - _bandwidth / 2;
@@ -264,19 +230,15 @@ namespace SDRSharp.Radio
                 }
             }
 
-#if MANAGED_ONLY
             _audioFilter = new FirFilter(coeffs);
-#else                
-            InitAudio(coeffs, coeffs.Length);
-#endif
         }
 
         public void ProcessBuffer(Complex[] iq, double[] audio)
         {
             DownConvert(iq);
-            FilterIQ(iq);
+            _iqFilter.Process(iq);
             Demodulate(iq, audio);
-            FilterAudio(audio);
+            _audioFilter.Process(audio);
             if (_useAgc)
             {
                 _agc.Process(audio);
@@ -290,24 +252,6 @@ namespace SDRSharp.Radio
                 _localOscillator.Tick();
                 iq[i] *= _localOscillator;
             }
-        }
-
-        private void FilterAudio(double[] audio)
-        {
-#if MANAGED_ONLY
-            _audioFilter.Process(audio);
-#else
-            FirProcessAudio(audio, audio.Length);
-#endif
-        }
-
-        private void FilterIQ(Complex[] iq)
-        {
-#if MANAGED_ONLY
-            _iqFilter.Process(iq);
-#else
-            FirProcessIQ(iq, iq.Length);
-#endif
         }
 
         private void Demodulate(Complex[] iq, double[] audio)

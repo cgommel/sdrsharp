@@ -1,108 +1,69 @@
-// Filters.c : Defines the exported functions for the DLL application.
-//
+#include <stdlib.h>
 
-#include "Filters.h"
+#define EXPORT __declspec(dllexport)
+#define INLINE __inline
 
-int _indexI;
-int _indexQ;
-int _indexA;
+typedef struct
+		{
+			double real;
+			double imag;
+		} complex;
 
-int _lenIQ;
-int _lenA;
-double _coeffsIQ[10000];
-double _coeffsA[10000];
-
-double _queueI[10000];
-double _queueQ[10000];
-double _queueA[10000];
-
-
-void __stdcall InitIQ(double *coeffs, int len)
+EXPORT double INLINE __cdecl FirProcessSample(double sample, double *queue, double *coeffs, int queueSize, int *index)
 {
-	int i;
-	_lenIQ = len;
-	for (i = 0; i < len; i++)
-	{
-		_coeffsIQ[i] = coeffs[i];
-	}
-}
-
-void __stdcall InitAudio(double *coeffs, int len)
-{
-	int i;
-	_lenA = len;
-	for (i = 0; i < len; i++)
-	{
-		_coeffsA[i] = coeffs[i];
-	}
-}
-
-double FirProcessI(double sample)
-{
-	int i;
-    int n = _lenIQ;
-    double result = 0.0;
-    if (--_indexI < 0)
-        _indexI = n - 1;
-    _queueI[_indexI] = sample;
-    for (i = 0; i < n; i++)
+    int i;
+    double result = 0.0f;
+    if (--*index < 0)
+        *index = queueSize - 1;
+    queue[*index] = sample;
+    for (i = 0; i < queueSize; i++)
     {
-        result += _queueI[_indexI] * _coeffsIQ[i];
-        if (++_indexI >= n)
-            _indexI = 0;
+        result += queue[*index] * coeffs[i];
+        if (++*index >= queueSize)
+            *index = 0;
     }
     return result;
 }
 
-double FirProcessQ(double sample)
+EXPORT void __cdecl FirProcessBuffer(
+	double *buffer,
+	int bufferSize,
+	double *queue,
+	double *coeffs,
+	int queueSize,
+	int *index)
 {
-	int i;
-    int n = _lenIQ;
-    double result = 0.0;
-    if (--_indexQ < 0)
-        _indexQ = n - 1;
-    _queueQ[_indexQ] = sample;
-    for (i = 0; i < n; i++)
-    {
-        result += _queueQ[_indexQ] * _coeffsIQ[i];
-        if (++_indexQ >= n)
-            _indexQ = 0;
-    }
-    return result;
-}
+	int i, idx;
+	idx = *index;
 
-void __stdcall FirProcessIQ(Sample* iq, int len)
-{
-	int i;
-	for (i = 0; i < len; i++)
+	for (i = 0; i < bufferSize; i++)
 	{
-		iq[i].Real = FirProcessI(iq[i].Real);
-		iq[i].Imag = FirProcessQ(iq[i].Imag);
+		buffer[i] = FirProcessSample(buffer[i], queue, coeffs, queueSize, &idx);
 	}
+	
+	*index = idx;
 }
 
-double FirProcessA(double sample)
+EXPORT void __cdecl FirProcessComplexBuffer(
+	complex *buffer,
+	int bufferSize,
+	double *queue_r,
+	double *queue_i,
+	double *coeffs,
+	int queueSize,
+	int *index_r,
+	int *index_i)
 {
-	int i;
-    int n = _lenA;
-    double result = 0.0;
-    if (--_indexA < 0)
-        _indexA = n - 1;
-    _queueA[_indexA] = sample;
-    for (i = 0; i < n; i++)
-    {
-        result += _queueA[_indexA] * _coeffsA[i];
-        if (++_indexA >= n)
-            _indexA = 0;
-    }
-    return result;
-}
+	int i, ir, ii;
+	ir = *index_r;
+	ii = *index_i;
 
-void __stdcall FirProcessAudio(double* buffer, int len)
-{
-	int i;
-	for (i = 0; i < len; i++)
+	for (i = 0; i < bufferSize; i++)
 	{
-		buffer[i] = FirProcessA(buffer[i]);
+		buffer[i].real = FirProcessSample(buffer[i].real, queue_r, coeffs, queueSize, &ir);
+		buffer[i].imag = FirProcessSample(buffer[i].imag, queue_i, coeffs, queueSize, &ii);
 	}
+	
+	*index_r = ir;
+	*index_i = ii;
 }
