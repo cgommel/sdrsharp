@@ -18,13 +18,14 @@ namespace SDRSharp.PanView
     }
 
     public delegate void ManualFrequencyChange(object sender, FrequencyEventArgs e);
+    public delegate void ManualBandwidthChange(object sender, BandwidthEventArgs e);
 
     public class Waterfall : UserControl
     {
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
-        private const int CursorSnapDistance = 2;
         private const float MinimumLevel = 120.0f;
+        public const int CursorSnapDistance = 2;
 
         private bool _performNeeded;
         private Bitmap _buffer;
@@ -44,12 +45,14 @@ namespace SDRSharp.PanView
         private float _lower;
         private float _upper;
         private int _delta;
+        private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _highDefinition;
         private bool _mouseIn;
         private int _oldX;
         private int _oldCenterFrequency;
+        private int _oldFilterBandwidth;
         private int[] _gradientPixels;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
@@ -134,6 +137,8 @@ namespace SDRSharp.PanView
         public event ManualFrequencyChange FrequencyChanged;
 
         public event ManualFrequencyChange CenterFrequencyChanged;
+
+        public event ManualBandwidthChange BandwidthChanged;
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -553,6 +558,14 @@ namespace SDRSharp.PanView
             }
         }
 
+        protected virtual void OnBandwidthChanged(BandwidthEventArgs e)
+        {
+            if (BandwidthChanged != null)
+            {
+                BandwidthChanged(this, e);
+            }
+        }
+
         private void UpdateFrequency(int f)
         {
             if (f < _centerFrequency - _spectrumWidth / 2)
@@ -579,10 +592,25 @@ namespace SDRSharp.PanView
                 f = 0;
             }
 
-            f = 1000 * (f / 1000);
+            f = 10 * (f / 10);
             if (f != _centerFrequency)
             {
                 OnCenterFrequencyChanged(new FrequencyEventArgs(f));
+            }
+        }
+
+        private void UpdateBandwidth(int bw)
+        {
+            bw = 10 * (bw / 10);
+            
+            if (bw < 10)
+            {
+                bw = 10;
+            }
+
+            if (bw != _filterBandwidth)
+            {
+                OnBandwidthChanged(new BandwidthEventArgs(bw));
             }
         }
 
@@ -607,6 +635,16 @@ namespace SDRSharp.PanView
                 }
                 _changingFrequency = true;
             }
+            else if ((Math.Abs(e.X - _lower + CursorSnapDistance) < CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Lower))
+                ||
+                (Math.Abs(e.X - _upper - CursorSnapDistance) < CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Upper)))
+            {
+                _oldX = e.X;
+                _oldFilterBandwidth = _filterBandwidth;
+                _changingBandwidth = true;
+            }
             else
             {
                 _oldX = e.X;
@@ -618,6 +656,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
+            _changingBandwidth = false;
             _changingFrequency = false;
             _changingCenterFrequency = false;
         }
@@ -635,7 +674,31 @@ namespace SDRSharp.PanView
                 var f = (_oldX - e.X) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency;
                 UpdateCenterFrequency(f);
             }
-            if (Math.Abs(e.X - _lower + CursorSnapDistance) < CursorSnapDistance || Math.Abs(e.X - _upper - CursorSnapDistance) < CursorSnapDistance)
+            else if (_changingBandwidth)
+            {
+                var bw = 0;
+                switch (_bandType)
+                {
+                    case BandType.Upper:
+                        bw = e.X - _oldX;
+                        break;
+
+                    case BandType.Lower:
+                        bw = _oldX - e.X;
+                        break;
+
+                    case BandType.Center:
+                        bw = (_oldX > (_lower +  _upper) / 2 ? e.X - _oldX : _oldX - e.X) * 2;
+                        break;
+                }
+                bw = bw * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth;
+                UpdateBandwidth(bw);
+            }
+            if ((Math.Abs(e.X - _lower + CursorSnapDistance) < CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Lower))
+                ||
+                (Math.Abs(e.X - _upper - CursorSnapDistance) < CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 Cursor = Cursors.SizeWE;
             }
@@ -688,6 +751,16 @@ namespace SDRSharp.PanView
         public FrequencyEventArgs(int frequency)
         {
             Frequency = frequency;
+        }
+    }
+
+    public class BandwidthEventArgs : EventArgs
+    {
+        public int Bandwidth { get; set; }
+
+        public BandwidthEventArgs(int bandwidth)
+        {
+            Bandwidth = bandwidth;
         }
     }
 }

@@ -829,7 +829,9 @@ namespace SDRSharp
             this.spectrumAnalyzer.Size = new System.Drawing.Size(720, 200);
             this.spectrumAnalyzer.SpectrumWidth = 0;
             this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
             // 
             // waterfall
             // 
@@ -846,8 +848,9 @@ namespace SDRSharp
             this.waterfall.SpectrumWidth = 0;
             this.waterfall.TabIndex = 0;
             this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.waterfall_CenterFrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
             // 
             // groupBox3
             // 

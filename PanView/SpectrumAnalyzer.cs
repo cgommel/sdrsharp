@@ -29,6 +29,10 @@ namespace SDRSharp.PanView
         private float _lower;
         private float _upper;
         private int _delta;
+        private int _oldX;
+        private int _oldFilterBandwidth;
+        private int _oldCenterFrequency;
+        private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
 
@@ -50,6 +54,8 @@ namespace SDRSharp.PanView
         public event ManualFrequencyChange FrequencyChanged;
 
         public event ManualFrequencyChange CenterFrequencyChanged;
+
+        public event ManualBandwidthChange BandwidthChanged;
 
         public int SpectrumWidth
         {
@@ -430,6 +436,14 @@ namespace SDRSharp.PanView
             }
         }
 
+        protected virtual void OnBandwidthChanged(BandwidthEventArgs e)
+        {
+            if (BandwidthChanged != null)
+            {
+                BandwidthChanged(this, e);
+            }
+        }
+
         private void UpdateFrequency(int f)
         {
             if (f < _centerFrequency - _spectrumWidth / 2)
@@ -464,6 +478,21 @@ namespace SDRSharp.PanView
             }
         }
 
+        private void UpdateBandwidth(int bw)
+        {
+            bw = 10 * (bw / 10);
+
+            if (bw < 10)
+            {
+                bw = 10;
+            }
+
+            if (bw != _filterBandwidth)
+            {
+                OnBandwidthChanged(new BandwidthEventArgs(bw));
+            }
+        }
+
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
@@ -489,16 +518,28 @@ namespace SDRSharp.PanView
                     _changingFrequency = true;
                 }
             }
+            else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) < Waterfall.CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Lower))
+                ||
+                (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) < Waterfall.CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Upper)))
+            {
+                _oldX = e.X;
+                _oldFilterBandwidth = _filterBandwidth;
+                _changingBandwidth = true;
+            }
             else
             {
-                _delta = (int)(AxisMargin - _spectrumWidth * _xIncrement / 2 + e.X);
-                //_changingCenterFrequency = true;
+                _oldX = e.X;
+                _oldCenterFrequency = _centerFrequency;
+                _changingCenterFrequency = true;
             }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
+            _changingBandwidth = false;
             _changingFrequency = false;
             _changingCenterFrequency = false;
         }
@@ -513,8 +554,40 @@ namespace SDRSharp.PanView
             }
             else if (_changingCenterFrequency)
             {
-                var f = (e.X + _delta) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _centerFrequency - _spectrumWidth / 2;
+                var f = (_oldX - e.X) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency;
                 UpdateCenterFrequency(f);
+            }
+            else if (_changingBandwidth)
+            {
+                var bw = 0;
+                switch (_bandType)
+                {
+                    case BandType.Upper:
+                        bw = e.X - _oldX;
+                        break;
+
+                    case BandType.Lower:
+                        bw = _oldX - e.X;
+                        break;
+
+                    case BandType.Center:
+                        bw = (_oldX > (_lower + _upper) / 2 ? e.X - _oldX : _oldX - e.X) * 2;
+                        break;
+                }
+                bw = bw * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth;
+                UpdateBandwidth(bw);
+            }
+            if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) < Waterfall.CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Lower))
+                ||
+                (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) < Waterfall.CursorSnapDistance &&
+                (_bandType == BandType.Center || _bandType == BandType.Upper)))
+            {
+                Cursor = Cursors.SizeWE;
+            }
+            else
+            {
+                Cursor = Cursors.Default;
             }
         }
 

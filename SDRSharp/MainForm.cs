@@ -364,7 +364,7 @@ namespace SDRSharp
             frequencyNumericUpDown.Value = e.Frequency;
         }
 
-        private void waterfall_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
+        private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
             centerFreqNumericUpDown.Value = e.Frequency;
         }
@@ -566,6 +566,16 @@ namespace SDRSharp
                     centerFreqNumericUpDown.Increment = int.Parse(match.Groups[1].Value);
                 }
             }
+        }
+
+        private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
+        {
+            filterBandwidthNumericUpDown.Value = e.Bandwidth;
+        }
+
+        private void waterfall_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
+        {
+
         }
     }
 }
