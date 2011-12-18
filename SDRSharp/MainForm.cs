@@ -121,6 +121,19 @@ namespace SDRSharp
 
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+
+            displayTimer.Interval = GetDisplayInterval();
+        }
+
+        private static int GetDisplayInterval()
+        {
+            var strValue = ConfigurationManager.AppSettings["displayTimerInterval"];
+            int result;
+            if (int.TryParse(strValue, out result))
+            {
+                return result;
+            }
+            return 50;
         }
 
         private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
