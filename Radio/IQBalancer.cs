@@ -6,7 +6,7 @@ namespace SDRSharp.Radio
     public class IQBalancer
     {
         private const int FFTBins = 128;
-        private const double DcTimeConst = 0.01;
+        private const double DcTimeConst = 0.001;
         private const double Increment = 0.001;
 
         private int _maxAutomaticPasses = GetDefaultAutomaticBalancePasses();

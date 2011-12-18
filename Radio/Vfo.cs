@@ -8,7 +8,7 @@ namespace SDRSharp.Radio
         public const int DefaultBandwidth = 2400;
         public const int MinSSBAudioFrequency = 200;
         public const int MinBCAudioFrequency = 20;
-        public const int MaxBCAudioFrequency = 20000;
+        public const int MaxBCAudioFrequency = 16000;
         public const int MaxQuadratureFilterOrder = 300;
         public const int MaxNFMBandwidth = 10000;
         public const int MinNFMAudioFrequency = 300;

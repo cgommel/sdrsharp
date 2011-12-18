@@ -76,7 +76,7 @@ namespace SDRSharp
 
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
-            _vfo.FilterOrder = 300;
+            _vfo.FilterOrder = 100;
             _vfo.FmSquelch = 50;
             _vfo.UseAGC = true;
             _vfo.AgcAttack = 800;

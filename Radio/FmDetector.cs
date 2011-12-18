@@ -38,10 +38,10 @@ namespace SDRSharp.Radio
             ProcessSquelch(audio);
         }
 
-        public double GetAudio(Complex z0, Complex z1)
+        public double GetAudio(Complex previous, Complex current)
         {
             // Polar discriminator
-            var f = z1 * z0.Conjugate();
+            var f = current * previous.Conjugate();
 
             // Limiting
             var m = f.Modulus();

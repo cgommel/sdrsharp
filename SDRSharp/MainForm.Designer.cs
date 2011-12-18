@@ -385,7 +385,7 @@ namespace SDRSharp
             0,
             0});
             this.filterOrderNumericUpDown.Minimum = new decimal(new int[] {
-            1,
+            10,
             0,
             0,
             0});
@@ -394,7 +394,7 @@ namespace SDRSharp
             this.filterOrderNumericUpDown.TabIndex = 9;
             this.filterOrderNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.filterOrderNumericUpDown.Value = new decimal(new int[] {
-            300,
+            100,
             0,
             0,
             0});
