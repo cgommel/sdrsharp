@@ -16,7 +16,7 @@ namespace SDRSharp
 {
     public partial class MainForm : Form
     {
-        private const string BaseTitle = "SDR#";
+        private static readonly string _baseTitle = "SDR# v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
         private const int DefaultFMBandwidth = 12500;
         private const int DefaultAMBandwidth = 10000;
@@ -527,7 +527,7 @@ namespace SDRSharp
 
         private void iqTimer_Tick(object sender, EventArgs e)
         {
-            Text = string.Format(BaseTitle + " - IQ Imbalance: Gain = {0:F3} Phase = {1:F3}°", _iqBalancer.Gain, _iqBalancer.Phase * 180 / Math.PI);
+            Text = string.Format(_baseTitle + " - IQ Imbalance: Gain = {0:F3} Phase = {1:F3}°", _iqBalancer.Gain, _iqBalancer.Phase * 180 / Math.PI);
         }
 
         private void gradientButton_Click(object sender, EventArgs e)
