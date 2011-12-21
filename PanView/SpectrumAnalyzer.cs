@@ -273,7 +273,7 @@ namespace SDRSharp.PanView
 
             using (var bkgBrush = new SolidBrush(Color.Black))
             using (var fontBrush = new SolidBrush(Color.Silver))
-            using (var squarePen = new Pen(Color.FromArgb(80, 80, 80)))
+            using (var gridPen = new Pen(Color.FromArgb(80, 80, 80)))
             using (var axisPen = new Pen(Color.DarkGray))
             using (var font = new Font("Arial", 8f))
             using (var graphics = Graphics.FromImage(_bkgBuffer))
@@ -286,19 +286,14 @@ namespace SDRSharp.PanView
                 graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
 
                 // Grid
-                squarePen.DashStyle = DashStyle.Dash;
-                var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / 10.0f;
-                for (var i = 1; i <= 10; i++)
-                {
-                    graphics.DrawLine(squarePen, (int)(AxisMargin + xIncrement * i), AxisMargin, (int)(AxisMargin + xIncrement * i), ClientRectangle.Height - AxisMargin);
-                }
+                gridPen.DashStyle = DashStyle.Dash;
+
+                // Decibels
                 var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 12.0f;
                 for (var i = 1; i <= 12; i++)
                 {
-                    graphics.DrawLine(squarePen, AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement));
+                    graphics.DrawLine(gridPen, AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement));
                 }
-
-                // Decibel line
                 for (var i = 0; i <= 12; i++)
                 {
                     var db = (-(12 - i) * 10).ToString();
@@ -308,37 +303,53 @@ namespace SDRSharp.PanView
                     graphics.DrawString(db, font, fontBrush, AxisMargin - width - 5, ClientRectangle.Height - AxisMargin - i * yIncrement - height / 2f);
                 }
 
-                // Frequency line
-                if (SpectrumWidth > 0)
+                if (_spectrumWidth <= 0)
+                    return;
+
+                // Frequencies
+                var frequencyStep = 5000;
+                var lineCount = _spectrumWidth / frequencyStep + 4;
+                var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) * frequencyStep / (float)_spectrumWidth;
+                var centerShift = (int)((_centerFrequency % frequencyStep) * (ClientRectangle.Width - 2.0 * AxisMargin) / _spectrumWidth);
+                for (var i = -lineCount / 2; i < lineCount / 2; i++)
                 {
-                    for (var i = 0; i <= 10; i++)
+                    var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
+                    if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
                     {
-
-                        var frequency = _centerFrequency + (i - 5) * SpectrumWidth / 10;
-                        string f;
-                        if (frequency == 0)
-                        {
-                            f = "DC";
-                        }
-                        else if (Math.Abs(frequency) > 30000000)
-                        {
-                            f = string.Format("{0:0,0.000}MHz", frequency / 1000000.0);
-                        }
-                        else if (Math.Abs(frequency) > 1000)
-                        {
-                            f = string.Format("{0:0,0}kHz", frequency / 1000.0);
-                        }
-                        else
-                        {
-                            f = frequency.ToString();
-                        }
-                        var sizeF = graphics.MeasureString(f, font);
-                        var width = sizeF.Width;
-
-                        graphics.DrawString(f, font, fontBrush, AxisMargin + xIncrement * i - width / 2f, ClientRectangle.Height - AxisMargin + 5f);
+                        graphics.DrawLine(gridPen, x, AxisMargin, x, ClientRectangle.Height - AxisMargin);
                     }
                 }
 
+                // Frequency line
+                for (var i = -lineCount / 2; i < lineCount / 2; i++)
+                {
+                    var frequency = _centerFrequency + i * frequencyStep - _centerFrequency % frequencyStep;
+                    string f;
+                    if (frequency == 0)
+                    {
+                        f = "DC";
+                    }
+                    else if (Math.Abs(frequency) > 30000000)
+                    {
+                        f = string.Format("{0:0,0.000}MHz", frequency / 1000000.0);
+                    }
+                    else if (Math.Abs(frequency) > 1000)
+                    {
+                        f = string.Format("{0:0,0}kHz", frequency / 1000.0);
+                    }
+                    else
+                    {
+                        f = frequency.ToString();
+                    }
+                    var sizeF = graphics.MeasureString(f, font);
+                    var width = sizeF.Width;
+                    var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
+                    if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
+                    {
+                        x -= width / 2f;
+                        graphics.DrawString(f, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 5f);
+                    }
+                }
             }
 
             #endregion
@@ -406,10 +417,10 @@ namespace SDRSharp.PanView
                 _bkgBuffer = new Bitmap(Width, Height);
                 if (_spectrumWidth > 0)
                 {
-                    _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
+                    _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
                 }
-                GenerateCursor();
                 DrawBackground();
+                GenerateCursor();
                 Draw();
                 Invalidate();
             }

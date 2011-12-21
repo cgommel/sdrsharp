@@ -583,12 +583,10 @@ namespace SDRSharp
 
         private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
         {
-            filterBandwidthNumericUpDown.Value = e.Bandwidth;
-        }
-
-        private void waterfall_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
-        {
-
+            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum)
+            {
+                filterBandwidthNumericUpDown.Value = e.Bandwidth;
+            }
         }
     }
 }
