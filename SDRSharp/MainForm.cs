@@ -22,8 +22,8 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
 
-        private const int MaxFFTBins = 2048;
-        private const int MinFFTBins = 512;
+        private const int MaxFFTBins = 4096;
+        private const int MinFFTBins = 1024;
 
         private int _fftBins;
         private WindowType _fftWindowType;
@@ -194,21 +194,31 @@ namespace SDRSharp
 
         private void displayTimer_Tick(object sender, EventArgs e)
         {
-            if (_fftStream.Length >= _fftBins)
+            if (!playButton.Enabled)
             {
-                _fftStream.Read(_iqBuffer, 0, _fftBins);
+                var fftRate = _fftBins / (displayTimer.Interval * 0.001);
+                var overlapRatio = _audioControl.SampleRate / fftRate;
+                if (overlapRatio > 1.0)
+                {
+                    _fftStream.Read(_iqBuffer, 0, _fftBins);
+                }
+                else
+                {
+                    var toRead = (int)(_fftBins * overlapRatio);
+                    Array.Copy(_iqBuffer, 0, _iqBuffer, toRead, _fftBins - toRead);
+                    _fftStream.Read(_iqBuffer, 0, toRead);
+                }
                 var excessBuffer = _fftStream.Length - _audioControl.BufferSize;
                 if (excessBuffer > 0)
                 {
                     _fftStream.Advance(excessBuffer);
                 }
+
                 Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
                 Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
                 Fourier.ForwardTransform(_fftBuffer, _fftBins);
                 Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
-            }
-            if (!playButton.Enabled)
-            {
+
                 if (!panSplitContainer.Panel1Collapsed)
                 {
                     spectrumAnalyzer.Render(_spectrumPower, _fftBins);

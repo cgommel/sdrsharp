@@ -307,9 +307,11 @@ namespace SDRSharp.PanView
                     return;
 
                 // Frequencies
-                var frequencyStep = 5000;
+                var baseLabelLength = (int) graphics.MeasureString("1,000.000MHz", font).Width;
+                var frequencyStep = _spectrumWidth * baseLabelLength / (ClientRectangle.Width - 2 * AxisMargin);
+                frequencyStep = frequencyStep / 5000 * 5000 + 5000;
                 var lineCount = _spectrumWidth / frequencyStep + 4;
-                var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) * frequencyStep / (float)_spectrumWidth;
+                var xIncrement = (ClientRectangle.Width - 2.0f * AxisMargin) * frequencyStep / _spectrumWidth;
                 var centerShift = (int)((_centerFrequency % frequencyStep) * (ClientRectangle.Width - 2.0 * AxisMargin) / _spectrumWidth);
                 for (var i = -lineCount / 2; i < lineCount / 2; i++)
                 {
