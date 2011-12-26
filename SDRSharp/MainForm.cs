@@ -22,7 +22,7 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
 
-        private const int MaxFFTBins = 4096;
+        private const int MaxFFTBins = 1024 * 8;
         private const int MinFFTBins = 1024;
 
         private int _fftBins;
@@ -597,6 +597,17 @@ namespace SDRSharp
             {
                 filterBandwidthNumericUpDown.Value = e.Bandwidth;
             }
+        }
+
+        private void contrastTrackBar_Scroll(object sender, EventArgs e)
+        {
+            waterfall.Contrast = contrastTrackBar.Value;
+        }
+
+        private void zoomTrackBar_Scroll(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.Zoom = zoomTrackBar.Value * 100 / zoomTrackBar.Maximum;
+            waterfall.Zoom = spectrumAnalyzer.Zoom;
         }
     }
 }

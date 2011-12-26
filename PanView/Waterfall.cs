@@ -25,7 +25,9 @@ namespace SDRSharp.PanView
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
         private const float MinimumLevel = 120.0f;
+
         public const int CursorSnapDistance = 2;
+        public const float MaxZoom = 10.0f;
 
         private bool _performNeeded;
         private Bitmap _buffer;
@@ -44,16 +46,20 @@ namespace SDRSharp.PanView
         private int _frequency;
         private float _lower;
         private float _upper;
-        private int _delta;
+        private float _scale = 1.0f;
+        private int _displayCenterFrequency;
         private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _highDefinition;
         private bool _mouseIn;
         private int _oldX;
+        private int _oldFrequency;
         private int _oldCenterFrequency;
         private int _oldFilterBandwidth;
         private int[] _gradientPixels;
+        private int _contrast;
+        private int _zoom = 1;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
@@ -177,6 +183,16 @@ namespace SDRSharp.PanView
             {
                 if (_centerFrequency != value)
                 {
+                    var delta = value - _centerFrequency;
+                    if (delta > _spectrumWidth / 2)
+                    {
+                        _frequency = value;
+                        _displayCenterFrequency = value;
+                    }
+                    else
+                    {
+                        _displayCenterFrequency += delta;
+                    }
                     _centerFrequency = value;
                     PositionCursor();
                     _performNeeded = true;
@@ -197,7 +213,7 @@ namespace SDRSharp.PanView
                     _spectrumWidth = value;
                     if (_spectrumWidth > 0)
                     {
-                        _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrumWidth;
+                        _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
                     }
                     GenerateCursor();
                     _performNeeded = true;
@@ -285,20 +301,83 @@ namespace SDRSharp.PanView
             }
         }
 
-        public void SmoothCopy(double[] source, double[] destination, int maxSource)
+        public int Contrast
         {
-            var r = maxSource / (double)destination.Length;
-            if (r > 1.0)
+            get
             {
-                var n = (int) r;
+                return _contrast;
+            }
+            set
+            {
+                _contrast = value;
+            }
+        }
+
+        public int Zoom
+        {
+            get
+            {
+                return _zoom;
+            }
+            set
+            {
+                if (_zoom != value)
+                {
+                    _zoom = value;
+                    _scale = 1.0f + _zoom * MaxZoom / 100.0f;
+                    _displayCenterFrequency = GetDisplayCenterFrequency();
+                    if (_spectrumWidth > 0)
+                    {
+                        _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
+                        GenerateCursor();
+                        _performNeeded = true;
+                    }
+                }
+            }
+        }
+
+        private int GetDisplayCenterFrequency()
+        {
+            var f = _frequency;
+            switch (_bandType)
+            {
+                case BandType.Lower:
+                    f -= _filterBandwidth / 2;
+                    break;
+
+                case BandType.Upper:
+                    f += _filterBandwidth / 2;
+                    break;
+            }
+            var lowerLeadingSpectrum = (int) ((_centerFrequency - _spectrumWidth / 2) - (f - _spectrumWidth / _scale / 2));
+            if (lowerLeadingSpectrum > 0)
+            {
+                f += lowerLeadingSpectrum;
+            }
+
+            var upperLeadingSpectrum = (int) ((f + _spectrumWidth / _scale / 2) - (_centerFrequency + _spectrumWidth / 2));
+            if (upperLeadingSpectrum > 0)
+            {
+                f -= upperLeadingSpectrum;
+            }
+
+            return f;
+        }
+
+        public static void SmoothCopy(double[] source, double[] destination, int maxSource, float scale, int offset)
+        {
+            var r = maxSource / scale / destination.Length;
+            if (r > 1.0f)
+            {
+                var n = (int) Math.Ceiling(r);
                 for (var i = 0; i < destination.Length; i++)
                 {
-                    var k = (int) (i * r) - n / 2;
+                    var k = (int) (i * r - n / 2.0f);
                     var sum = 0.0;
                     var count = 0;
                     for (var j = 0; j < n; j++)
                     {
-                        var index = k + j;
+                        var index = k + j + offset;
                         if (index >= 0 && index < maxSource)
                         {
                             sum += source[index];
@@ -312,14 +391,17 @@ namespace SDRSharp.PanView
             {
                 for (var i = 0; i < destination.Length; i++)
                 {
-                    destination[i] = source[(int) (r * i)];
+                    destination[i] = source[(int) (r * i + offset)];
                 }
             }
         }
 
         public void Render(double[] spectrum, int length)
         {
-            SmoothCopy(spectrum, _temp, length);
+            var scaledLength = (int)(length / _scale);
+            var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float) _spectrumWidth);
+
+            SmoothCopy(spectrum, _temp, length, _scale, offset);
 
             const double attack = 0.9;
             const double decay = 0.4;
@@ -371,7 +453,7 @@ namespace SDRSharp.PanView
             var ptr = (int*) bits.Scan0 + AxisMargin;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var colorIndex = (int)((MinimumLevel + _spectrum[i]) * _gradientPixels.Length / MinimumLevel);
+                var colorIndex = (int)((MinimumLevel + _spectrum[i] + _contrast * 50.0 / 12.0) * _gradientPixels.Length / MinimumLevel);
                 colorIndex = Math.Max(colorIndex, 0);
                 colorIndex = Math.Min(colorIndex, _gradientPixels.Length - 1);
                 
@@ -401,7 +483,7 @@ namespace SDRSharp.PanView
         {
             var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
             var relativeOffset = _frequencyOffset * _xIncrement;
-            var xCarrier = AxisMargin + (_frequency - _centerFrequency + _spectrumWidth / 2) * _xIncrement;
+            var xCarrier = ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
             {
@@ -472,7 +554,7 @@ namespace SDRSharp.PanView
                 return;
             }
             var temp = new double[ClientRectangle.Width - 2 * AxisMargin];
-            SmoothCopy(_spectrum, temp, _spectrum.Length);
+            SmoothCopy(_spectrum, temp, _spectrum.Length, temp.Length / (float) _temp.Length, 0);
             _spectrum = temp;
             _temp = new double[_spectrum.Length];
             var oldBuffer = _buffer;
@@ -493,7 +575,7 @@ namespace SDRSharp.PanView
             oldBuffer2.Dispose();
             if (_spectrumWidth > 0)
             {
-                _xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrumWidth;
+                _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
             }
             _gradientBrush.Dispose();
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
@@ -529,11 +611,11 @@ namespace SDRSharp.PanView
         {
             if (_gradientPixels == null || _gradientPixels.Length != ClientRectangle.Height - AxisMargin)
             {
-                _gradientPixels = new int[ClientRectangle.Height - AxisMargin];
+                _gradientPixels = new int[ClientRectangle.Height - AxisMargin - 1];
             }
             for (var i = 0; i < _gradientPixels.Length; i++)
             {
-                _gradientPixels[_gradientPixels.Length - i - 1] = _buffer.GetPixel(ClientRectangle.Width - AxisMargin / 2, i + AxisMargin / 2).ToArgb();
+                _gradientPixels[_gradientPixels.Length - i - 1] = _buffer.GetPixel(ClientRectangle.Width - AxisMargin / 2, i + AxisMargin / 2 + 1).ToArgb();
             }
         }
 
@@ -568,13 +650,15 @@ namespace SDRSharp.PanView
 
         private void UpdateFrequency(int f)
         {
-            if (f < _centerFrequency - _spectrumWidth / 2)
+            var min = (int)(_displayCenterFrequency - _spectrumWidth / _scale / 2);
+            if (f < min)
             {
-                f = _centerFrequency - _spectrumWidth / 2;
+                f = min;
             }
-            if (f > _centerFrequency + _spectrumWidth / 2)
+            var max = (int)(_displayCenterFrequency + _spectrumWidth / _scale / 2);
+            if (f > max)
             {
-                f = _centerFrequency + _spectrumWidth / 2;
+                f = max;
             }
 
             f = 10 * (f / 10);
@@ -617,28 +701,20 @@ namespace SDRSharp.PanView
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            if (e.X >= _lower && e.X <= _upper)
+            if (e.X > _lower && e.X < _upper)
             {
-                switch (_bandType)
+                _oldX = e.X;
+                _oldFrequency = _frequency;
+
+                if (_spectrumWidth > 0)
                 {
-                    case BandType.Lower:
-                        _delta = (int)(_upper - e.X);
-                        break;
-
-                    case BandType.Upper:
-                        _delta = (int)(_lower - e.X);
-                        break;
-
-                    case BandType.Center:
-                        _delta = (int)((_lower + _upper) / 2 - e.X);
-                        break;
+                    _changingFrequency = true;
                 }
-                _changingFrequency = true;
             }
-            else if ((Math.Abs(e.X - _lower + CursorSnapDistance) < CursorSnapDistance &&
+            else if ((Math.Abs(e.X - _lower + CursorSnapDistance) <= CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))
                 ||
-                (Math.Abs(e.X - _upper - CursorSnapDistance) < CursorSnapDistance &&
+                (Math.Abs(e.X - _upper - CursorSnapDistance) <= CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 _oldX = e.X;
@@ -666,7 +742,7 @@ namespace SDRSharp.PanView
             base.OnMouseMove(e);
             if (_changingFrequency)
             {
-                var f = (e.X + _delta - AxisMargin) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _centerFrequency - _spectrumWidth / 2;
+                var f = (int)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
                 UpdateFrequency(f);
             }
             else if (_changingCenterFrequency)
@@ -691,13 +767,13 @@ namespace SDRSharp.PanView
                         bw = (_oldX > (_lower +  _upper) / 2 ? e.X - _oldX : _oldX - e.X) * 2;
                         break;
                 }
-                bw = bw * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth;
+                bw = (int) (bw * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth);
                 UpdateBandwidth(bw);
             }
-            if ((Math.Abs(e.X - _lower + CursorSnapDistance) < CursorSnapDistance &&
+            if ((Math.Abs(e.X - _lower + CursorSnapDistance) <= CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))
                 ||
-                (Math.Abs(e.X - _upper - CursorSnapDistance) < CursorSnapDistance &&
+                (Math.Abs(e.X - _upper - CursorSnapDistance) <= CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 Cursor = Cursors.SizeWE;
