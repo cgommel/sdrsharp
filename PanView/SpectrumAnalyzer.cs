@@ -181,7 +181,7 @@ namespace SDRSharp.PanView
                 if (_zoom != value)
                 {
                     _zoom = value;
-                    _scale = 1.0f + _zoom * Waterfall.MaxZoom / 100.0f;
+                    _scale = 1.01f + _zoom * Waterfall.MaxZoom / 100.0f;
                     if (_spectrumWidth > 0)
                     {
                         _displayCenterFrequency = GetDisplayCenterFrequency();
@@ -211,13 +211,13 @@ namespace SDRSharp.PanView
             var lowerLeadingSpectrum = (int) ((_centerFrequency - _spectrumWidth / 2) - (f - _spectrumWidth / _scale / 2));
             if (lowerLeadingSpectrum > 0)
             {
-                f += lowerLeadingSpectrum;
+                f += lowerLeadingSpectrum + 10;
             }
 
             var upperLeadingSpectrum = (int) ((f + _spectrumWidth / _scale / 2) - (_centerFrequency + _spectrumWidth / 2));
             if (upperLeadingSpectrum > 0)
             {
-                f -= upperLeadingSpectrum;
+                f -= upperLeadingSpectrum + 10;
             }
 
             return f;

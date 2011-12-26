@@ -324,7 +324,7 @@ namespace SDRSharp.PanView
                 if (_zoom != value)
                 {
                     _zoom = value;
-                    _scale = 1.0f + _zoom * MaxZoom / 100.0f;
+                    _scale = 1.01f + _zoom * MaxZoom / 100.0f;
                     _displayCenterFrequency = GetDisplayCenterFrequency();
                     if (_spectrumWidth > 0)
                     {
@@ -352,13 +352,13 @@ namespace SDRSharp.PanView
             var lowerLeadingSpectrum = (int) ((_centerFrequency - _spectrumWidth / 2) - (f - _spectrumWidth / _scale / 2));
             if (lowerLeadingSpectrum > 0)
             {
-                f += lowerLeadingSpectrum;
+                f += lowerLeadingSpectrum + 10;
             }
 
             var upperLeadingSpectrum = (int) ((f + _spectrumWidth / _scale / 2) - (_centerFrequency + _spectrumWidth / 2));
             if (upperLeadingSpectrum > 0)
             {
-                f -= upperLeadingSpectrum;
+                f -= upperLeadingSpectrum + 10;
             }
 
             return f;
@@ -453,7 +453,7 @@ namespace SDRSharp.PanView
             var ptr = (int*) bits.Scan0 + AxisMargin;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var colorIndex = (int)((MinimumLevel + _spectrum[i] + _contrast * 50.0 / 12.0) * _gradientPixels.Length / MinimumLevel);
+                var colorIndex = (int)((MinimumLevel + _spectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / MinimumLevel);
                 colorIndex = Math.Max(colorIndex, 0);
                 colorIndex = Math.Min(colorIndex, _gradientPixels.Length - 1);
                 
