@@ -554,9 +554,10 @@ namespace SDRSharp.PanView
                 return;
             }
             var temp = new double[ClientRectangle.Width - 2 * AxisMargin];
-            SmoothCopy(_spectrum, temp, _spectrum.Length, temp.Length / (float) _temp.Length, 0);
+            SmoothCopy(_spectrum, temp, _spectrum.Length, (_temp.Length + temp.Length) / (float) _temp.Length, 0);
             _spectrum = temp;
             _temp = new double[_spectrum.Length];
+            
             var oldBuffer = _buffer;
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             var oldBuffer2 = _buffer2;
