@@ -587,11 +587,7 @@ namespace SDRSharp.PanView
             {
                 _oldX = e.X;
                 _oldFrequency = _frequency;
-
-                if (_spectrumWidth > 0)
-                {
-                    _changingFrequency = true;
-                }
+                _changingFrequency = true;
             }
             else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))

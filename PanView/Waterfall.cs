@@ -706,11 +706,7 @@ namespace SDRSharp.PanView
             {
                 _oldX = e.X;
                 _oldFrequency = _frequency;
-
-                if (_spectrumWidth > 0)
-                {
-                    _changingFrequency = true;
-                }
+                _changingFrequency = true;
             }
             else if ((Math.Abs(e.X - _lower + CursorSnapDistance) <= CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))
@@ -743,12 +739,12 @@ namespace SDRSharp.PanView
             base.OnMouseMove(e);
             if (_changingFrequency)
             {
-                var f = (int)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
+                var f = (int) ((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
                 UpdateFrequency(f);
             }
             else if (_changingCenterFrequency)
             {
-                var f = (_oldX - e.X) * _spectrumWidth / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency;
+                var f = (int) ((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
                 UpdateCenterFrequency(f);
             }
             else if (_changingBandwidth)
