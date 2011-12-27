@@ -46,7 +46,7 @@ namespace SDRSharp.PanView
         private int _frequency;
         private float _lower;
         private float _upper;
-        private float _scale = 1.0f;
+        private float _scale = 1.01f;
         private int _displayCenterFrequency;
         private bool _changingBandwidth;
         private bool _changingFrequency;

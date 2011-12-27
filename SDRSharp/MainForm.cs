@@ -200,18 +200,24 @@ namespace SDRSharp
                 var overlapRatio = _audioControl.SampleRate / fftRate;
                 if (overlapRatio > 1.0)
                 {
+                    var excessBuffer = _fftStream.Length - _audioControl.BufferSize - _fftBins;
+                    if (excessBuffer > 0)
+                    {
+                        _fftStream.Advance(excessBuffer);
+                    }
                     _fftStream.Read(_iqBuffer, 0, _fftBins);
                 }
                 else
                 {
-                    var toRead = (int)(_fftBins * overlapRatio);
-                    Array.Copy(_iqBuffer, 0, _iqBuffer, toRead, _fftBins - toRead);
-                    _fftStream.Read(_iqBuffer, 0, toRead);
-                }
-                var excessBuffer = _fftStream.Length - _audioControl.BufferSize;
-                if (excessBuffer > 0)
-                {
-                    _fftStream.Advance(excessBuffer);
+                    var bytes = (int) (_fftBins * overlapRatio);
+                    var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
+                    var toRead = Math.Min(excessBuffer + bytes, _fftBins);
+                    toRead = Math.Min(toRead, _fftStream.Length);
+                    if (toRead > 0)
+                    {
+                        Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
+                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
+                    }
                 }
 
                 Array.Copy(_iqBuffer, _fftBuffer, _fftBins);

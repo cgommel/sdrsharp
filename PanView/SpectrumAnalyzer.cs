@@ -30,7 +30,7 @@ namespace SDRSharp.PanView
         private float _lower;
         private float _upper;
         private int _zoom;
-        private float _scale = 1;
+        private float _scale = 1.01f;
         private int _oldX;
         private int _oldFilterBandwidth;
         private int _oldFrequency;
