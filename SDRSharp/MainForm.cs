@@ -22,8 +22,7 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
 
-        private const int MaxFFTBins = 1024 * 8;
-        private const int MinFFTBins = 1024;
+        private const int MaxFFTBins = 1024 * 64;
 
         private int _fftBins;
         private WindowType _fftWindowType;
@@ -65,9 +64,10 @@ namespace SDRSharp
             {
                 outputDeviceComboBox.SelectedIndex = 0;
             }
-            _fftBins = MinFFTBins;
+            _fftBins = 1024;
 
             viewComboBox.SelectedIndex = 2;
+            fftResolutionComboBox.SelectedIndex = 1;
             sampleRateComboBox.SelectedIndex = 4;
 
             _fftWindowType = WindowType.BlackmanHarris;
@@ -517,10 +517,9 @@ namespace SDRSharp
             }
         }
 
-        private void highDefinitionCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void fftResolutionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            waterfall.HighDefinition = highDefinitionCheckBox.Checked;
-            _fftBins = highDefinitionCheckBox.Checked ? MaxFFTBins : MinFFTBins;
+            _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
             BuildFFTWindow();
         }
 

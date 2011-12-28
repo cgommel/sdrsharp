@@ -14,6 +14,7 @@ namespace SDRSharp.PanView
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
         private double[] _spectrum;
+        private double[] _temp;
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
@@ -181,7 +182,7 @@ namespace SDRSharp.PanView
                 if (_zoom != value)
                 {
                     _zoom = value;
-                    _scale = 1.01f + _zoom * Waterfall.MaxZoom / 100.0f;
+                    _scale = 0.01f + (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
                     if (_spectrumWidth > 0)
                     {
                         _displayCenterFrequency = GetDisplayCenterFrequency();
@@ -307,31 +308,17 @@ namespace SDRSharp.PanView
 
         public void Render(double[] spectrum, int length)
         {
-            var scaledLength = (int) (length / _scale);
-            var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float) _spectrumWidth);
-            if (_spectrum == null || _spectrum.Length != scaledLength)
-            {
-                _points = new PointF[scaledLength];
-                _spectrum = new double[scaledLength];
-                for (var i = 0; i < _spectrum.Length; i++)
-                {
-                    var index = i + offset;
-                    if (index >= 0 && index < spectrum.Length)
-                    {
-                        _spectrum[i] = spectrum[index];
-                    }
-                }
-            }
+            var scaledLength = (int)(length / _scale);
+            var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float)_spectrumWidth);
+
+            Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
+
             const double attack = 0.9;
             const double decay = 0.2;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var index = i + offset;
-                if (index >= 0 && index < spectrum.Length)
-                {
-                    var ratio = _spectrum[i] < spectrum[index] ? attack : decay;
-                    _spectrum[i] = _spectrum[i] * (1 - ratio) + spectrum[index] * ratio;
-                }
+                var ratio = _spectrum[i] < _temp[i] ? attack : decay;
+                _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
             }
             _performNeeded = true;
         }
@@ -448,7 +435,11 @@ namespace SDRSharp.PanView
             }
 
             DrawSpectrum();
-            _graphics.DrawImage(_cursor, (int) _lower, 0);
+
+            if (_cursor.Width < Width)
+            {
+                _graphics.DrawImage(_cursor, (int) _lower, 0);
+            }
         }
 
         private void DrawSpectrum()
@@ -489,9 +480,17 @@ namespace SDRSharp.PanView
                 _buffer = new Bitmap(Width, Height);
                 _graphics = Graphics.FromImage(_buffer);
                 _bkgBuffer = new Bitmap(Width, Height);
+                var length = 2 * (Width - 2 * AxisMargin);
+                _spectrum = new double[length];
+                for (var i = 0; i < _spectrum.Length; i++)
+                {
+                    _spectrum[i] = -120.0f;
+                }
+                _temp = new double[length];
+                _points = new PointF[length];
                 if (_spectrumWidth > 0)
                 {
-                    _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
+                    _xIncrement = _scale * (Width - 2 * AxisMargin) / _spectrumWidth;
                 }
                 DrawBackground();
                 GenerateCursor();

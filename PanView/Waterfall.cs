@@ -27,7 +27,7 @@ namespace SDRSharp.PanView
         private const float MinimumLevel = 120.0f;
 
         public const int CursorSnapDistance = 2;
-        public const float MaxZoom = 10.0f;
+        public const float MaxZoom = 2.0f;
 
         private bool _performNeeded;
         private Bitmap _buffer;
@@ -51,7 +51,6 @@ namespace SDRSharp.PanView
         private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
-        private bool _highDefinition;
         private bool _mouseIn;
         private int _oldX;
         private int _oldFrequency;
@@ -289,18 +288,6 @@ namespace SDRSharp.PanView
             }
         }
 
-        public bool HighDefinition
-        {
-            get
-            {
-                return _highDefinition;
-            }
-            set
-            {
-                _highDefinition = value;
-            }
-        }
-
         public int Contrast
         {
             get
@@ -324,7 +311,7 @@ namespace SDRSharp.PanView
                 if (_zoom != value)
                 {
                     _zoom = value;
-                    _scale = 1.01f + _zoom * MaxZoom / 100.0f;
+                    _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
                     _displayCenterFrequency = GetDisplayCenterFrequency();
                     if (_spectrumWidth > 0)
                     {
@@ -464,7 +451,7 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (_mouseIn)
+            if (_mouseIn && _cursor.Width < Width)
             {
                 _graphics2.DrawImageUnscaled(_buffer, 0, 0);
                 if (_spectrumWidth > 0)

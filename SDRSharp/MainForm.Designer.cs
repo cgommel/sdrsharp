@@ -100,12 +100,11 @@ namespace SDRSharp
             this.wavFileRadioButton = new System.Windows.Forms.RadioButton();
             this.fileSelectButton = new System.Windows.Forms.Button();
             this.displayTimer = new System.Windows.Forms.Timer(this.components);
-            this.highDefinitionCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label21 = new System.Windows.Forms.Label();
+            this.fftResolutionComboBox = new System.Windows.Forms.ComboBox();
             this.label14 = new System.Windows.Forms.Label();
             this.gradientButton = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
@@ -117,6 +116,8 @@ namespace SDRSharp
             this.zoomTrackBar = new System.Windows.Forms.TrackBar();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
@@ -503,6 +504,11 @@ namespace SDRSharp
             0,
             0,
             0});
+            this.frequencyNumericUpDown.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
             this.frequencyNumericUpDown.Name = "frequencyNumericUpDown";
             this.frequencyNumericUpDown.Size = new System.Drawing.Size(135, 24);
             this.frequencyNumericUpDown.TabIndex = 4;
@@ -786,20 +792,6 @@ namespace SDRSharp
             this.displayTimer.Interval = 50;
             this.displayTimer.Tick += new System.EventHandler(this.displayTimer_Tick);
             // 
-            // highDefinitionCheckBox
-            // 
-            this.highDefinitionCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.highDefinitionCheckBox.AutoSize = true;
-            this.highDefinitionCheckBox.Location = new System.Drawing.Point(109, 71);
-            this.highDefinitionCheckBox.Name = "highDefinitionCheckBox";
-            this.highDefinitionCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.highDefinitionCheckBox.Size = new System.Drawing.Size(95, 17);
-            this.highDefinitionCheckBox.TabIndex = 2;
-            this.highDefinitionCheckBox.Text = "High Definition";
-            this.highDefinitionCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.highDefinitionCheckBox.UseVisualStyleBackColor = true;
-            this.highDefinitionCheckBox.CheckedChanged += new System.EventHandler(this.highDefinitionCheckBox_CheckedChanged);
-            // 
             // panSplitContainer
             // 
             this.panSplitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -822,45 +814,6 @@ namespace SDRSharp
             this.panSplitContainer.SplitterDistance = 200;
             this.panSplitContainer.TabIndex = 13;
             // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Lower;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 0;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 0;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 200);
-            this.spectrumAnalyzer.SpectrumWidth = 0;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Contrast = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.HighDefinition = false;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
-            this.waterfall.Size = new System.Drawing.Size(668, 435);
-            this.waterfall.SpectrumWidth = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.Zoom = 1;
-            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.agcCheckBox);
@@ -876,19 +829,48 @@ namespace SDRSharp
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.label21);
+            this.groupBox4.Controls.Add(this.fftResolutionComboBox);
             this.groupBox4.Controls.Add(this.label14);
             this.groupBox4.Controls.Add(this.gradientButton);
             this.groupBox4.Controls.Add(this.label8);
             this.groupBox4.Controls.Add(this.fftWindowComboBox);
             this.groupBox4.Controls.Add(this.label7);
             this.groupBox4.Controls.Add(this.viewComboBox);
-            this.groupBox4.Controls.Add(this.highDefinitionCheckBox);
             this.groupBox4.Location = new System.Drawing.Point(12, 557);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(211, 124);
             this.groupBox4.TabIndex = 15;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Display";
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(6, 72);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(57, 13);
+            this.label21.TabIndex = 18;
+            this.label21.Text = "Resolution";
+            // 
+            // fftResolutionComboBox
+            // 
+            this.fftResolutionComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.fftResolutionComboBox.FormattingEnabled = true;
+            this.fftResolutionComboBox.Items.AddRange(new object[] {
+            "512",
+            "1024",
+            "2048",
+            "4096",
+            "8192",
+            "16384",
+            "32768",
+            "65536"});
+            this.fftResolutionComboBox.Location = new System.Drawing.Point(69, 69);
+            this.fftResolutionComboBox.Name = "fftResolutionComboBox";
+            this.fftResolutionComboBox.Size = new System.Drawing.Size(135, 21);
+            this.fftResolutionComboBox.TabIndex = 2;
+            this.fftResolutionComboBox.SelectedIndexChanged += new System.EventHandler(this.fftResolutionComboBox_SelectedIndexChanged);
             // 
             // label14
             // 
@@ -904,7 +886,7 @@ namespace SDRSharp
             this.gradientButton.Location = new System.Drawing.Point(179, 94);
             this.gradientButton.Name = "gradientButton";
             this.gradientButton.Size = new System.Drawing.Size(25, 23);
-            this.gradientButton.TabIndex = 15;
+            this.gradientButton.TabIndex = 3;
             this.gradientButton.Text = "...";
             this.gradientButton.UseVisualStyleBackColor = true;
             this.gradientButton.Click += new System.EventHandler(this.gradientButton_Click);
@@ -1011,6 +993,44 @@ namespace SDRSharp
             this.label20.TabIndex = 20;
             this.label20.Text = "Contrast";
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = 0;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.Frequency = 0;
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Offset = 100;
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 200);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.CenterFrequency = 0;
+            this.waterfall.Contrast = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.Frequency = 0;
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Offset = 0;
+            this.waterfall.Size = new System.Drawing.Size(668, 435);
+            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.Zoom = 1;
+            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1066,7 +1086,6 @@ namespace SDRSharp
 
         private Timer displayTimer;
         private System.ComponentModel.IContainer components;
-        private CheckBox highDefinitionCheckBox;
         private SplitContainer panSplitContainer;
         private GroupBox groupBox3;
         private GroupBox groupBox4;
@@ -1091,5 +1110,7 @@ namespace SDRSharp
         private TrackBar zoomTrackBar;
         private Label label19;
         private Label label20;
+        private Label label21;
+        private ComboBox fftResolutionComboBox;
     }
 }

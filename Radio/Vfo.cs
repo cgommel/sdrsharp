@@ -6,7 +6,7 @@ namespace SDRSharp.Radio
     {
         public const int DefaultCwSideTone = 600;
         public const int DefaultBandwidth = 2400;
-        public const int MinSSBAudioFrequency = 200;
+        public const int MinSSBAudioFrequency = 100;
         public const int MinBCAudioFrequency = 20;
         public const int MaxBCAudioFrequency = 16000;
         public const int MaxQuadratureFilterOrder = 300;
