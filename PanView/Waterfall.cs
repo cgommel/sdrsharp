@@ -29,6 +29,9 @@ namespace SDRSharp.PanView
         public const int CursorSnapDistance = 2;
         public const float MaxZoom = 2.0f;
 
+        private readonly static double _attack = GetDoubleSetting("waterfallAttack", 0.9);
+        private readonly static double _decay = GetDoubleSetting("waterfallDecay", 0.5);
+
         private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
@@ -390,15 +393,24 @@ namespace SDRSharp.PanView
 
             SmoothCopy(spectrum, _temp, length, _scale, offset);
 
-            const double attack = 0.9;
-            const double decay = 0.4;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var ratio = _spectrum[i] < _temp[i] ? attack : decay;
+                var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
                 _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
             }
             Draw();
             _performNeeded = true;
+        }
+
+        public static double GetDoubleSetting(string name, double defaultValue)
+        {
+            var strValue = ConfigurationManager.AppSettings[name];
+            double result;
+            if (double.TryParse(strValue, out result))
+            {
+                return result;
+            }
+            return defaultValue;
         }
 
         private void Draw()
@@ -689,7 +701,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            if (e.X > _lower && e.X < _upper)
+            if (e.X > _lower && e.X < _upper && _cursor.Width < ClientRectangle.Width)
             {
                 _oldX = e.X;
                 _oldFrequency = _frequency;

@@ -122,18 +122,18 @@ namespace SDRSharp
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
-            displayTimer.Interval = GetDisplayInterval();
+            displayTimer.Interval = GetIntSetting("displayTimerInterval", 50);
         }
 
-        private static int GetDisplayInterval()
+        private static int GetIntSetting(string name, int defaultValue)
         {
-            var strValue = ConfigurationManager.AppSettings["displayTimerInterval"];
+            var strValue = ConfigurationManager.AppSettings[name];
             int result;
             if (int.TryParse(strValue, out result))
             {
                 return result;
             }
-            return 50;
+            return defaultValue;
         }
 
         private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -158,6 +158,8 @@ namespace SDRSharp
                 _frontendController.Open();
                 centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
+                frequencyNumericUpDown.Value = _frontendController.Frequency;
+                frequencyNumericUpDown_ValueChanged(null, null);
             }
             catch
             {
@@ -198,19 +200,15 @@ namespace SDRSharp
             {
                 var fftRate = _fftBins / (displayTimer.Interval * 0.001);
                 var overlapRatio = _audioControl.SampleRate / fftRate;
+                var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
                 if (overlapRatio > 1.0)
                 {
-                    var excessBuffer = _fftStream.Length - _audioControl.BufferSize - _fftBins;
-                    if (excessBuffer > 0)
-                    {
-                        _fftStream.Advance(excessBuffer);
-                    }
+                    _fftStream.Advance(excessBuffer);
                     _fftStream.Read(_iqBuffer, 0, _fftBins);
                 }
                 else
                 {
                     var bytes = (int) (_fftBins * overlapRatio);
-                    var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
                     var toRead = Math.Min(excessBuffer + bytes, _fftBins);
                     toRead = Math.Min(toRead, _fftStream.Length);
                     if (toRead > 0)
@@ -251,7 +249,8 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = true;
                 inputDeviceComboBox.Enabled = true;
                 outputDeviceComboBox.Enabled = true;
-                Open();
+                centerFreqNumericUpDown.Enabled = true;
+                frontEndComboBox.Enabled = true;
             }
         }
 
@@ -268,7 +267,8 @@ namespace SDRSharp
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = true;
                 bufferSizeNumericUpDown.Enabled = true;
-                Open();
+                centerFreqNumericUpDown.Enabled = false;
+                frontEndComboBox.Enabled = false;
             }
         }
 
@@ -317,13 +317,18 @@ namespace SDRSharp
             }
 
             _vfo.SampleRate = _audioControl.SampleRate;
-            frequencyNumericUpDown.Maximum = (int)centerFreqNumericUpDown.Value + _vfo.SampleRate / 2;
-            frequencyNumericUpDown.Minimum = (int)centerFreqNumericUpDown.Value - _vfo.SampleRate / 2;
+            spectrumAnalyzer.SpectrumWidth = _audioControl.SampleRate;
+            waterfall.SpectrumWidth = _audioControl.SampleRate;
+
+            frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + _audioControl.SampleRate / 2;
+            frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - _audioControl.SampleRate / 2;
+            frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
+            frequencyNumericUpDown_ValueChanged(null, null);
+
+            zoomTrackBar.Value = 0;
+            zoomTrackBar_Scroll(null, null);
 
             BuildFFTWindow();
-
-            spectrumAnalyzer.SpectrumWidth = _vfo.SampleRate;
-            waterfall.SpectrumWidth = _vfo.SampleRate;
         }
 
         private void playButton_Click(object sender, EventArgs e)
@@ -338,6 +343,7 @@ namespace SDRSharp
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = false;
                 bufferSizeNumericUpDown.Enabled = false;
+                frontEndComboBox.Enabled = false;
             }
             catch (Exception ex)
             {
@@ -355,6 +361,7 @@ namespace SDRSharp
             {
                 sampleRateComboBox.Enabled = true;
                 inputDeviceComboBox.Enabled = true;
+                frontEndComboBox.Enabled = true;
             }
             outputDeviceComboBox.Enabled = true;
             bufferSizeNumericUpDown.Enabled = true;
@@ -395,7 +402,10 @@ namespace SDRSharp
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            centerFreqNumericUpDown.Value = e.Frequency;
+            if (soundCardRadioButton.Checked)
+            {
+                centerFreqNumericUpDown.Value = e.Frequency;
+            }
         }
 
         private void fmRadioButton_CheckedChanged(object sender, EventArgs e)

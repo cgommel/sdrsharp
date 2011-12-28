@@ -11,6 +11,9 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
 
+        private readonly static double _attack = Waterfall.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
+        private readonly static double _decay = Waterfall.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
         private double[] _spectrum;
@@ -313,11 +316,9 @@ namespace SDRSharp.PanView
 
             Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
 
-            const double attack = 0.9;
-            const double decay = 0.2;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var ratio = _spectrum[i] < _temp[i] ? attack : decay;
+                var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
                 _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
             }
             _performNeeded = true;
@@ -454,7 +455,7 @@ namespace SDRSharp.PanView
                     var strenght = (float) _spectrum[i] + 120f;
                     strenght = Math.Max(strenght, 0);
                     strenght = Math.Min(strenght, 120f);
-                    var newX = i*xIncrement;
+                    var newX = i * xIncrement;
                     var newY = ClientRectangle.Height - AxisMargin - strenght*yIncrement;
                     
                     _points[i].X = AxisMargin + newX;
@@ -582,7 +583,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            if (e.X > _lower && e.X < _upper)
+            if (e.X > _lower && e.X < _upper && _cursor.Width < ClientRectangle.Width)
             {
                 _oldX = e.X;
                 _oldFrequency = _frequency;
@@ -601,7 +602,7 @@ namespace SDRSharp.PanView
             else
             {
                 _oldX = e.X;
-                _oldCenterFrequency = _displayCenterFrequency;
+                _oldCenterFrequency = _centerFrequency;
                 _changingCenterFrequency = true;
             }
         }
