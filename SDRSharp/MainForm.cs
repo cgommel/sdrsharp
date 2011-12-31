@@ -231,14 +231,6 @@ namespace SDRSharp
                 Fourier.ForwardTransform(_fftBuffer, _fftBins);
                 Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins, compensation);
 
-                var sum = 0.0;
-                for (var i = 0; i < _fftBins; i++)
-                {
-                    sum += -_spectrumPower[i];
-                }
-
-                Console.WriteLine(sum / _fftBins);
-
                 if (!panSplitContainer.Panel1Collapsed)
                 {
                     spectrumAnalyzer.Render(_spectrumPower, _fftBins);
