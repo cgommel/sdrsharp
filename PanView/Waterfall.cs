@@ -354,9 +354,9 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public static void SmoothCopy(double[] source, double[] destination, int maxSource, float scale, int offset)
+        public static void SmoothCopy(double[] source, double[] destination, int sourceLength, float scale, int offset)
         {
-            var r = maxSource / scale / destination.Length;
+            var r = sourceLength / scale / destination.Length;
             if (r > 1.0f)
             {
                 var n = (int) Math.Ceiling(r);
@@ -368,7 +368,7 @@ namespace SDRSharp.PanView
                     for (var j = 0; j < n; j++)
                     {
                         var index = k + j + offset;
-                        if (index >= 0 && index < maxSource)
+                        if (index >= 0 && index < sourceLength)
                         {
                             sum += source[index];
                             count++;
@@ -381,7 +381,11 @@ namespace SDRSharp.PanView
             {
                 for (var i = 0; i < destination.Length; i++)
                 {
-                    destination[i] = source[(int) (r * i + offset)];
+                    var index = (int) (r * i + offset);
+                    if (index >= 0 && index < sourceLength)
+                    {
+                        destination[i] = source[index];
+                    }
                 }
             }
         }
