@@ -302,6 +302,7 @@ namespace SDRSharp
                 wavFileTextBox.Text = openDlg.FileName;
                 playButton.Enabled = true;
                 stopButton.Enabled = false;
+                _audioControl.Stop();
             }
         }
 
