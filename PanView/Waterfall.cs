@@ -213,12 +213,7 @@ namespace SDRSharp.PanView
                 if (_spectrumWidth != value)
                 {
                     _spectrumWidth = value;
-                    if (_spectrumWidth > 0)
-                    {
-                        _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
-                    }
-                    GenerateCursor();
-                    _performNeeded = true;
+                    ApplyZoom();
                 }
             }
         }
@@ -314,15 +309,20 @@ namespace SDRSharp.PanView
                 if (_zoom != value)
                 {
                     _zoom = value;
-                    _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
-                    _displayCenterFrequency = GetDisplayCenterFrequency();
-                    if (_spectrumWidth > 0)
-                    {
-                        _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
-                        GenerateCursor();
-                        _performNeeded = true;
-                    }
+                    ApplyZoom();
                 }
+            }
+        }
+
+        private void ApplyZoom()
+        {
+            _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
+            _displayCenterFrequency = GetDisplayCenterFrequency();
+            if (_spectrumWidth > 0)
+            {
+                _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
+                GenerateCursor();
+                _performNeeded = true;
             }
         }
 
