@@ -421,7 +421,7 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - _vfo.SampleRate / 2;
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (_frontendController != null && frontEndComboBox.Enabled)
+            if (_frontendController != null)
             {
                 _frontendController.Frequency = newCenterFreq;
             }
