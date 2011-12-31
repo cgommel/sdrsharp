@@ -24,7 +24,7 @@ namespace SDRSharp.PanView
     {
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
-        private const float MinimumLevel = 120.0f;
+        private const float MinimumLevel = 130.0f;
 
         public const int CursorSnapDistance = 2;
         public const float MaxZoom = 2.0f;

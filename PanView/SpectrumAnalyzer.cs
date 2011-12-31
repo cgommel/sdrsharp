@@ -346,14 +346,14 @@ namespace SDRSharp.PanView
                 gridPen.DashStyle = DashStyle.Dash;
 
                 // Decibels
-                var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 12.0f;
-                for (var i = 1; i <= 12; i++)
+                var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 13.0f;
+                for (var i = 1; i <= 13; i++)
                 {
                     graphics.DrawLine(gridPen, AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement));
                 }
-                for (var i = 0; i <= 12; i++)
+                for (var i = 0; i <= 13; i++)
                 {
-                    var db = (-(12 - i) * 10).ToString();
+                    var db = (-(13 - i) * 10).ToString();
                     var sizeF = graphics.MeasureString(db, font);
                     var width = sizeF.Width;
                     var height = sizeF.Height;
@@ -485,7 +485,7 @@ namespace SDRSharp.PanView
                 _spectrum = new double[length];
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
-                    _spectrum[i] = -120.0f;
+                    _spectrum[i] = -130.0f;
                 }
                 _temp = new double[length];
                 _points = new PointF[length];

@@ -12,7 +12,7 @@ namespace SDRSharp.Radio
     public static class Fourier
     {
         public const double MaxPower = 0.0;
-        public const double MinPower = -120.0;
+        public const double MinPower = -130.0;
 
 #if !MANAGED_ONLY
         [DllImport("SDRSharp.Filters.dll")]
@@ -40,6 +40,11 @@ namespace SDRSharp.Radio
 
         public static void SpectrumPower(Complex[] buffer, double[] power, int length)
         {
+            SpectrumPower(buffer, power, length, 0.0);
+        }
+        
+        public static void SpectrumPower(Complex[] buffer, double[] power, int length, double offset)
+        {
             if (buffer.Length < length || power.Length < length)
             {
                 throw new ArgumentException("The lenghts of arguments do not match");
@@ -47,20 +52,20 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < length; i++)
             {
-                var strenght = 20.0 * Math.Log10(buffer[i].Modulus());
-                if (double.IsNaN(strenght))
+                var strength = 20.0 * Math.Log10(buffer[i].Modulus()) + offset;
+                if (double.IsNaN(strength))
                 {
-                    strenght = MinPower;
+                    strength = MinPower;
                 }
-                else if (strenght > MaxPower)
+                else if (strength > MaxPower)
                 {
-                    strenght = MaxPower;
+                    strength = MaxPower;
                 }
-                else if (strenght < MinPower)
+                else if (strength < MinPower)
                 {
-                    strenght = MinPower;
+                    strength = MinPower;
                 }
-                power[i] =  strenght;
+                power[i] = strength;
             }
         }
 

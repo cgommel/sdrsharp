@@ -218,10 +218,22 @@ namespace SDRSharp
                     }
                 }
 
+                // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
+                var fftGain = 10.0 * Math.Log10(_fftBins / 2);
+                var compensation = 24.0 - fftGain;
+
                 Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
                 Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
                 Fourier.ForwardTransform(_fftBuffer, _fftBins);
-                Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins);
+                Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins, compensation);
+
+                var sum = 0.0;
+                for (var i = 0; i < _fftBins; i++)
+                {
+                    sum += -_spectrumPower[i];
+                }
+
+                Console.WriteLine(sum / _fftBins);
 
                 if (!panSplitContainer.Panel1Collapsed)
                 {
