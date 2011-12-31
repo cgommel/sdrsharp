@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -623,7 +624,7 @@ namespace SDRSharp
             var match = Regex.Match(stepSizeComboBox.Text, "([0-9\\.]+) kHz", RegexOptions.None);
             if (match.Success)
             {
-                centerFreqNumericUpDown.Increment = (int) (double.Parse(match.Groups[1].Value) * 1000);
+                centerFreqNumericUpDown.Increment = (int) (double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) * 1000);
             }
             else
             {

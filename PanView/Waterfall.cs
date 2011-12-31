@@ -418,7 +418,7 @@ namespace SDRSharp.PanView
         {
             var strValue = ConfigurationManager.AppSettings[name];
             double result;
-            if (double.TryParse(strValue, out result))
+            if (double.TryParse(strValue, NumberStyles.Number, CultureInfo.InvariantCulture, out result))
             {
                 return result;
             }

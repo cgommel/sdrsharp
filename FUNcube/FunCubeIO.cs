@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Globalization;
 using SDRSharp.Radio;
 
 namespace SDRSharp.FUNcube
@@ -28,7 +29,10 @@ namespace SDRSharp.FUNcube
         private static double GetFrequencyCorrection()
         {
             double result;
-            if (!double.TryParse(ConfigurationManager.AppSettings["funcubeFrequencyCorrection"], out result))
+            if (!double.TryParse(ConfigurationManager.AppSettings["funcubeFrequencyCorrection"],
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out result))
             {
                 result = 0.999976;
             }
