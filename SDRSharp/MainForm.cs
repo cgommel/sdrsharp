@@ -652,7 +652,7 @@ namespace SDRSharp
 
         private void contrastTrackBar_Scroll(object sender, EventArgs e)
         {
-            waterfall.Contrast = contrastTrackBar.Value;
+            waterfall.Contrast = contrastTrackBar.Value * 100 / (contrastTrackBar.Maximum - contrastTrackBar.Minimum);
         }
 
         private void zoomTrackBar_Scroll(object sender, EventArgs e)
