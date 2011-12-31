@@ -138,7 +138,7 @@ namespace SDRSharp
 
         private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var frontendName = (string)frontEndComboBox.SelectedItem;
+            var frontendName = (string) frontEndComboBox.SelectedItem;
             if (frontendName == "Other")
             {
                 if (_frontendController != null)
@@ -146,6 +146,10 @@ namespace SDRSharp
                     _frontendController.Close();
                     _frontendController = null;
                 }
+                centerFreqNumericUpDown.Value = 0;
+                centerFreqNumericUpDown_ValueChanged(null, null);
+                frequencyNumericUpDown.Value = 0;
+                frequencyNumericUpDown_ValueChanged(null, null);
                 return;
             }
             try
@@ -263,6 +267,8 @@ namespace SDRSharp
                 outputDeviceComboBox.Enabled = true;
                 centerFreqNumericUpDown.Enabled = true;
                 frontEndComboBox.Enabled = true;
+
+                frontEndComboBox_SelectedIndexChanged(null, null);
             }
         }
 
@@ -281,6 +287,11 @@ namespace SDRSharp
                 bufferSizeNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
+
+                centerFreqNumericUpDown.Value = 0;
+                centerFreqNumericUpDown_ValueChanged(null, null);
+                frequencyNumericUpDown.Value = 0;
+                frequencyNumericUpDown_ValueChanged(null, null);
             }
         }
 
@@ -289,7 +300,6 @@ namespace SDRSharp
             if (openDlg.ShowDialog() == DialogResult.OK)
             {
                 wavFileTextBox.Text = openDlg.FileName;
-                Open();
                 playButton.Enabled = true;
                 stopButton.Enabled = false;
             }
@@ -299,6 +309,7 @@ namespace SDRSharp
         {
             var inputDevice = (AudioDevice) inputDeviceComboBox.SelectedItem;
             var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
+            var oldCenterFrequency = centerFreqNumericUpDown.Value;
             Match match;
             if (soundCardRadioButton.Checked)
             {
@@ -324,8 +335,12 @@ namespace SDRSharp
                 {
                     var center = int.Parse(match.Groups[1].Value) * 1000;
                     centerFreqNumericUpDown.Value = center;
-                    centerFreqNumericUpDown_ValueChanged(null, null);
                 }
+                else
+                {
+                    centerFreqNumericUpDown.Value = 0;
+                }
+                centerFreqNumericUpDown_ValueChanged(null, null);
             }
 
             _vfo.SampleRate = _audioControl.SampleRate;
@@ -334,11 +349,16 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + _audioControl.SampleRate / 2;
             frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - _audioControl.SampleRate / 2;
-            frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
-            frequencyNumericUpDown_ValueChanged(null, null);
 
-            zoomTrackBar.Value = 0;
-            zoomTrackBar_Scroll(null, null);
+            if (centerFreqNumericUpDown.Value != oldCenterFrequency)
+            {
+                frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
+
+                zoomTrackBar.Value = 0;
+                zoomTrackBar_Scroll(null, null);
+            }
+            
+            frequencyNumericUpDown_ValueChanged(null, null);
 
             BuildFFTWindow();
         }
@@ -401,7 +421,7 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - _vfo.SampleRate / 2;
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (_frontendController != null)
+            if (_frontendController != null && frontEndComboBox.Enabled)
             {
                 _frontendController.Frequency = newCenterFreq;
             }
@@ -409,7 +429,11 @@ namespace SDRSharp
 
         private void panview_FrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            frequencyNumericUpDown.Value = e.Frequency;
+            if (e.Frequency >= frequencyNumericUpDown.Minimum &&
+                e.Frequency <= frequencyNumericUpDown.Maximum)
+            {
+                frequencyNumericUpDown.Value = e.Frequency;
+            }
         }
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
