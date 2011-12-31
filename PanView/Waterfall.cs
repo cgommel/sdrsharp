@@ -24,7 +24,7 @@ namespace SDRSharp.PanView
     {
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
-        private const float MinimumLevel = 130.0f;
+        public const float MinimumLevel = 130.0f;
 
         public const int CursorSnapDistance = 2;
         public const float MaxZoom = 2.0f;
@@ -375,6 +375,10 @@ namespace SDRSharp.PanView
                         }
                     }
                     destination[i] = sum / count;
+                    if (double.IsNaN(destination[i]))
+                    {
+                        destination[i] = MinimumLevel;
+                    }
                 }
             }
             else
@@ -385,6 +389,10 @@ namespace SDRSharp.PanView
                     if (index >= 0 && index < sourceLength)
                     {
                         destination[i] = source[index];
+                    }
+                    if (double.IsNaN(destination[i]))
+                    {
+                        destination[i] = MinimumLevel;
                     }
                 }
             }

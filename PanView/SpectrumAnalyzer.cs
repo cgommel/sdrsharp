@@ -452,11 +452,11 @@ namespace SDRSharp.PanView
             {
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
-                    var strenght = (float) _spectrum[i] + 120f;
+                    var strenght = (float) _spectrum[i] + Waterfall.MinimumLevel;
                     strenght = Math.Max(strenght, 0);
-                    strenght = Math.Min(strenght, 120f);
+                    strenght = Math.Min(strenght, Waterfall.MinimumLevel);
                     var newX = i * xIncrement;
-                    var newY = ClientRectangle.Height - AxisMargin - strenght*yIncrement;
+                    var newY = ClientRectangle.Height - AxisMargin - strenght * yIncrement;
                     
                     _points[i].X = AxisMargin + newX;
                     _points[i].Y = newY;
