@@ -61,7 +61,7 @@ namespace SDRSharp.PanView
         private int _oldFilterBandwidth;
         private int[] _gradientPixels;
         private int _contrast;
-        private int _zoom = 1;
+        private int _zoom;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 

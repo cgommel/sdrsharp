@@ -1013,19 +1013,19 @@ namespace SDRSharp
             // 
             // waterfall
             // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Lower;
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
             this.waterfall.CenterFrequency = 0;
             this.waterfall.Contrast = 0;
             this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 0;
+            this.waterfall.FilterBandwidth = 10000;
             this.waterfall.Frequency = 0;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
             this.waterfall.Offset = 0;
             this.waterfall.Size = new System.Drawing.Size(668, 435);
-            this.waterfall.SpectrumWidth = 0;
+            this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;
-            this.waterfall.Zoom = 1;
+            this.waterfall.Zoom = 0;
             this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
             this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
