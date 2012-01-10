@@ -950,8 +950,8 @@ namespace SDRSharp
             // 
             this.contrastTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.contrastTrackBar.Location = new System.Drawing.Point(904, 262);
-            this.contrastTrackBar.Maximum = 12;
-            this.contrastTrackBar.Minimum = -12;
+            this.contrastTrackBar.Maximum = 24;
+            this.contrastTrackBar.Minimum = -24;
             this.contrastTrackBar.Name = "contrastTrackBar";
             this.contrastTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.contrastTrackBar.RightToLeftLayout = true;
@@ -964,7 +964,7 @@ namespace SDRSharp
             // 
             this.zoomTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.zoomTrackBar.Location = new System.Drawing.Point(904, 58);
-            this.zoomTrackBar.Maximum = 25;
+            this.zoomTrackBar.Maximum = 50;
             this.zoomTrackBar.Name = "zoomTrackBar";
             this.zoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.zoomTrackBar.RightToLeftLayout = true;
