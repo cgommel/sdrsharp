@@ -127,6 +127,7 @@ namespace SDRSharp.PanView
         ~Waterfall()
         {
             _buffer.Dispose();
+            _buffer2.Dispose();
             _graphics.Dispose();
             _graphics2.Dispose();
             _cursor.Dispose();
