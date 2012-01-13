@@ -1051,6 +1051,7 @@ namespace SDRSharp
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.playButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "MainForm";
             this.Text = "SDR#";
             this.Load += new System.EventHandler(this.MainForm_Load);

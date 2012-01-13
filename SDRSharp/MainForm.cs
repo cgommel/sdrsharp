@@ -208,20 +208,20 @@ namespace SDRSharp
                 var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
                 if (overlapRatio > 1.0)
                 {
-                    _fftStream.Advance(excessBuffer);
                     _fftStream.Read(_iqBuffer, 0, _fftBins);
                 }
                 else
                 {
-                    var bytes = (int) (_fftBins * overlapRatio);
+                    var bytes = (int)(_fftBins * overlapRatio);
                     var toRead = Math.Min(excessBuffer + bytes, _fftBins);
                     toRead = Math.Min(toRead, _fftStream.Length);
                     if (toRead > 0)
                     {
                         Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
-                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
+                        excessBuffer -= _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
                     }
                 }
+                _fftStream.Advance(excessBuffer);
 
                 // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                 var fftGain = 10.0 * Math.Log10(_fftBins / 2);
