@@ -230,12 +230,11 @@ namespace SDRSharp.PanView
             if (_drawBackgroundNeeded)
             {
                 _drawBackgroundNeeded = false;
-                DrawBackground();
+                Draw();
             }
             if (_performNeeded)
             {
                 _performNeeded = false;
-                Draw();
                 Invalidate();
             }
         }
@@ -319,6 +318,7 @@ namespace SDRSharp.PanView
                 var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
                 _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
             }
+            Draw();
             _performNeeded = true;
         }
 
@@ -422,6 +422,12 @@ namespace SDRSharp.PanView
                 return;
             }
 
+            if (_drawBackgroundNeeded)
+            {
+                _drawBackgroundNeeded = false;
+                DrawBackground();
+            }
+
             var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             Waterfall.Memcpy(data1.Scan0, data2.Scan0, new UIntPtr((ulong) (data1.Width * data1.Height * 4)));
@@ -491,7 +497,7 @@ namespace SDRSharp.PanView
                 {
                     _xIncrement = _scale * (Width - 2 * AxisMargin) / _spectrumWidth;
                 }
-                DrawBackground();
+                _drawBackgroundNeeded = true;
                 GenerateCursor();
                 Draw();
                 Invalidate();

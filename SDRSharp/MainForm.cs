@@ -37,6 +37,8 @@ namespace SDRSharp
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly double[] _spectrumPower = new double[MaxFFTBins];
         private readonly double[] _fftWindow = new double[MaxFFTBins];
+        private readonly System.Timers.Timer _fftTimer = new System.Timers.Timer();
+
 
         public MainForm()
         {
@@ -123,7 +125,10 @@ namespace SDRSharp
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
-            displayTimer.Interval = GetIntSetting("displayTimerInterval", 50);
+            _fftTimer.SynchronizingObject = this;
+            _fftTimer.Elapsed += fftTimer_Tick;
+            _fftTimer.Interval = GetIntSetting("displayTimerInterval", 50);
+            _fftTimer.Enabled = true;
         }
 
         private static int GetIntSetting(string name, int defaultValue)
@@ -195,20 +200,23 @@ namespace SDRSharp
         private void ProcessBuffer(Complex[] iqBuffer, double[] audioBuffer)
         {
             _iqBalancer.Process(iqBuffer);
-            _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
+            if (_fftStream.Length < iqBuffer.Length)
+            {
+                _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
+            }
             _vfo.ProcessBuffer(iqBuffer, audioBuffer);
         }
 
-        private void displayTimer_Tick(object sender, EventArgs e)
+        private void fftTimer_Tick(object sender, EventArgs e)
         {
             if (!playButton.Enabled)
             {
-                var fftRate = _fftBins / (displayTimer.Interval * 0.001);
+                var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
                 var overlapRatio = _audioControl.SampleRate / fftRate;
                 var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
                 if (overlapRatio > 1.0)
                 {
-                    _fftStream.Read(_iqBuffer, 0, _fftBins);
+                    excessBuffer -=_fftStream.Read(_iqBuffer, 0, _fftBins);
                 }
                 else
                 {

@@ -187,15 +187,8 @@ namespace SDRSharp.PanView
                 if (_centerFrequency != value)
                 {
                     var delta = value - _centerFrequency;
-                    if (delta > _spectrumWidth / 2)
-                    {
-                        _frequency = value;
-                        _displayCenterFrequency = value;
-                    }
-                    else
-                    {
-                        _displayCenterFrequency += delta;
-                    }
+                    _displayCenterFrequency += delta;
+
                     _centerFrequency = value;
                     PositionCursor();
                     _performNeeded = true;

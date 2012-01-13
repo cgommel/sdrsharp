@@ -8,6 +8,7 @@ namespace SDRSharp
         [STAThread]
         static void Main()
         {
+            Control.CheckForIllegalCrossThreadCalls = false;
             Application.EnableVisualStyles();
             Application.Run(new MainForm());
         }
