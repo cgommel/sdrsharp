@@ -263,15 +263,18 @@ namespace SDRSharp.PanView
             }
             _upper = _lower + bandpassWidth;
 
-            using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
-            using (var carrierPen = new Pen(Color.Red))
+            if (cursorWidth < ClientRectangle.Width)
             {
-                carrierPen.Width = CarrierPenWidth;
-                g.SmoothingMode = SmoothingMode.HighSpeed;
-                g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
-                if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
+                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
+                using (var carrierPen = new Pen(Color.Red))
                 {
-                    g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
+                    carrierPen.Width = CarrierPenWidth;
+                    g.SmoothingMode = SmoothingMode.HighSpeed;
+                    g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
+                    if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
+                    {
+                        g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
+                    }
                 }
             }
         }
@@ -380,11 +383,8 @@ namespace SDRSharp.PanView
                         graphics.DrawString(f, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 5f);
                     }
                 }
-                var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
-                if (cursorWidth < ClientRectangle.Width)
-                {
-                    DrawCursor(graphics);
-                }
+
+                DrawCursor(graphics);
             }
 
             #endregion
