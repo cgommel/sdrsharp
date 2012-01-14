@@ -2,7 +2,7 @@ namespace SDRSharp.Radio
 {
     public class AmDetector
     {
-        private const double TimeConst = 0.000001;
+        private const double TimeConst = 0.01;
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
 
         public void Demodulate(Complex[] iq, double[] audio)

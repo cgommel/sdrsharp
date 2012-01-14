@@ -466,10 +466,7 @@ namespace SDRSharp.PanView
             if (_mouseIn && cursorWidth < ClientRectangle.Width)
             {
                 _graphics2.DrawImageUnscaled(_buffer, 0, 0);
-                if (_spectrumWidth > 0)
-                {
-                    DrawCursor(_graphics2);
-                }
+                DrawCursor(_graphics2);
                 e.Graphics.DrawImageUnscaled(_buffer2, 0, 0);
             }
             else
@@ -563,8 +560,10 @@ namespace SDRSharp.PanView
             _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics.Dispose();
             _graphics = Graphics.FromImage(_buffer);
+            _graphics.SmoothingMode = SmoothingMode.HighSpeed;
             _graphics2.Dispose();
             _graphics2 = Graphics.FromImage(_buffer2);
+            _graphics2.SmoothingMode = SmoothingMode.HighSpeed;
             using (var bkgBrush = new SolidBrush(Color.Black))
             {
                 _graphics.FillRectangle(bkgBrush, ClientRectangle);
@@ -583,14 +582,11 @@ namespace SDRSharp.PanView
             _gradientBrush.InterpolationColors = _gradientColorBlend;
             DrawGradient();
             BuildGradientVector();
-            _graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            _graphics2.SmoothingMode = SmoothingMode.HighSpeed;
             Invalidate();
         }
 
         private void DrawGradient()
         {
-            _graphics.SmoothingMode = SmoothingMode.HighSpeed;
             using (var pen = new Pen(_gradientBrush, 10))
             {
                 _graphics.FillRectangle(Brushes.Black,

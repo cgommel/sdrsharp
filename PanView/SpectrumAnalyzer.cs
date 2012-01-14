@@ -269,7 +269,6 @@ namespace SDRSharp.PanView
                 using (var carrierPen = new Pen(Color.Red))
                 {
                     carrierPen.Width = CarrierPenWidth;
-                    g.SmoothingMode = SmoothingMode.HighSpeed;
                     g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
@@ -306,6 +305,8 @@ namespace SDRSharp.PanView
             using (var font = new Font("Arial", 8f))
             using (var graphics = Graphics.FromImage(_bkgBuffer))
             {
+                graphics.SmoothingMode = SmoothingMode.HighSpeed;
+
                 // Background
                 graphics.FillRectangle(bkgBrush, ClientRectangle);
 
@@ -459,6 +460,7 @@ namespace SDRSharp.PanView
                 _bkgBuffer.Dispose();
                 _buffer = new Bitmap(Width, Height);
                 _graphics = Graphics.FromImage(_buffer);
+                _graphics.SmoothingMode = SmoothingMode.HighSpeed;
                 _bkgBuffer = new Bitmap(Width, Height);
                 var length = Width - 2 * AxisMargin;
                 _spectrum = new double[length];
