@@ -35,12 +35,11 @@ namespace SDRSharp.PanView
         private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
-        private Bitmap _cursor;
         private Graphics _graphics;
         private Graphics _graphics2;
         private BandType _bandType;
         private int _filterBandwidth;
-        private int _frequencyOffset;
+        private int _filterOffset;
         private float _xIncrement;
         private double[] _temp;
         private double[] _spectrum;
@@ -74,7 +73,6 @@ namespace SDRSharp.PanView
             _temp = new double[_spectrum.Length];
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
-            _cursor = new Bitmap(10, 10, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
             _graphics2 = Graphics.FromImage(_buffer2);
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
@@ -130,7 +128,6 @@ namespace SDRSharp.PanView
             _buffer2.Dispose();
             _graphics.Dispose();
             _graphics2.Dispose();
-            _cursor.Dispose();
             _gradientBrush.Dispose();
         }
 
@@ -240,7 +237,6 @@ namespace SDRSharp.PanView
                 if (_filterBandwidth != value)
                 {
                     _filterBandwidth = value;
-                    GenerateCursor();
                     _performNeeded = true;
                 }
             }
@@ -250,14 +246,13 @@ namespace SDRSharp.PanView
         {
             get
             {
-                return _frequencyOffset;
+                return _filterOffset;
             }
             set
             {
-                if (_frequencyOffset != value)
+                if (_filterOffset != value)
                 {
-                    _frequencyOffset = value;
-                    GenerateCursor();
+                    _filterOffset = value;
                     _performNeeded = true;
                 }
             }
@@ -274,7 +269,6 @@ namespace SDRSharp.PanView
                 if (_bandType != value)
                 {
                     _bandType = value;
-                    GenerateCursor();
                     _performNeeded = true;
                 }
             }
@@ -315,7 +309,6 @@ namespace SDRSharp.PanView
             if (_spectrumWidth > 0)
             {
                 _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
-                GenerateCursor();
                 _performNeeded = true;
             }
         }
@@ -469,12 +462,13 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (_mouseIn && _cursor.Width < Width)
+            var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
+            if (_mouseIn && cursorWidth < ClientRectangle.Width)
             {
                 _graphics2.DrawImageUnscaled(_buffer, 0, 0);
                 if (_spectrumWidth > 0)
                 {
-                    _graphics2.DrawImage(_cursor, (int)_lower, 0);
+                    DrawCursor(_graphics2);
                 }
                 e.Graphics.DrawImageUnscaled(_buffer2, 0, 0);
             }
@@ -487,7 +481,7 @@ namespace SDRSharp.PanView
         private void PositionCursor()
         {
             var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
-            var relativeOffset = _frequencyOffset * _xIncrement;
+            var relativeOffset = _filterOffset * _xIncrement;
             var xCarrier = ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
@@ -509,46 +503,41 @@ namespace SDRSharp.PanView
             _upper = _lower + cursorWidth;
         }
 
-        private void GenerateCursor()
+        private void DrawCursor(Graphics g)
         {
             var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
-            var bandpassWidth = cursorWidth;
-            var bandpassOffset = _frequencyOffset * _xIncrement;
-            var bandpassLow = 0f;
-            var xCarrier = 0f;
+            var bandpassOffset = _filterOffset * _xIncrement;
+            _lower = 0f;
+            var bandpassWidth = 0f;
+            var xCarrier = ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
             {
                 case BandType.Upper:
-                    bandpassLow = bandpassOffset;
-                    cursorWidth += CarrierPenWidth + bandpassOffset;
-                    xCarrier = CarrierPenWidth;
+                    _lower = xCarrier + bandpassOffset;
+                    bandpassWidth = cursorWidth - bandpassOffset;
                     break;
 
                 case BandType.Lower:
-                    cursorWidth += CarrierPenWidth + bandpassOffset;
-                    xCarrier = bandpassWidth + bandpassOffset - CarrierPenWidth;
+                    _lower = xCarrier - bandpassOffset - cursorWidth;
+                    bandpassWidth = cursorWidth - bandpassOffset;
                     break;
 
                 case BandType.Center:
-                    xCarrier = cursorWidth / 2f;
+                    _lower = xCarrier - cursorWidth / 2;
+                    bandpassWidth = cursorWidth;
                     break;
             }
+            _upper = _lower + cursorWidth;
 
-            _cursor.Dispose();
-            _cursor = new Bitmap((int) cursorWidth, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
-
-            using (var g = Graphics.FromImage(_cursor))
             using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
             using (var carrierPen = new Pen(Color.Red))
             {
                 carrierPen.Width = CarrierPenWidth;
-                g.SmoothingMode = SmoothingMode.HighQuality;
-                g.FillRectangle(transparentBrush, bandpassLow, 0, bandpassWidth, _cursor.Height);
-                g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, _cursor.Height);
+                g.SmoothingMode = SmoothingMode.HighSpeed;
+                g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
+                g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
             }
-
-            PositionCursor();
         }
 
         protected override void OnResize(EventArgs e)
@@ -591,7 +580,6 @@ namespace SDRSharp.PanView
             BuildGradientVector();
             _graphics.SmoothingMode = SmoothingMode.AntiAlias;
             _graphics2.SmoothingMode = SmoothingMode.HighSpeed;
-            GenerateCursor();
             Invalidate();
         }
 
@@ -707,7 +695,8 @@ namespace SDRSharp.PanView
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            if (e.X > _lower && e.X < _upper && _cursor.Width < ClientRectangle.Width)
+            var cursorWidth = Math.Max(_filterBandwidth * _xIncrement, 2);
+            if (e.X > _lower && e.X < _upper && cursorWidth < ClientRectangle.Width)
             {
                 _oldX = e.X;
                 _oldFrequency = _frequency;
