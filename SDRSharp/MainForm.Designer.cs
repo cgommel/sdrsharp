@@ -816,7 +816,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Frequency = 0;
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Offset = 100;
+            this.spectrumAnalyzer.FilterOffset = 100;
             this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 200);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.TabIndex = 0;
@@ -835,7 +835,7 @@ namespace SDRSharp
             this.waterfall.Frequency = 0;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
-            this.waterfall.Offset = 0;
+            this.waterfall.FilterOffset = 0;
             this.waterfall.Size = new System.Drawing.Size(668, 435);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;

@@ -89,12 +89,12 @@ namespace SDRSharp
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             waterfall.Frequency = _vfo.Frequency;
-            waterfall.Offset = Vfo.MinSSBAudioFrequency;
+            waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
             waterfall.BandType = BandType.Center;
 
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.Frequency = _vfo.Frequency;
-            spectrumAnalyzer.Offset = Vfo.MinSSBAudioFrequency;
+            spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             spectrumAnalyzer.BandType = BandType.Center;
 
             frequencyNumericUpDown.Value = 0;
@@ -216,7 +216,8 @@ namespace SDRSharp
                 var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
                 if (overlapRatio > 1.0)
                 {
-                    excessBuffer -=_fftStream.Read(_iqBuffer, 0, _fftBins);
+                    _fftStream.Advance(excessBuffer);
+                    _fftStream.Read(_iqBuffer, 0, _fftBins);
                 }
                 else
                 {
@@ -226,10 +227,9 @@ namespace SDRSharp
                     if (toRead > 0)
                     {
                         Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
-                        excessBuffer -= _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
+                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
                     }
                 }
-                _fftStream.Advance(excessBuffer);
 
                 // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                 var fftGain = 10.0 * Math.Log10(_fftBins / 2);
@@ -456,6 +456,8 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
             }
         }
 
@@ -468,6 +470,8 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultAMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
             }
         }
 
@@ -480,6 +484,8 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
+                waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
+                spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
         }
 
@@ -492,6 +498,8 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
+                waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
+                spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
         }
 
@@ -522,15 +530,23 @@ namespace SDRSharp
             _vfo.Bandwidth = (int)filterBandwidthNumericUpDown.Value;
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
-            if (_vfo.Bandwidth > Vfo.DefaultCwSideTone)
+            if (_vfo.DetectorType == DetectorType.LSB || _vfo.DetectorType == DetectorType.USB)
             {
-                waterfall.Offset = Vfo.MinSSBAudioFrequency;
-                spectrumAnalyzer.Offset = Vfo.MinSSBAudioFrequency;
+                if (_vfo.Bandwidth > Vfo.DefaultCwSideTone)
+                {
+                    waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
+                    spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
+                }
+                else
+                {
+                    waterfall.FilterOffset = Vfo.DefaultCwSideTone - _vfo.Bandwidth/2;
+                    spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+                }
             }
             else
             {
-                waterfall.Offset = Vfo.DefaultCwSideTone - _vfo.Bandwidth / 2;
-                spectrumAnalyzer.Offset = waterfall.Offset;
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
             }
         }
 

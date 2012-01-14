@@ -96,6 +96,11 @@ namespace SDRSharp.Radio
             return a.Conjugate();
         }
 
+        public static implicit operator Complex(double d)
+        {
+            return new Complex(d, 0);
+        }
+
         public override int GetHashCode()
         {
             unchecked
