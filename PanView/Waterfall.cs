@@ -350,18 +350,19 @@ namespace SDRSharp.PanView
                 for (var i = 0; i < destination.Length; i++)
                 {
                     var k = (int) (i * r - n / 2.0f);
-                    var sum = 0.0;
-                    var count = 0;
+                    var max = (double) -MinimumLevel;
                     for (var j = 0; j < n; j++)
                     {
                         var index = k + j + offset;
                         if (index >= 0 && index < sourceLength)
                         {
-                            sum += source[index];
-                            count++;
+                            if (max < source[index])
+                            {
+                                max = source[index];
+                            }
                         }
                     }
-                    destination[i] = sum / count;
+                    destination[i] = max;
                     if (double.IsNaN(destination[i]))
                     {
                         destination[i] = MinimumLevel;
