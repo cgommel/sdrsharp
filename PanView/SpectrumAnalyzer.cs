@@ -306,10 +306,6 @@ namespace SDRSharp.PanView
                 // Background
                 graphics.FillRectangle(bkgBrush, ClientRectangle);
 
-                // Axis
-                graphics.DrawLine(axisPen, AxisMargin, AxisMargin, AxisMargin, ClientRectangle.Height - AxisMargin);
-                graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
-
                 // Grid
                 gridPen.DashStyle = DashStyle.Dash;
 
@@ -327,6 +323,10 @@ namespace SDRSharp.PanView
                     var height = sizeF.Height;
                     graphics.DrawString(db, font, fontBrush, AxisMargin - width - 5, ClientRectangle.Height - AxisMargin - i * yIncrement - height / 2f);
                 }
+
+                // Axis
+                graphics.DrawLine(axisPen, AxisMargin, AxisMargin, AxisMargin, ClientRectangle.Height - AxisMargin);
+                graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
 
                 if (_spectrumWidth <= 0)
                 {
