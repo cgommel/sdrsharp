@@ -460,7 +460,7 @@ namespace SDRSharp.PanView
                 _buffer = new Bitmap(Width, Height);
                 _graphics = Graphics.FromImage(_buffer);
                 _bkgBuffer = new Bitmap(Width, Height);
-                var length = 2 * (Width - 2 * AxisMargin);
+                var length = Width - 2 * AxisMargin;
                 _spectrum = new double[length];
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
