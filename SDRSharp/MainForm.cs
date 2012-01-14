@@ -37,12 +37,13 @@ namespace SDRSharp
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly double[] _spectrumPower = new double[MaxFFTBins];
         private readonly double[] _fftWindow = new double[MaxFFTBins];
-        private readonly System.Timers.Timer _fftTimer = new System.Timers.Timer();
+        private readonly Timer _fftTimer;
 
 
         public MainForm()
         {
             InitializeComponent();
+            _fftTimer = new Timer(components);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -125,8 +126,7 @@ namespace SDRSharp
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
-            _fftTimer.SynchronizingObject = this;
-            _fftTimer.Elapsed += fftTimer_Tick;
+            _fftTimer.Tick += fftTimer_Tick;
             _fftTimer.Interval = GetIntSetting("displayTimerInterval", 50);
             _fftTimer.Enabled = true;
         }
