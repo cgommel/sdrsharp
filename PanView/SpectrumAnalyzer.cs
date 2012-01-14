@@ -259,7 +259,7 @@ namespace SDRSharp.PanView
                     bandpassWidth = cursorWidth;
                     break;
             }
-            _upper = _lower + cursorWidth;
+            _upper = _lower + cursorWidth - bandpassOffset;
 
             using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
             using (var carrierPen = new Pen(Color.Red))

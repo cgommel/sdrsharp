@@ -26,7 +26,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         public const float MinimumLevel = 130.0f;
 
-        public const int CursorSnapDistance = 2;
+        public const int CursorSnapDistance = 4;
         public const float MaxZoom = 2.0f;
 
         private readonly static double _attack = GetDoubleSetting("waterfallAttack", 0.9);
@@ -528,7 +528,7 @@ namespace SDRSharp.PanView
                     bandpassWidth = cursorWidth;
                     break;
             }
-            _upper = _lower + cursorWidth;
+            _upper = _lower + cursorWidth - bandpassOffset;
 
             using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
             using (var carrierPen = new Pen(Color.Red))
