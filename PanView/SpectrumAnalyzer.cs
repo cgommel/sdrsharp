@@ -24,7 +24,7 @@ namespace SDRSharp.PanView
         private int _spectrumWidth;
         private int _centerFrequency;
         private int _displayCenterFrequency;
-        private PointF[] _points;
+        private Point[] _points;
         private BandType _bandType;
         private int _filterBandwidth;
         private int _filterOffset;
@@ -434,8 +434,8 @@ namespace SDRSharp.PanView
                     var strenght = (float) _spectrum[i] + Waterfall.MinimumLevel;
                     strenght = Math.Max(strenght, 0);
                     strenght = Math.Min(strenght, Waterfall.MinimumLevel);
-                    var newX = i * xIncrement;
-                    var newY = ClientRectangle.Height - AxisMargin - strenght * yIncrement;
+                    var newX = (int) (i * xIncrement);
+                    var newY = (int) (ClientRectangle.Height - AxisMargin - strenght * yIncrement);
                     
                     _points[i].X = AxisMargin + newX;
                     _points[i].Y = newY;
@@ -467,7 +467,7 @@ namespace SDRSharp.PanView
                     _spectrum[i] = -130.0f;
                 }
                 _temp = new double[length];
-                _points = new PointF[length];
+                _points = new Point[length];
                 if (_spectrumWidth > 0)
                 {
                     _xIncrement = _scale * (Width - 2 * AxisMargin) / _spectrumWidth;
