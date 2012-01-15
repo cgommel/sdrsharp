@@ -426,7 +426,7 @@ namespace SDRSharp.PanView
             }
 
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrum.Length;
-            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 120f;
+            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / Waterfall.MinimumLevel;
 
             using (var spectrumPen = new Pen(Color.LimeGreen))
             {
