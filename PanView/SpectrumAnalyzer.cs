@@ -629,7 +629,7 @@ namespace SDRSharp.PanView
                 bw = (int)(bw * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin)) + _oldFilterBandwidth;
                 UpdateBandwidth(bw);
             }
-            if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
+            else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))
                 ||
                 (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
