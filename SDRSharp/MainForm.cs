@@ -7,11 +7,13 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
 using System.Collections;
+using Timer = System.Windows.Forms.Timer;
 
 namespace SDRSharp
 {
@@ -35,10 +37,9 @@ namespace SDRSharp
         private readonly FifoStream<Complex> _fftStream = new FifoStream<Complex>();
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
-        private readonly double[] _spectrumPower = new double[MaxFFTBins];
         private readonly double[] _fftWindow = new double[MaxFFTBins];
         private readonly Timer _fftTimer;
-
+        private readonly Queue<double[]> _fftQueue = new Queue<double[]>();
 
         public MainForm()
         {
@@ -200,53 +201,77 @@ namespace SDRSharp
         private void ProcessBuffer(Complex[] iqBuffer, double[] audioBuffer)
         {
             _iqBalancer.Process(iqBuffer);
-            if (_fftStream.Length < iqBuffer.Length)
-            {
-                _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
-            }
+            _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
             _vfo.ProcessBuffer(iqBuffer, audioBuffer);
+        }
+
+        private void ProcessFFT()
+        {
+            while (_audioControl.SampleRate != 0)
+            {
+                while (true)
+                {
+                    var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
+                    var overlapRatio = _audioControl.SampleRate / fftRate;
+                    if (overlapRatio > 1.0)
+                    {
+                        var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
+                        _fftStream.Advance(excessBuffer);
+                        if (_fftStream.Length < _fftBins)
+                        {
+                            break;
+                        }
+                        _fftStream.Read(_iqBuffer, 0, _fftBins);
+                    }
+                    else
+                    {
+                        var bytes = (int)(_fftBins * overlapRatio);
+                        if (_fftStream.Length < bytes)
+                        {
+                            break;
+                        }
+                        Array.Copy(_iqBuffer, bytes, _iqBuffer, 0, _fftBins - bytes);
+                        _fftStream.Read(_iqBuffer, _fftBins - bytes, bytes);
+                    }
+
+                    // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
+                    var fftGain = 10.0 * Math.Log10(_fftBins / 2);
+                    var compensation = 24.0 - fftGain;
+
+                    Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
+                    Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+                    Fourier.ForwardTransform(_fftBuffer, _fftBins);
+                    var spectrumPower = new double[_fftBins];
+                    Fourier.SpectrumPower(_fftBuffer, spectrumPower, _fftBins, compensation);
+
+                    _fftQueue.Enqueue(spectrumPower);
+                }
+
+                Thread.Sleep(5);
+            }
         }
 
         private void fftTimer_Tick(object sender, EventArgs e)
         {
             if (!playButton.Enabled)
             {
-                var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
-                var overlapRatio = _audioControl.SampleRate / fftRate;
-                var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
-                if (overlapRatio > 1.0)
+                while (_fftQueue.Count > 10)
                 {
-                    _fftStream.Advance(excessBuffer);
-                    _fftStream.Read(_iqBuffer, 0, _fftBins);
+                    _fftQueue.Dequeue();
                 }
-                else
+
+                if (_fftQueue.Count > 0)
                 {
-                    var bytes = (int)(_fftBins * overlapRatio);
-                    var toRead = Math.Min(excessBuffer + bytes, _fftBins);
-                    toRead = Math.Min(toRead, _fftStream.Length);
-                    if (toRead > 0)
+                    var spectrumPower = _fftQueue.Dequeue();
+
+                    if (!panSplitContainer.Panel1Collapsed)
                     {
-                        Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
-                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
+                        spectrumAnalyzer.Render(spectrumPower, spectrumPower.Length);
                     }
-                }
-
-                // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
-                var fftGain = 10.0 * Math.Log10(_fftBins / 2);
-                var compensation = 24.0 - fftGain;
-
-                Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
-                Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-                Fourier.ForwardTransform(_fftBuffer, _fftBins);
-                Fourier.SpectrumPower(_fftBuffer, _spectrumPower, _fftBins, compensation);
-
-                if (!panSplitContainer.Panel1Collapsed)
-                {
-                    spectrumAnalyzer.Render(_spectrumPower, _fftBins);
-                }
-                if (!panSplitContainer.Panel2Collapsed)
-                {
-                    waterfall.Render(_spectrumPower, _fftBins);
+                    if (!panSplitContainer.Panel2Collapsed)
+                    {
+                        waterfall.Render(spectrumPower, spectrumPower.Length);
+                    }
                 }
             }
 
@@ -371,6 +396,7 @@ namespace SDRSharp
             try
             {
                 _audioControl.Play();
+                new Thread(ProcessFFT).Start();
                 playButton.Enabled = false;
                 stopButton.Enabled = true;
                 sampleRateComboBox.Enabled = false;
