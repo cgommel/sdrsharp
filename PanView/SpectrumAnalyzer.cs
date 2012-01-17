@@ -51,7 +51,7 @@ namespace SDRSharp.PanView
             _bkgBuffer = new Bitmap(Width, Height);
             _buffer = new Bitmap(Width, Height);
             _graphics = Graphics.FromImage(_buffer);
-            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
         }
 
@@ -205,7 +205,7 @@ namespace SDRSharp.PanView
                     _gradientColorBlend.Positions[i] = value.Positions[i];
                 }
                 _gradientBrush.Dispose();
-                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
                 _gradientBrush.InterpolationColors = _gradientColorBlend;
 
                 _drawBackgroundNeeded = true;
@@ -526,7 +526,7 @@ namespace SDRSharp.PanView
                 }
 
                 _gradientBrush.Dispose();
-                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
                 _gradientBrush.InterpolationColors = _gradientColorBlend;
 
                 _drawBackgroundNeeded = true;
