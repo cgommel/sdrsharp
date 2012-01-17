@@ -79,7 +79,12 @@ namespace SDRSharp.PanView
             _gradientBrush.InterpolationColors = _gradientColorBlend;
         }
 
-        private static ColorBlend GetGradientBlend()
+        public static ColorBlend GetGradientBlend()
+        {
+            return GetGradientBlend(255);
+        }
+
+        public static ColorBlend GetGradientBlend(int alpha)
         {
             var colorBlend = new ColorBlend();
             
@@ -108,7 +113,7 @@ namespace SDRSharp.PanView
                     var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
                     var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
                     var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
-                    colorBlend.Colors[i] = Color.FromArgb(r, g, b);
+                    colorBlend.Colors[i] = Color.FromArgb(alpha, r, g, b);
                 }
             }
 

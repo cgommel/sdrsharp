@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -10,6 +11,7 @@ namespace SDRSharp.PanView
     {
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
+        private const int GradientAlpha = 180;
 
         private readonly static double _attack = Waterfall.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
         private readonly static double _decay = Waterfall.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
@@ -41,18 +43,23 @@ namespace SDRSharp.PanView
         private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
+        private LinearGradientBrush _gradientBrush;
+        private ColorBlend _gradientColorBlend = Waterfall.GetGradientBlend(GradientAlpha);
 
         public SpectrumAnalyzer()
         {
             _bkgBuffer = new Bitmap(Width, Height);
             _buffer = new Bitmap(Width, Height);
             _graphics = Graphics.FromImage(_buffer);
+            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+            _gradientBrush.InterpolationColors = _gradientColorBlend;
         }
 
         ~SpectrumAnalyzer()
         {
             _buffer.Dispose();
             _graphics.Dispose();
+            _gradientBrush.Dispose();
         }
 
         public event ManualFrequencyChange FrequencyChanged;
@@ -181,6 +188,31 @@ namespace SDRSharp.PanView
             }
         }
 
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public ColorBlend GradientColorBlend
+        {
+            get
+            {
+                return _gradientColorBlend;
+            }
+            set
+            {
+                _gradientColorBlend = new ColorBlend(value.Colors.Length);
+                for (var i = 0; i < value.Colors.Length; i++)
+                {
+                    _gradientColorBlend.Colors[i] = Color.FromArgb(GradientAlpha, value.Colors[i]);
+                    _gradientColorBlend.Positions[i] = value.Positions[i];
+                }
+                _gradientBrush.Dispose();
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush.InterpolationColors = _gradientColorBlend;
+
+                _drawBackgroundNeeded = true;
+                _performNeeded = true;
+            }
+        }
+
         private void ApplyZoom()
         {
             _scale = 0.01f + (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
@@ -234,7 +266,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void DrawCursor(Graphics g)
+        private void DrawCursor()
         {
             _lower = 0f;
             float bandpassOffset;
@@ -265,14 +297,15 @@ namespace SDRSharp.PanView
 
             if (cursorWidth < ClientRectangle.Width)
             {
-                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
+                using (var transparentBrush = new SolidBrush(Color.FromArgb(100, Color.White)))
                 using (var carrierPen = new Pen(Color.Red))
+                using (var graphics = Graphics.FromImage(_buffer))
                 {
                     carrierPen.Width = CarrierPenWidth;
-                    g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
+                    graphics.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
-                        g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
+                        graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
                     }
                 }
             }
@@ -384,8 +417,6 @@ namespace SDRSharp.PanView
                         graphics.DrawString(f, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 5f);
                     }
                 }
-
-                DrawCursor(graphics);
             }
 
             #endregion
@@ -407,6 +438,8 @@ namespace SDRSharp.PanView
             CopyBackground();
 
             DrawSpectrum();
+
+            DrawCursor();
         }
 
         private void CopyBackground()
@@ -428,7 +461,7 @@ namespace SDRSharp.PanView
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrum.Length;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / Waterfall.MinimumLevel;
 
-            using (var spectrumPen = new Pen(Color.LimeGreen))
+            using (var spectrumPen = new Pen(Color.DarkGray))
             {
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
@@ -438,9 +471,18 @@ namespace SDRSharp.PanView
                     var newX = (int) (i * xIncrement);
                     var newY = (int) (ClientRectangle.Height - AxisMargin - strenght * yIncrement);
                     
-                    _points[i].X = AxisMargin + newX;
-                    _points[i].Y = newY;
+                    _points[i + 1].X = AxisMargin + newX;
+                    _points[i + 1].Y = newY;
                 }
+                _points[0].X = AxisMargin;
+                _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
+                _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
+                _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
+
+                _graphics.FillPolygon(_gradientBrush, _points);
+
+                _points[0] = _points[1];
+                _points[_points.Length - 1] = _points[_points.Length - 2];
                 _graphics.DrawLines(spectrumPen, _points);
             }
         }
@@ -463,17 +505,30 @@ namespace SDRSharp.PanView
                 _graphics.SmoothingMode = SmoothingMode.HighSpeed;
                 _bkgBuffer = new Bitmap(Width, Height);
                 var length = Width - 2 * AxisMargin;
+                var oldSpectrum = _spectrum;
                 _spectrum = new double[length];
-                for (var i = 0; i < _spectrum.Length; i++)
+                if (oldSpectrum != null)
                 {
-                    _spectrum[i] = -130.0f;
+                    Waterfall.SmoothCopy(oldSpectrum, _spectrum, oldSpectrum.Length, 1, 0);
+                }
+                else
+                {
+                    for (var i = 0; i < _spectrum.Length; i++)
+                    {
+                        _spectrum[i] = -Waterfall.MinimumLevel;
+                    }
                 }
                 _temp = new double[length];
-                _points = new Point[length];
+                _points = new Point[length + 2];
                 if (_spectrumWidth > 0)
                 {
                     _xIncrement = _scale * (Width - 2 * AxisMargin) / _spectrumWidth;
                 }
+
+                _gradientBrush.Dispose();
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush.InterpolationColors = _gradientColorBlend;
+
                 _drawBackgroundNeeded = true;
                 Draw();
                 Invalidate();

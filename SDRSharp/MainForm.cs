@@ -615,6 +615,7 @@ namespace SDRSharp
             if (gradient != null && gradient.Positions.Length > 0)
             {
                 waterfall.GradientColorBlend = gradient;
+                spectrumAnalyzer.GradientColorBlend = gradient;
                 SaveSetting("gradient", GradientToString(gradient.Colors));
             }
         }
