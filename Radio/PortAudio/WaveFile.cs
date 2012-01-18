@@ -72,17 +72,18 @@ namespace SDRSharp.Radio.PortAudio
 			_bitsPerSample = reader.ReadInt16(); 
 
 			// advance in the stream to skip the wave format block 
-			len -= 16; // minimum format size
-			while (len > 0)
-			{
-				reader.ReadByte();
-				len--;
-			}
+            len -= 16; // minimum format size
+            while (len > 0)
+            {
+                reader.ReadByte();
+                len--;
+            }
 
 			// assume the data chunk is aligned
-			while(_stream.Position < _stream.Length && ReadChunk(reader) != "data")
-			{
-			}
+            //while(_stream.Position < _stream.Length && ReadChunk(reader) != "data")
+            //{
+            //}
+		    ReadChunk(reader);
 
 			if (_stream.Position >= _stream.Length)
 				throw new Exception("Invalid file format");
