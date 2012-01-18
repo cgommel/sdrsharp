@@ -232,7 +232,10 @@ namespace SDRSharp
                     var spectrumPower = new double[_fftBins];
                     Fourier.SpectrumPower(_fftBuffer, spectrumPower, _fftBins, compensation);
 
-                    _fftQueue.Enqueue(spectrumPower);
+                    lock (_fftQueue)
+                    {
+                        _fftQueue.Enqueue(spectrumPower);
+                    }
                 }
 
                 Thread.Sleep(5);
@@ -243,15 +246,21 @@ namespace SDRSharp
         {
             if (!playButton.Enabled)
             {
-                while (_fftQueue.Count > 2)
+                double[] spectrumPower = null;
+                lock (_fftQueue)
                 {
-                    _fftQueue.Dequeue();
+                    while (_fftQueue.Count > 3)
+                    {
+                        _fftQueue.Dequeue();
+                    }
+                    if (_fftQueue.Count > 0)
+                    {
+                        spectrumPower = _fftQueue.Dequeue();
+                    }
                 }
 
-                if (_fftQueue.Count > 0)
+                if (spectrumPower != null)
                 {
-                    var spectrumPower = _fftQueue.Dequeue();
-
                     if (!panSplitContainer.Panel1Collapsed)
                     {
                         spectrumAnalyzer.Render(spectrumPower, spectrumPower.Length);
