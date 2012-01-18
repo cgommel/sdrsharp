@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio.PortAudio
 {
@@ -96,8 +97,8 @@ namespace SDRSharp.Radio.PortAudio
         {
             if (_tempBuffer == null || _tempBuffer.Length != iqBuffer.Length)
             {
-                var bytesPerSample = _isPCM ? 4 : 8;
-                _tempBuffer = new byte[bytesPerSample * iqBuffer.Length];
+                //var bytesPerSample = _isPCM ? _blockAlign : 8;
+                _tempBuffer = new byte[_blockAlign * iqBuffer.Length];
             }
             var pos = 0;
             var size = _tempBuffer.Length;
@@ -123,10 +124,21 @@ namespace SDRSharp.Radio.PortAudio
             {
                 if (_isPCM)
                 {
-                    for (int i = 0; i < numReads; i++)
+                    if (_blockAlign == 6)
                     {
-                        iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0 * InputGain;
-                        iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0 * InputGain;
+                        for (int i = 0; i < numReads; i++)
+                        {
+                            iqPtr[i].Real = *(Int24*)(rawPtr + i * 6) / 8388608.0 * InputGain;
+                            iqPtr[i].Imag = *(Int24*)(rawPtr + i * 6 + 3) / 8388608.0 * InputGain;
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < numReads; i++)
+                        {
+                            iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0 * InputGain;
+                            iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0 * InputGain;
+                        }
                     }
                 }
                 else
@@ -175,5 +187,18 @@ namespace SDRSharp.Radio.PortAudio
 	    {
 	        get { return _length; }
 	    }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Int24
+        {
+            public byte C;
+            public byte B;
+            public sbyte A;
+            
+            public static implicit operator double (Int24 i)
+            {
+                return (i.C << 8 | i.B << 16 | i.A << 24) >> 8;
+            }
+        }
 	}
 }
