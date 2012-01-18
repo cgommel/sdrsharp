@@ -215,7 +215,7 @@ namespace SDRSharp
                     var overlapRatio = _audioControl.SampleRate / fftRate;
                     if (overlapRatio > 1.0)
                     {
-                        var excessBuffer = Math.Max(0, _fftStream.Length - _audioControl.BufferSize);
+                        var excessBuffer = _fftStream.Length - _audioControl.BufferSize - _fftBins;
                         _fftStream.Advance(excessBuffer);
                         if (_fftStream.Length < _fftBins)
                         {
@@ -255,7 +255,7 @@ namespace SDRSharp
         {
             if (!playButton.Enabled)
             {
-                while (_fftQueue.Count > 10)
+                while (_fftQueue.Count > 2)
                 {
                     _fftQueue.Dequeue();
                 }
