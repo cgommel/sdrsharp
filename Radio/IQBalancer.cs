@@ -22,7 +22,7 @@ namespace SDRSharp.Radio
 
         public double Phase
         {
-            get { return _phase; }
+            get { return Math.Asin(_phase); }
         }
 
         public double Gain
@@ -140,7 +140,7 @@ namespace SDRSharp.Radio
             {
                 var distanceFromCenter = Math.Abs(i - halfLength);
 
-                if (distanceFromCenter / (double) halfLength > 0.05)
+                if (distanceFromCenter > 0.05 * halfLength)
                 {
                     result += Math.Abs(spectrum[i] - spectrum[spectrum.Length - 2 - i]);
                 }
@@ -156,7 +156,7 @@ namespace SDRSharp.Radio
             for (var i = 0; i < buffer.Length; i++)
             {
                 m1 += buffer[i].Modulus();
-                buffer[i].Real += Math.Sin(phase) * buffer[i].Imag;
+                buffer[i].Real += phase * buffer[i].Imag;
                 buffer[i].Imag *= gain;
                 m2 += buffer[i].Modulus();
             }
