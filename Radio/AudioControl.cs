@@ -68,6 +68,14 @@ namespace SDRSharp.Radio
             }
         }
 
+        public bool IsPlaying
+        {
+            get
+            {
+                return _sampleRate != 0;
+            }
+        }
+
         public int BufferSize
         {
             get

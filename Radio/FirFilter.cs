@@ -18,19 +18,19 @@ namespace SDRSharp.Radio
         private readonly double[] _coefficients;
         private readonly double[] _queue;
 #else
-    public class FirFilter : IDisposable
+    public unsafe class FirFilter : IDisposable
     {
         #region Native API
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessBuffer(
-            [In, Out] double[] buffer,
+            double* buffer,
             int bufferSize,
             IntPtr filterHandle);
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern IntPtr MakeSimpleFilter(
-            double[] coeffs,
+            double* coeffs,
             int bufferSize);
 
         [DllImport("SDRSharp.Filters.dll")]
@@ -53,7 +53,10 @@ namespace SDRSharp.Radio
             _coeffPtr = (double*) _coeffHandle.AddrOfPinnedObject();
             _queuePtr = (double*) _queueHandle.AddrOfPinnedObject();
 #else
-            _filterHandle = MakeSimpleFilter(coefficients, coefficients.Length);
+            fixed (double* ptr = coefficients)
+            {
+                _filterHandle = MakeSimpleFilter(ptr, coefficients.Length);
+            }
 #endif
         }
 
@@ -87,7 +90,10 @@ namespace SDRSharp.Radio
                 buffer[n] = accum;
             }
 #else
-            FirProcessBuffer(buffer, buffer.Length, _filterHandle);
+            fixed (double* ptr = buffer)
+            {
+                FirProcessBuffer(ptr, buffer.Length, _filterHandle);
+            }
 #endif
         }
     }

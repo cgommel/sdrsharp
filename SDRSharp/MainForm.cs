@@ -24,10 +24,14 @@ namespace SDRSharp
         private const int DefaultFMBandwidth = 12500;
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
-
-        private const int MaxFFTBins = 1024 * 64;
+        private const int MaxFFTBins = 1024 * 1024 * 4;
+        private const int FFTOverlapLimit = 65536;
 
         private int _fftBins;
+        private int _fftFillPosition;
+        private bool _fftOverlap;
+        private bool _fftAvailable;
+
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
         private readonly Dictionary<string, IFrontendController> _frontendControllers = new Dictionary<string, IFrontendController>();
@@ -38,8 +42,8 @@ namespace SDRSharp
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly double[] _fftWindow = new double[MaxFFTBins];
+        private readonly double[] _fftSpectrum = new double[MaxFFTBins];
         private readonly Timer _fftTimer;
-        private readonly Queue<double[]> _fftQueue = new Queue<double[]>();
 
         public MainForm()
         {
@@ -70,6 +74,7 @@ namespace SDRSharp
                 outputDeviceComboBox.SelectedIndex = 0;
             }
             _fftBins = 1024;
+            _fftOverlap = true;
 
             viewComboBox.SelectedIndex = 2;
             fftResolutionComboBox.SelectedIndex = 1;
@@ -210,69 +215,74 @@ namespace SDRSharp
 
         private void ProcessFFT()
         {
-            while (_audioControl.SampleRate != 0)
+            while (_audioControl.IsPlaying)
             {
-                while (true)
+                while (_audioControl.IsPlaying)
                 {
-                    var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
-                    var overlapRatio = _audioControl.SampleRate / fftRate;
-                    var bytes = (int)(_fftBins * overlapRatio);
-                    bytes = Math.Min(bytes, _fftBins);
-                    if (_fftStream.Length < bytes)
+                    if (_fftOverlap)
                     {
-                        break;
+                        var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
+                        var overlapRatio = _audioControl.SampleRate / fftRate;
+                        var bytes = (int)(_fftBins * overlapRatio);
+
+                        if (_fftStream.Length < bytes)
+                        {
+                            break;
+                        }
+
+                        if (bytes > _fftBins)
+                        {
+                            _fftStream.Advance(bytes - _fftBins);
+                        }
+                        bytes = Math.Min(bytes, _fftBins);
+                        Array.Copy(_iqBuffer, bytes, _iqBuffer, 0, _fftBins - bytes);
+                        _fftStream.Read(_iqBuffer, _fftBins - bytes, bytes);
+                        Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
                     }
-                    Array.Copy(_iqBuffer, bytes, _iqBuffer, 0, _fftBins - bytes);
-                    _fftStream.Read(_iqBuffer, _fftBins - bytes, bytes);
+                    else
+                    {
+                        var bytes = Math.Min(_fftStream.Length, _fftBins - _fftFillPosition);
+                        bytes = Math.Max(bytes, 0);
+                        _fftFillPosition += _fftStream.Read(_fftBuffer, _fftFillPosition, bytes);
+                        if (_fftFillPosition < _fftBins)
+                        {
+                            break;
+                        }
+                        _fftFillPosition = 0;
+                    }
+
+                    Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+                    Fourier.ForwardTransform(_fftBuffer, _fftBins);
 
                     // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                     var fftGain = 10.0 * Math.Log10(_fftBins / 2);
                     var compensation = 24.0 - fftGain;
 
-                    Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
-                    Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-                    Fourier.ForwardTransform(_fftBuffer, _fftBins);
-                    var spectrumPower = new double[_fftBins];
-                    Fourier.SpectrumPower(_fftBuffer, spectrumPower, _fftBins, compensation);
-
-                    lock (_fftQueue)
+                    lock (_fftSpectrum)
                     {
-                        _fftQueue.Enqueue(spectrumPower);
+                        Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _fftBins, compensation);
+                        _fftAvailable = true;
                     }
                 }
 
-                Thread.Sleep(5);
+                Thread.Sleep(1);
             }
+            _fftStream.Flush();
         }
 
         private void fftTimer_Tick(object sender, EventArgs e)
         {
-            if (!playButton.Enabled)
+            if (_audioControl.IsPlaying && ((!_fftOverlap && _fftAvailable) || _fftOverlap))
             {
-                double[] spectrumPower = null;
-                lock (_fftQueue)
+                if (!panSplitContainer.Panel1Collapsed)
                 {
-                    while (_fftQueue.Count > 3)
-                    {
-                        _fftQueue.Dequeue();
-                    }
-                    if (_fftQueue.Count > 0)
-                    {
-                        spectrumPower = _fftQueue.Dequeue();
-                    }
+                    spectrumAnalyzer.Render(_fftSpectrum, _fftBins);
                 }
-
-                if (spectrumPower != null)
+                if (!panSplitContainer.Panel2Collapsed)
                 {
-                    if (!panSplitContainer.Panel1Collapsed)
-                    {
-                        spectrumAnalyzer.Render(spectrumPower, spectrumPower.Length);
-                    }
-                    if (!panSplitContainer.Panel2Collapsed)
-                    {
-                        waterfall.Render(spectrumPower, spectrumPower.Length);
-                    }
+                    waterfall.Render(_fftSpectrum, _fftBins);
                 }
+                _fftAvailable = false;
             }
 
             spectrumAnalyzer.Perform();
@@ -616,6 +626,14 @@ namespace SDRSharp
         private void fftResolutionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
+            var overlap = _fftBins <= FFTOverlapLimit;
+            if (_fftOverlap != overlap)
+            {
+                _fftFillPosition = 0;
+            }
+            _fftOverlap = overlap;
+            waterfall.UseSmoothing = overlap;
+            spectrumAnalyzer.UseSmoothing = overlap;
             BuildFFTWindow();
         }
 

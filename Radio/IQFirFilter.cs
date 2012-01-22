@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-    public class IQFirFilter : IDisposable
+    public unsafe class IQFirFilter : IDisposable
     {
 #if MANAGED_ONLY
         private readonly FirFilter _rFilter;
@@ -19,13 +19,13 @@ namespace SDRSharp.Radio
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessComplexBuffer(
-            [In, Out] Complex[] buffer,
+            Complex* buffer,
             int bufferSize,
             IntPtr filterHandle);
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern IntPtr MakeComplexFilter(
-            double[] coeffs,
+            double* coeffs,
             int bufferSize);
 
         [DllImport("SDRSharp.Filters.dll")]
@@ -42,7 +42,10 @@ namespace SDRSharp.Radio
             _rFilter = new FirFilter(coefficients);
             _iFilter = new FirFilter(coefficients);
 #else
-            _filterHandle = MakeComplexFilter(coefficients, coefficients.Length);
+            fixed (double* ptr = coefficients)
+            {
+                _filterHandle = MakeComplexFilter(ptr, coefficients.Length);
+            }
 #endif
         }
 
@@ -62,7 +65,10 @@ namespace SDRSharp.Radio
                 iq[i].Imag = _iFilter.Process(iq[i].Imag);
             }
 #else
-            FirProcessComplexBuffer(iq, iq.Length, _filterHandle);
+            fixed (Complex* ptr = iq)
+            {
+                FirProcessComplexBuffer(ptr, iq.Length, _filterHandle);
+            }
 #endif
         }
     }

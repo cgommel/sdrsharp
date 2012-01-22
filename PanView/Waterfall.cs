@@ -61,6 +61,7 @@ namespace SDRSharp.PanView
         private int[] _gradientPixels;
         private int _contrast;
         private int _zoom;
+        private bool _useSmoothing;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
@@ -307,6 +308,12 @@ namespace SDRSharp.PanView
             }
         }
 
+        public bool UseSmoothing
+        {
+            get { return _useSmoothing; }
+            set { _useSmoothing = value; }
+        }
+
         private void ApplyZoom()
         {
             _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
@@ -396,12 +403,25 @@ namespace SDRSharp.PanView
             var scaledLength = (int)(length / _scale);
             var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float) _spectrumWidth);
 
-            SmoothCopy(spectrum, _temp, length, _scale, offset);
 
-            for (var i = 0; i < _spectrum.Length; i++)
+            if (_useSmoothing)
             {
-                var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
-                _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                lock (spectrum)
+                {
+                    SmoothCopy(spectrum, _temp, length, _scale, offset);
+                }
+                for (var i = 0; i < _spectrum.Length; i++)
+                {
+                    var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
+                    _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                }
+            }
+            else
+            {
+                lock (spectrum)
+                {
+                    SmoothCopy(spectrum, _spectrum, length, _scale, offset);
+                }
             }
             Draw();
             _performNeeded = true;

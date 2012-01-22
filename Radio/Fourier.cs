@@ -9,14 +9,14 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-    public static class Fourier
+    public static unsafe class Fourier
     {
         public const double MaxPower = 0.0;
         public const double MinPower = -130.0;
 
 #if !MANAGED_ONLY
         [DllImport("SDRSharp.Filters.dll")]
-        private static extern void FFT([In, Out] Complex[] coeffs, int len);
+        private static extern void FFT(Complex* coeffs, int len);
 #endif
 
         public static void ForwardTransform(Complex[] buffer)
@@ -192,7 +192,10 @@ namespace SDRSharp.Radio
 
         private static void NativeForwardTransform(Complex[] samples, int length)
         {
-            FFT(samples, length);
+            fixed (Complex* ptr = samples)
+            {
+                FFT(ptr, length);
+            }
         }
 
 #endif

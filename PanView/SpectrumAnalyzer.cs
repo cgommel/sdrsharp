@@ -43,6 +43,7 @@ namespace SDRSharp.PanView
         private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
+        private bool _useSmoothing;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Waterfall.GetGradientBlend(GradientAlpha);
 
@@ -188,6 +189,12 @@ namespace SDRSharp.PanView
             }
         }
 
+        public bool UseSmoothing
+        {
+            get { return _useSmoothing; }
+            set { _useSmoothing = value; }
+        }
+
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ColorBlend GradientColorBlend
@@ -316,12 +323,24 @@ namespace SDRSharp.PanView
             var scaledLength = (int)(length / _scale);
             var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float)_spectrumWidth);
 
-            Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
-
-            for (var i = 0; i < _spectrum.Length; i++)
+            if (_useSmoothing)
             {
-                var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
-                _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                lock (spectrum)
+                {
+                    Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
+                }
+                for (var i = 0; i < _spectrum.Length; i++)
+                {
+                    var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
+                    _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                }
+            }
+            else
+            {
+                lock (spectrum)
+                {
+                    Waterfall.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
+                }
             }
             Draw();
             _performNeeded = true;
