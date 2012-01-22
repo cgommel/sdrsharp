@@ -924,7 +924,13 @@ namespace SDRSharp
             "8192",
             "16384",
             "32768",
-            "65536"});
+            "65536",
+            "131072",
+            "262144",
+            "524288",
+            "1048576",
+            "2097152",
+            "4194304"});
             this.fftResolutionComboBox.Location = new System.Drawing.Point(69, 69);
             this.fftResolutionComboBox.Name = "fftResolutionComboBox";
             this.fftResolutionComboBox.Size = new System.Drawing.Size(135, 21);
