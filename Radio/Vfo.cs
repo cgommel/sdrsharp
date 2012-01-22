@@ -126,16 +126,28 @@ namespace SDRSharp.Radio
             set { _useAgc = value; }
         }
 
-        public int AgcAttack
+        public double AgcThreshold
         {
-            get { return _agc.Attack; }
-            set { _agc.Attack = value; }
+            get { return _agc.Threshold; }
+            set { _agc.Threshold = value; }
         }
 
-        public int AgcDecay
+        public double AgcDecay
         {
             get { return _agc.Decay; }
             set { _agc.Decay = value; }
+        }
+
+        public double AgcSlope
+        {
+            get { return _agc.Slope; }
+            set { _agc.Slope = value; }
+        }
+
+        public bool AgcHang
+        {
+            get { return _agc.UseHang; }
+            set { _agc.UseHang = value; }
         }
 
         public int FmSquelch

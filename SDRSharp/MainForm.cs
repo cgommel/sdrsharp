@@ -84,8 +84,11 @@ namespace SDRSharp
             _vfo.FilterOrder = 100;
             _vfo.FmSquelch = 50;
             _vfo.UseAGC = true;
-            _vfo.AgcAttack = 800;
-            _vfo.AgcDecay = 50;
+            _vfo.AgcThreshold = -100.0;
+            _vfo.AgcDecay = 100;
+            _vfo.AgcSlope = 0;
+            _vfo.AgcHang = false;
+
             _audioControl.AudioGain = 25.0;
             _audioControl.BufferNeeded += ProcessBuffer;
 
@@ -529,8 +532,9 @@ namespace SDRSharp
         private void agcCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.UseAGC = agcCheckBox.Checked;
-            agcAttackNumericUpDown.Enabled = agcCheckBox.Checked;
+            agcThresholdNumericUpDown.Enabled = agcCheckBox.Checked;
             agcDecayNumericUpDown.Enabled = agcCheckBox.Checked;
+            agcSlopeNumericUpDown.Enabled = agcCheckBox.Checked;
         }
 
         private void agcDecayNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -538,9 +542,14 @@ namespace SDRSharp
             _vfo.AgcDecay = (int) agcDecayNumericUpDown.Value;
         }
 
-        private void agcAttackNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void agcThresholdNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.AgcAttack = (int) agcAttackNumericUpDown.Value;
+            _vfo.AgcThreshold = (int) agcThresholdNumericUpDown.Value;
+        }
+
+        private void agcSlopeNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _vfo.AgcSlope = (int) agcSlopeNumericUpDown.Value;
         }
 
         private void swapInQCheckBox_CheckedChanged(object sender, EventArgs e)

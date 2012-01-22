@@ -20,7 +20,7 @@ namespace SDRSharp
         private Label label1;
         private NumericUpDown filterBandwidthNumericUpDown;
         private Label label4;
-        private NumericUpDown agcAttackNumericUpDown;
+        private NumericUpDown agcThresholdNumericUpDown;
         private GroupBox groupBox2;
         private CheckBox swapInQCheckBox;
         private Label label5;
@@ -80,7 +80,7 @@ namespace SDRSharp
             this.label2 = new System.Windows.Forms.Label();
             this.frequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
-            this.agcAttackNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.agcThresholdNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.agcCheckBox = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.audioGainNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -103,6 +103,8 @@ namespace SDRSharp
             this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
             this.waterfall = new SDRSharp.PanView.Waterfall();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.agcSlopeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label22 = new System.Windows.Forms.Label();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label21 = new System.Windows.Forms.Label();
             this.fftResolutionComboBox = new System.Windows.Forms.ComboBox();
@@ -123,7 +125,7 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterBandwidthNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.agcAttackNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.audioGainNumericUpDown)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bufferSizeNumericUpDown)).BeginInit();
@@ -132,6 +134,7 @@ namespace SDRSharp
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.agcSlopeNumericUpDown)).BeginInit();
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.zoomTrackBar)).BeginInit();
@@ -520,33 +523,33 @@ namespace SDRSharp
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(6, 21);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(38, 13);
+            this.label4.Size = new System.Drawing.Size(76, 13);
             this.label4.TabIndex = 7;
-            this.label4.Text = "Attack";
+            this.label4.Text = "Threshold (dB)";
             // 
-            // agcAttackNumericUpDown
+            // agcThresholdNumericUpDown
             // 
-            this.agcAttackNumericUpDown.Location = new System.Drawing.Point(69, 19);
-            this.agcAttackNumericUpDown.Maximum = new decimal(new int[] {
-            5000,
+            this.agcThresholdNumericUpDown.Location = new System.Drawing.Point(125, 19);
+            this.agcThresholdNumericUpDown.Maximum = new decimal(new int[] {
             0,
-            0,
-            0});
-            this.agcAttackNumericUpDown.Minimum = new decimal(new int[] {
-            1,
             0,
             0,
             0});
-            this.agcAttackNumericUpDown.Name = "agcAttackNumericUpDown";
-            this.agcAttackNumericUpDown.Size = new System.Drawing.Size(135, 20);
-            this.agcAttackNumericUpDown.TabIndex = 1;
-            this.agcAttackNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.agcAttackNumericUpDown.Value = new decimal(new int[] {
-            800,
+            this.agcThresholdNumericUpDown.Minimum = new decimal(new int[] {
+            160,
             0,
             0,
-            0});
-            this.agcAttackNumericUpDown.ValueChanged += new System.EventHandler(this.agcAttackNumericUpDown_ValueChanged);
+            -2147483648});
+            this.agcThresholdNumericUpDown.Name = "agcThresholdNumericUpDown";
+            this.agcThresholdNumericUpDown.Size = new System.Drawing.Size(79, 20);
+            this.agcThresholdNumericUpDown.TabIndex = 1;
+            this.agcThresholdNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.agcThresholdNumericUpDown.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            -2147483648});
+            this.agcThresholdNumericUpDown.ValueChanged += new System.EventHandler(this.agcThresholdNumericUpDown_ValueChanged);
             // 
             // agcCheckBox
             // 
@@ -711,29 +714,29 @@ namespace SDRSharp
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(6, 46);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(38, 13);
+            this.label10.Size = new System.Drawing.Size(60, 13);
             this.label10.TabIndex = 11;
-            this.label10.Text = "Decay";
+            this.label10.Text = "Decay (ms)";
             // 
             // agcDecayNumericUpDown
             // 
-            this.agcDecayNumericUpDown.Location = new System.Drawing.Point(69, 44);
+            this.agcDecayNumericUpDown.Location = new System.Drawing.Point(125, 44);
             this.agcDecayNumericUpDown.Maximum = new decimal(new int[] {
-            5000,
+            2000,
             0,
             0,
             0});
             this.agcDecayNumericUpDown.Minimum = new decimal(new int[] {
-            1,
+            10,
             0,
             0,
             0});
             this.agcDecayNumericUpDown.Name = "agcDecayNumericUpDown";
-            this.agcDecayNumericUpDown.Size = new System.Drawing.Size(135, 20);
+            this.agcDecayNumericUpDown.Size = new System.Drawing.Size(79, 20);
             this.agcDecayNumericUpDown.TabIndex = 2;
             this.agcDecayNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.agcDecayNumericUpDown.Value = new decimal(new int[] {
-            50,
+            100,
             0,
             0,
             0});
@@ -803,8 +806,8 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(668, 639);
-            this.panSplitContainer.SplitterDistance = 200;
+            this.panSplitContainer.Size = new System.Drawing.Size(668, 666);
+            this.panSplitContainer.SplitterDistance = 208;
             this.panSplitContainer.TabIndex = 13;
             // 
             // spectrumAnalyzer
@@ -813,11 +816,11 @@ namespace SDRSharp
             this.spectrumAnalyzer.CenterFrequency = 0;
             this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
             this.spectrumAnalyzer.Frequency = 0;
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 200);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 208);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.Zoom = 0;
@@ -832,11 +835,11 @@ namespace SDRSharp
             this.waterfall.Contrast = 0;
             this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
             this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
             this.waterfall.Frequency = 0;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Size = new System.Drawing.Size(668, 435);
+            this.waterfall.Size = new System.Drawing.Size(668, 454);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;
             this.waterfall.Zoom = 0;
@@ -847,16 +850,41 @@ namespace SDRSharp
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.agcSlopeNumericUpDown);
+            this.groupBox3.Controls.Add(this.label22);
             this.groupBox3.Controls.Add(this.agcCheckBox);
-            this.groupBox3.Controls.Add(this.agcAttackNumericUpDown);
+            this.groupBox3.Controls.Add(this.agcThresholdNumericUpDown);
             this.groupBox3.Controls.Add(this.label4);
             this.groupBox3.Controls.Add(this.agcDecayNumericUpDown);
             this.groupBox3.Controls.Add(this.label10);
             this.groupBox3.Location = new System.Drawing.Point(12, 485);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(211, 71);
+            this.groupBox3.Size = new System.Drawing.Size(211, 98);
             this.groupBox3.TabIndex = 14;
             this.groupBox3.TabStop = false;
+            // 
+            // agcSlopeNumericUpDown
+            // 
+            this.agcSlopeNumericUpDown.Location = new System.Drawing.Point(125, 69);
+            this.agcSlopeNumericUpDown.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.agcSlopeNumericUpDown.Name = "agcSlopeNumericUpDown";
+            this.agcSlopeNumericUpDown.Size = new System.Drawing.Size(79, 20);
+            this.agcSlopeNumericUpDown.TabIndex = 12;
+            this.agcSlopeNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.agcSlopeNumericUpDown.ValueChanged += new System.EventHandler(this.agcSlopeNumericUpDown_ValueChanged);
+            // 
+            // label22
+            // 
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(6, 71);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(56, 13);
+            this.label22.TabIndex = 13;
+            this.label22.Text = "Slope (dB)";
             // 
             // groupBox4
             // 
@@ -868,7 +896,7 @@ namespace SDRSharp
             this.groupBox4.Controls.Add(this.fftWindowComboBox);
             this.groupBox4.Controls.Add(this.label7);
             this.groupBox4.Controls.Add(this.viewComboBox);
-            this.groupBox4.Location = new System.Drawing.Point(12, 557);
+            this.groupBox4.Location = new System.Drawing.Point(12, 584);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(211, 124);
             this.groupBox4.TabIndex = 15;
@@ -1027,7 +1055,7 @@ namespace SDRSharp
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(961, 693);
+            this.ClientSize = new System.Drawing.Size(961, 720);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
             this.Controls.Add(this.zoomTrackBar);
@@ -1056,7 +1084,7 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.filterOrderNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.filterBandwidthNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.agcAttackNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.audioGainNumericUpDown)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -1067,6 +1095,7 @@ namespace SDRSharp
             this.panSplitContainer.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.agcSlopeNumericUpDown)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackBar)).EndInit();
@@ -1105,5 +1134,7 @@ namespace SDRSharp
         private Label label20;
         private Label label21;
         private ComboBox fftResolutionComboBox;
+        private NumericUpDown agcSlopeNumericUpDown;
+        private Label label22;
     }
 }
