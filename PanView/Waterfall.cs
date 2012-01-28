@@ -27,7 +27,7 @@ namespace SDRSharp.PanView
         public const float MinimumLevel = 130.0f;
 
         public const int CursorSnapDistance = 4;
-        public const float MaxZoom = 3.0f;
+        public const float MaxZoom = 4.0f;
 
         private readonly static double _attack = GetDoubleSetting("waterfallAttack", 0.9);
         private readonly static double _decay = GetDoubleSetting("waterfallDecay", 0.5);
