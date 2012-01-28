@@ -4,10 +4,10 @@ namespace SDRSharp.Radio
 {
     public struct Complex
     {
-        public double Real;
-        public double Imag;
+        public float Real;
+        public float Imag;
 
-        public Complex(double real, double imaginary)
+        public Complex(float real, float imaginary)
         {
             Real = real;
             Imag = imaginary;
@@ -29,14 +29,14 @@ namespace SDRSharp.Radio
             return new Complex(xy.Real - uv.Real, xy.Imag - uv.Imag);
         }
 
-        public double Modulus()
+        public float Modulus()
         {
-            return Math.Sqrt(Real * Real + Imag * Imag);
+            return (float) Math.Sqrt(Real * Real + Imag * Imag);
         }
 
-        public double Argument()
+        public float Argument()
         {
-            return Math.Atan(Imag / Real);
+            return (float) Math.Atan(Imag / Real);
         }
 
         public Complex Conjugate()
@@ -73,7 +73,7 @@ namespace SDRSharp.Radio
                                a.Imag * b.Real + a.Real * b.Imag);
         }
 
-        public static Complex operator *(Complex a, double b)
+        public static Complex operator *(Complex a, float b)
         {
             return new Complex(a.Real * b, a.Imag * b);
         }
@@ -86,7 +86,7 @@ namespace SDRSharp.Radio
             return new Complex(re, im);
         }
 
-        public static Complex operator /(Complex a, double b)
+        public static Complex operator /(Complex a, float b)
         {
             return new Complex(a.Real / b, a.Imag / b);
         }
@@ -96,7 +96,7 @@ namespace SDRSharp.Radio
             return a.Conjugate();
         }
 
-        public static implicit operator Complex(double d)
+        public static implicit operator Complex(float d)
         {
             return new Complex(d, 0);
         }

@@ -4,19 +4,17 @@ using PortAudioSharp;
 
 namespace SDRSharp.Radio.PortAudio
 {
-    public delegate void AudioBufferNeededDelegate(float[] buffer);
+    public unsafe delegate void AudioBufferNeededDelegate(float* buffer, int length);
 
-    public class WavePlayer : IDisposable
+    public unsafe class WavePlayer : IDisposable
     {
         private IntPtr _streamHandle;
         private GCHandle _gcHandle;
-        private float[] _callbackBuffer;
         private readonly AudioBufferNeededDelegate _bufferNeeded;
         private readonly PaStreamCallbackDelegate _paCallback = PaStreamCallback;
 
         public WavePlayer(int deviceIndex, int sampleRate, int framesPerBuffer, AudioBufferNeededDelegate bufferNeededDelegate)
         {
-            _callbackBuffer = new float[framesPerBuffer * 2];
             _bufferNeeded = bufferNeededDelegate;
 
             var ouputParams = new PaStreamParameters();
@@ -59,11 +57,11 @@ namespace SDRSharp.Radio.PortAudio
         }
 
         private static PaStreamCallbackResult PaStreamCallback(
-             IntPtr input,
-             IntPtr output,
+             float* input,
+             float* output,
              uint frameCount,
-            ref PaStreamCallbackTimeInfo timeInfo,
-            PaStreamCallbackFlags statusFlags,
+             ref PaStreamCallbackTimeInfo timeInfo,
+             PaStreamCallbackFlags statusFlags,
              IntPtr userData)
         {
             #region GC boilerplate
@@ -77,17 +75,11 @@ namespace SDRSharp.Radio.PortAudio
 
             #endregion
 
-            if (instance._callbackBuffer.Length != frameCount * 2)
-            {
-                instance._callbackBuffer = new float[frameCount * 2];
-            }
-
             try
             {
                 if (instance._bufferNeeded != null)
                 {
-                    instance._bufferNeeded(instance._callbackBuffer);
-                    Marshal.Copy(instance._callbackBuffer, 0, output, (int) frameCount * 2);
+                    instance._bufferNeeded(output, (int) frameCount);
                 }
             }
             catch

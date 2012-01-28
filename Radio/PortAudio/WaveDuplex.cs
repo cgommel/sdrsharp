@@ -4,17 +4,15 @@ using PortAudioSharp;
 
 namespace SDRSharp.Radio.PortAudio
 {
-    public class WaveDuplex : IDisposable
+    public unsafe class WaveDuplex : IDisposable
     {
         private IntPtr _streamHandle;
         private GCHandle _gcHandle;
-        private float[] _callbackBuffer;
         private readonly AudioBufferAvailableDelegate _bufferAvailable;
         private readonly PaStreamCallbackDelegate _paCallback = PaStreamCallback;
 
         public WaveDuplex(int deviceIndex, int sampleRate, int framesPerBuffer, AudioBufferAvailableDelegate bufferNeededDelegate)
         {
-            _callbackBuffer = new float[framesPerBuffer * 2];
             _bufferAvailable = bufferNeededDelegate;
 
             var deviceParams = new PaStreamParameters();
@@ -57,11 +55,11 @@ namespace SDRSharp.Radio.PortAudio
         }
 
         private static PaStreamCallbackResult PaStreamCallback(
-             IntPtr input,
-             IntPtr output,
+             float* input,
+             float* output,
              uint frameCount,
-            ref PaStreamCallbackTimeInfo timeInfo,
-            PaStreamCallbackFlags statusFlags,
+             ref PaStreamCallbackTimeInfo timeInfo,
+             PaStreamCallbackFlags statusFlags,
              IntPtr userData)
         {
             #region GC boilerplate
@@ -75,18 +73,12 @@ namespace SDRSharp.Radio.PortAudio
 
             #endregion
 
-            if (instance._callbackBuffer.Length != frameCount * 2)
-            {
-                instance._callbackBuffer = new float[frameCount * 2];
-            }
-
             try
             {
+                Utils.Memcpy(output, input, (int) frameCount * 2 * sizeof(float));
                 if (instance._bufferAvailable != null)
                 {
-                    Marshal.Copy(input, instance._callbackBuffer, 0, (int) frameCount * 2);
-                    instance._bufferAvailable(instance._callbackBuffer);
-                    Marshal.Copy(instance._callbackBuffer, 0, output, (int) frameCount * 2);
+                    instance._bufferAvailable(output, (int) frameCount);
                 }
             }
             catch

@@ -27,7 +27,7 @@ namespace SDRSharp.PanView
         public const float MinimumLevel = 130.0f;
 
         public const int CursorSnapDistance = 4;
-        public const float MaxZoom = 2.0f;
+        public const float MaxZoom = 3.0f;
 
         private readonly static double _attack = GetDoubleSetting("waterfallAttack", 0.9);
         private readonly static double _decay = GetDoubleSetting("waterfallDecay", 0.5);
@@ -41,8 +41,8 @@ namespace SDRSharp.PanView
         private int _filterBandwidth;
         private int _filterOffset;
         private float _xIncrement;
-        private double[] _temp;
-        private double[] _spectrum;
+        private byte[] _temp;
+        private byte[] _spectrum;
         private int _centerFrequency;
         private int _spectrumWidth;
         private int _frequency;
@@ -70,8 +70,8 @@ namespace SDRSharp.PanView
 
         public Waterfall()
         {
-            _spectrum = new double[ClientRectangle.Width - 2 * AxisMargin];
-            _temp = new double[_spectrum.Length];
+            _spectrum = new byte[ClientRectangle.Width - 2 * AxisMargin];
+            _temp = new byte[_spectrum.Length];
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
@@ -87,12 +87,17 @@ namespace SDRSharp.PanView
 
         public static ColorBlend GetGradientBlend(int alpha)
         {
+            return GetGradientBlend(alpha, "gradient");
+        }
+
+        public static ColorBlend GetGradientBlend(int alpha, string settingName)
+        {
             var colorBlend = new ColorBlend();
             
             string colorString;
             try
             {
-                colorString = ConfigurationManager.AppSettings["gradient"] ?? string.Empty;
+                colorString = ConfigurationManager.AppSettings[settingName] ?? string.Empty;
             }
             catch
             {
@@ -353,7 +358,7 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public static void SmoothCopy(double[] source, double[] destination, int sourceLength, float scale, int offset)
+        public static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
         {
             var r = sourceLength / scale / destination.Length;
             if (r > 1.0f)
@@ -362,7 +367,7 @@ namespace SDRSharp.PanView
                 for (var i = 0; i < destination.Length; i++)
                 {
                     var k = (int) (i * r - n / 2.0f);
-                    var max = (double) -MinimumLevel;
+                    var max = (byte) 0;
                     for (var j = 0; j < n; j++)
                     {
                         var index = k + j + offset;
@@ -375,10 +380,6 @@ namespace SDRSharp.PanView
                         }
                     }
                     destination[i] = max;
-                    if (double.IsNaN(destination[i]))
-                    {
-                        destination[i] = MinimumLevel;
-                    }
                 }
             }
             else
@@ -390,38 +391,27 @@ namespace SDRSharp.PanView
                     {
                         destination[i] = source[index];
                     }
-                    if (double.IsNaN(destination[i]))
-                    {
-                        destination[i] = MinimumLevel;
-                    }
                 }
             }
         }
 
-        public void Render(double[] spectrum, int length)
+        public void Render(byte[] spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
             var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float) _spectrumWidth);
 
-
             if (_useSmoothing)
             {
-                lock (spectrum)
-                {
-                    SmoothCopy(spectrum, _temp, length, _scale, offset);
-                }
+                SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
-                    _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                    _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }
             else
             {
-                lock (spectrum)
-                {
-                    SmoothCopy(spectrum, _spectrum, length, _scale, offset);
-                }
+                SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
             Draw();
             _performNeeded = true;
@@ -477,7 +467,7 @@ namespace SDRSharp.PanView
             var ptr = (int*) bits.Scan0 + AxisMargin;
             for (var i = 0; i < _spectrum.Length; i++)
             {
-                var colorIndex = (int)((MinimumLevel + _spectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / MinimumLevel);
+                var colorIndex = (int)((_spectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / byte.MaxValue);
                 colorIndex = Math.Max(colorIndex, 0);
                 colorIndex = Math.Min(colorIndex, _gradientPixels.Length - 1);
                 
@@ -575,10 +565,10 @@ namespace SDRSharp.PanView
             {
                 return;
             }
-            var temp = new double[ClientRectangle.Width - 2 * AxisMargin];
+            var temp = new byte[ClientRectangle.Width - 2 * AxisMargin];
             SmoothCopy(_spectrum, temp, _spectrum.Length, (_temp.Length + temp.Length) / (float) _temp.Length, 0);
             _spectrum = temp;
-            _temp = new double[_spectrum.Length];
+            _temp = new byte[_spectrum.Length];
             
             var oldBuffer = _buffer;
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);

@@ -2,7 +2,7 @@ using System;
 
 namespace SDRSharp.Radio
 {
-    public class Vfo
+    public unsafe class Vfo
     {
         public const int DefaultCwSideTone = 600;
         public const int DefaultBandwidth = 2400;
@@ -126,19 +126,19 @@ namespace SDRSharp.Radio
             set { _useAgc = value; }
         }
 
-        public double AgcThreshold
+        public float AgcThreshold
         {
             get { return _agc.Threshold; }
             set { _agc.Threshold = value; }
         }
 
-        public double AgcDecay
+        public float AgcDecay
         {
             get { return _agc.Decay; }
             set { _agc.Decay = value; }
         }
 
-        public double AgcSlope
+        public float AgcSlope
         {
             get { return _agc.Slope; }
             set { _agc.Slope = value; }
@@ -251,45 +251,45 @@ namespace SDRSharp.Radio
             _audioFilter = new FirFilter(coeffs);
         }
 
-        public void ProcessBuffer(Complex[] iq, double[] audio)
+        public void ProcessBuffer(Complex* iq, float* audio, int length)
         {
-            DownConvert(iq);
-            _iqFilter.Process(iq);
-            Demodulate(iq, audio);
-            _audioFilter.Process(audio);
+            DownConvert(iq, length);
+            _iqFilter.Process(iq, length);
+            Demodulate(iq, audio, length);
+            _audioFilter.Process(audio, length);
             if (_useAgc)
             {
-                _agc.Process(audio);
+                _agc.Process(audio, length);
             }
         }
 
-        private void DownConvert(Complex[] iq)
+        private void DownConvert(Complex* iq, int length)
         {
-            for (var i = 0; i < iq.Length; i++)
+            for (var i = 0; i < length; i++)
             {
                 _localOscillator.Tick();
                 iq[i] *= _localOscillator;
             }
         }
 
-        private void Demodulate(Complex[] iq, double[] audio)
+        private void Demodulate(Complex* iq, float* audio, int length)
         {
             switch (_detectorType)
             {
                 case DetectorType.FM:
-                    _fmDetector.Demodulate(iq, audio);
+                    _fmDetector.Demodulate(iq, audio, length);
                     break;
 
                 case DetectorType.AM:
-                    _amDetector.Demodulate(iq, audio);
+                    _amDetector.Demodulate(iq, audio, length);
                     break;
 
                 case DetectorType.LSB:
-                    _lsbDetector.Demodulate(iq, audio);
+                    _lsbDetector.Demodulate(iq, audio, length);
                     break;
 
                 case DetectorType.USB:
-                    _usbDetector.Demodulate(iq, audio);
+                    _usbDetector.Demodulate(iq, audio, length);
                     break;
             }
         }

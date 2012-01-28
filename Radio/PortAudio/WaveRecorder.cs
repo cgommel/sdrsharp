@@ -4,19 +4,17 @@ using PortAudioSharp;
 
 namespace SDRSharp.Radio.PortAudio
 {
-    public delegate void AudioBufferAvailableDelegate(float[] buffer);
+    public unsafe delegate void AudioBufferAvailableDelegate(float* buffer, int length);
 
-    public class WaveRecorder : IDisposable
+    public unsafe class WaveRecorder : IDisposable
     {
         private IntPtr _streamHandle;
         private GCHandle _gcHandle;
-        private float[] _callbackBuffer;
         private readonly AudioBufferAvailableDelegate _bufferAvailable;
         private readonly PaStreamCallbackDelegate _paCallback = PaStreamCallback;
 
         public WaveRecorder(int deviceIndex, int sampleRate, int framesPerBuffer, AudioBufferAvailableDelegate bufferAvailable)
         {
-            _callbackBuffer = new float[framesPerBuffer * 2];
             _bufferAvailable = bufferAvailable;
 
             var inputParams = new PaStreamParameters();
@@ -59,11 +57,11 @@ namespace SDRSharp.Radio.PortAudio
         }
 
         private static PaStreamCallbackResult PaStreamCallback(
-             IntPtr input,
-             IntPtr output,
+             float* input,
+             float* output,
              uint frameCount,
-            ref PaStreamCallbackTimeInfo timeInfo,
-            PaStreamCallbackFlags statusFlags,
+             ref PaStreamCallbackTimeInfo timeInfo,
+             PaStreamCallbackFlags statusFlags,
              IntPtr userData)
         {
             #region GC boilerplate
@@ -77,17 +75,11 @@ namespace SDRSharp.Radio.PortAudio
 
             #endregion
 
-            if (instance._callbackBuffer.Length != frameCount * 2)
-            {
-                instance._callbackBuffer = new float[frameCount * 2];
-            }
-
             try
             {
                 if (instance._bufferAvailable != null)
                 {
-                    Marshal.Copy(input, instance._callbackBuffer, 0, (int) frameCount * 2);
-                    instance._bufferAvailable(instance._callbackBuffer);
+                    instance._bufferAvailable(input, (int) frameCount);
                 }
             }
             catch

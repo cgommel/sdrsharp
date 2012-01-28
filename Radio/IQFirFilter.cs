@@ -9,13 +9,15 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class IQFirFilter : IDisposable
+    public unsafe class IQFirFilter 
+#if !MANAGED_ONLY
+        : IDisposable
+#endif
     {
 #if MANAGED_ONLY
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
 #else
-        #region Native API
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessComplexBuffer(
@@ -25,50 +27,42 @@ namespace SDRSharp.Radio
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern IntPtr MakeComplexFilter(
-            double* coeffs,
+            float[] coeffs,
             int bufferSize);
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FreeComplexFilter(IntPtr filterHandle);
 
-        #endregion
-
         private readonly IntPtr _filterHandle;
 #endif
 
-        public IQFirFilter(double[] coefficients)
+        public IQFirFilter(float[] coefficients)
         {
 #if MANAGED_ONLY
             _rFilter = new FirFilter(coefficients);
             _iFilter = new FirFilter(coefficients);
 #else
-            fixed (double* ptr = coefficients)
-            {
-                _filterHandle = MakeComplexFilter(ptr, coefficients.Length);
-            }
+            _filterHandle = MakeComplexFilter(coefficients, coefficients.Length);
 #endif
         }
 
+#if !MANAGED_ONLY
         public void Dispose()
         {
-#if !MANAGED_ONLY
             FreeComplexFilter(_filterHandle);
-#endif
         }
+#endif
 
-        public void Process(Complex[] iq)
+        public void Process(Complex* iq, int length)
         {
 #if MANAGED_ONLY
-            for (var i = 0; i < iq.Length; i++)
+            for (var i = 0; i < length; i++)
             {
                 iq[i].Real = _rFilter.Process(iq[i].Real);
                 iq[i].Imag = _iFilter.Process(iq[i].Imag);
             }
 #else
-            fixed (Complex* ptr = iq)
-            {
-                FirProcessComplexBuffer(ptr, iq.Length, _filterHandle);
-            }
+            FirProcessComplexBuffer(iq, length, _filterHandle);
 #endif
         }
     }

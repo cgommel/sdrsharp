@@ -5,17 +5,17 @@
 
 typedef struct
 {
-	double real;
-	double imag;
-} complex;
+	float real;
+	float imag;
+} complex_t;
 
-EXPORT void __stdcall FFT(complex *samples, int len)
+EXPORT void __stdcall FFT(complex_t *samples, int len)
 {
     int I, J, JM1, K, L, M, LE, LE2, IP;
     int NM1 = len - 1;
     int ND2 = len / 2;
 	int ND4;
-    double UR, UI, SR, SI, TR, TI;
+    float UR, UI, SR, SI, TR, TI;
 
     // ex: m = CINT(LOG(N%)/LOG(2))
 
@@ -88,7 +88,7 @@ EXPORT void __stdcall FFT(complex *samples, int len)
     ND4 = ND2 / 2;
     for (I = 0; I < ND4; I++)
     {
-        complex tmp = samples[I];
+        complex_t tmp = samples[I];
         samples[I] = samples[ND2 - I - 1];
         samples[ND2 - I - 1] = tmp;
 

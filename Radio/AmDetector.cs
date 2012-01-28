@@ -1,21 +1,21 @@
 namespace SDRSharp.Radio
 {
-    public class AmDetector
+    public unsafe class AmDetector
     {
-        private const double TimeConst = 0.01;
+        private const float TimeConst = 0.01f;
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
 
-        public void Demodulate(Complex[] iq, double[] audio)
+        public void Demodulate(Complex* iq, float* audio, int length)
         {
-            for (var i = 0; i < iq.Length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var sample = iq[i].Modulus();
                 audio[i] = sample;
             }
-            _dcRemover.Process(audio);
+            _dcRemover.Process(audio, length);
         }
 
-        public double Amplitude
+        public float Amplitude
         {
             get { return _dcRemover.Offset; }
         }

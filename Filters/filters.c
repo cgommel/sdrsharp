@@ -5,32 +5,32 @@
 
 typedef struct
 {
-	double real;
-	double imag;
-} complex;
+	float real;
+	float imag;
+} complex_t;
 
 typedef struct
 {
 	int index;
 	int queue_size;
-	double* queue;
-	double* coeffs;
-} simple_filter;
+	float* queue;
+	float* coeffs;
+} simple_filter_t;
 
 typedef struct
 {
 	int index_r;
 	int index_i;
 	int queue_size;
-	double* queue_r;
-	double* queue_i;
-	double* coeffs;
-} complex_filter;
+	float* queue_r;
+	float* queue_i;
+	float* coeffs;
+} complex_filter_t;
 
-INLINE double FirProcessSample(double sample, double *queue, double *coeffs, int queueSize, int *index)
+INLINE float FirProcessSample(float sample, float *queue, float *coeffs, int queueSize, int *index)
 {
     int i;
-    double result = 0.0f;
+    float result = 0.0f;
     if (--*index < 0)
         *index = queueSize - 1;
     queue[*index] = sample;
@@ -44,9 +44,9 @@ INLINE double FirProcessSample(double sample, double *queue, double *coeffs, int
 }
 
 EXPORT void __cdecl FirProcessBuffer(
-	double *buffer,
+	float *buffer,
 	int buffer_size,
-	simple_filter *filter)
+	simple_filter_t *filter)
 {
 	int i;
 
@@ -57,9 +57,9 @@ EXPORT void __cdecl FirProcessBuffer(
 }
 
 EXPORT void __cdecl FirProcessComplexBuffer(
-	complex *buffer,
+	complex_t *buffer,
 	int buffer_size,
-	complex_filter *filter)
+	complex_filter_t *filter)
 {
 	int i;
 
@@ -70,43 +70,43 @@ EXPORT void __cdecl FirProcessComplexBuffer(
 	}
 }
 
-EXPORT void *MakeSimpleFilter(double *coeffs, int length)
+EXPORT void *MakeSimpleFilter(float *coeffs, int length)
 {
-	int len_in_bytes = length * sizeof(double);
-	simple_filter *filter = (simple_filter *) malloc(sizeof(simple_filter));
+	int len_in_bytes = length * sizeof(float);
+	simple_filter_t *filter = (simple_filter_t *) malloc(sizeof(simple_filter_t));
 	filter->index = 0;
 	filter->queue_size = length;
-	filter->queue = (double *) malloc(len_in_bytes);
+	filter->queue = (float *) malloc(len_in_bytes);
 	memset(filter->queue, 0, len_in_bytes);
-	filter->coeffs = (double *) malloc(len_in_bytes);
+	filter->coeffs = (float *) malloc(len_in_bytes);
 	memcpy(filter->coeffs, coeffs, len_in_bytes);
 	return filter;
 }
 
-EXPORT void FreeSimpleFilter(simple_filter *filter)
+EXPORT void FreeSimpleFilter(simple_filter_t *filter)
 {
 	free(filter->queue);
 	free(filter->coeffs);
 	free(filter);
 }
 
-EXPORT void *MakeComplexFilter(double *coeffs, int length)
+EXPORT void *MakeComplexFilter(float *coeffs, int length)
 {
-	int len_in_bytes = length * sizeof(double);
-	complex_filter *filter = (complex_filter *) malloc(sizeof(complex_filter));
+	int len_in_bytes = length * sizeof(float);
+	complex_filter_t *filter = (complex_filter_t *) malloc(sizeof(complex_filter_t));
 	filter->index_r = 0;
 	filter->index_i = 0;
 	filter->queue_size = length;
-	filter->queue_r = (double *) malloc(len_in_bytes);
+	filter->queue_r = (float *) malloc(len_in_bytes);
 	memset(filter->queue_r, 0, len_in_bytes);
-	filter->queue_i = (double *) malloc(len_in_bytes);
+	filter->queue_i = (float *) malloc(len_in_bytes);
 	memset(filter->queue_i, 0, len_in_bytes);
-	filter->coeffs = (double *) malloc(len_in_bytes);
+	filter->coeffs = (float *) malloc(len_in_bytes);
 	memcpy(filter->coeffs, coeffs, len_in_bytes);
 	return filter;
 }
 
-EXPORT void FreeComplexFilter(complex_filter *filter)
+EXPORT void FreeComplexFilter(complex_filter_t *filter)
 {
 	free(filter->queue_r);
 	free(filter->queue_i);

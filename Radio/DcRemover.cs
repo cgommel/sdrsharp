@@ -1,26 +1,26 @@
 ﻿namespace SDRSharp.Radio
 {
-    public class DcRemover
+    public unsafe class DcRemover
     {
-        private readonly double _ratio;
-        private double _mean;
+        private readonly float _ratio;
+        private float _mean;
 
-        public DcRemover(double ratio)
+        public DcRemover(float ratio)
         {
             _ratio = ratio;
         }
 
-        public double Offset
+        public float Offset
         {
             get { return _mean; }
         }
 
-        public void Process(double[] buffer)
+        public void Process(float* buffer, int length)
         {
-            for (var i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var m = _mean * (1 - _ratio) + buffer[i] * _ratio;
-                _mean = double.IsNaN(m) || double.IsInfinity(m) ? _mean : m;
+                _mean = float.IsNaN(m) || float.IsInfinity(m) ? _mean : m;
                 buffer[i] = buffer[i] - _mean;
             }
         }

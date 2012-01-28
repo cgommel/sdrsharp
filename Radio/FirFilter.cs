@@ -7,78 +7,91 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-#if MANAGED_ONLY
     public unsafe class FirFilter : IDisposable
     {
-        private readonly double* _coeffPtr;
-        private readonly double* _queuePtr;
+        private readonly float* _coeffPtr;
         private readonly GCHandle _coeffHandle;
-        private readonly GCHandle _queueHandle;
+        private readonly float[] _coefficients;
 
-        private readonly double[] _coefficients;
-        private readonly double[] _queue;
+#if MANAGED_ONLY
+
+        private readonly float* _queuePtr;
+        private readonly GCHandle _queueHandle;
+        private readonly float[] _queue;
+
 #else
-    public unsafe class FirFilter : IDisposable
-    {
-        #region Native API
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FirProcessBuffer(
-            double* buffer,
+            float* buffer,
             int bufferSize,
             IntPtr filterHandle);
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern IntPtr MakeSimpleFilter(
-            double* coeffs,
+            float* coeffs,
             int bufferSize);
 
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FreeSimpleFilter(IntPtr filterHandle);
 
-        #endregion
-
         private readonly IntPtr _filterHandle;
 #endif
 
-        public FirFilter(double[] coefficients)
+        public FirFilter(float[] coefficients)
         {
-#if MANAGED_ONLY
             _coefficients = coefficients;
-            _queue = new double[_coefficients.Length];
-
             _coeffHandle = GCHandle.Alloc(_coefficients, GCHandleType.Pinned);
-            _queueHandle = GCHandle.Alloc(_queue, GCHandleType.Pinned);
+            _coeffPtr = (float*) _coeffHandle.AddrOfPinnedObject();
 
-            _coeffPtr = (double*) _coeffHandle.AddrOfPinnedObject();
-            _queuePtr = (double*) _queueHandle.AddrOfPinnedObject();
+#if MANAGED_ONLY
+            _queue = new float[_coefficients.Length];
+            _queueHandle = GCHandle.Alloc(_queue, GCHandleType.Pinned);
+            _queuePtr = (float*) _queueHandle.AddrOfPinnedObject();
 #else
-            fixed (double* ptr = coefficients)
-            {
-                _filterHandle = MakeSimpleFilter(ptr, coefficients.Length);
-            }
+            _filterHandle = MakeSimpleFilter(_coeffPtr, coefficients.Length);
 #endif
         }
 
         public void Dispose()
         {
-#if MANAGED_ONLY
             _coeffHandle.Free();
+
+#if MANAGED_ONLY
             _queueHandle.Free();
 #else
             FreeSimpleFilter(_filterHandle);
 #endif
         }
 
-        public void Process(double[] buffer)
+#if MANAGED_ONLY
+        public float Process(float sample)
+        {
+            _queuePtr[0] = sample;
+
+            /* calc FIR */
+            var accum = 0.0f;
+            for (var i = 0; i < _queue.Length; i++)
+            {
+                accum += _coeffPtr[i] * _queuePtr[i];
+            }
+
+            /* shift delay line */
+            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+
+            return accum;
+        }
+#endif
+
+        public void Process(float* buffer, int length)
         {
 #if MANAGED_ONLY
-            for (var n = 0; n < buffer.Length; n++)
+            for (var n = 0; n < length; n++)
             {
                 _queuePtr[0] = buffer[n];
 
                 /* calc FIR */
-                var accum = 0.0;
+                var accum = 0.0f;
                 for (var i = 0; i < _queue.Length; i++)
                 {
                     accum += _coeffPtr[i] * _queuePtr[i];
@@ -90,10 +103,7 @@ namespace SDRSharp.Radio
                 buffer[n] = accum;
             }
 #else
-            fixed (double* ptr = buffer)
-            {
-                FirProcessBuffer(ptr, buffer.Length, _filterHandle);
-            }
+            FirProcessBuffer(buffer, length, _filterHandle);
 #endif
         }
     }

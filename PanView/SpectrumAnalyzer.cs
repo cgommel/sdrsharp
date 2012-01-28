@@ -18,8 +18,8 @@ namespace SDRSharp.PanView
 
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
-        private double[] _spectrum;
-        private double[] _temp;
+        private byte[] _spectrum;
+        private byte[] _temp;
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
@@ -45,7 +45,7 @@ namespace SDRSharp.PanView
         private bool _changingCenterFrequency;
         private bool _useSmoothing;
         private LinearGradientBrush _gradientBrush;
-        private ColorBlend _gradientColorBlend = Waterfall.GetGradientBlend(GradientAlpha);
+        private ColorBlend _gradientColorBlend = Waterfall.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
         public SpectrumAnalyzer()
         {
@@ -318,29 +318,23 @@ namespace SDRSharp.PanView
             }
         }
 
-        public void Render(double[] spectrum, int length)
+        public void Render(byte[] spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
             var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float)_spectrumWidth);
 
             if (_useSmoothing)
             {
-                lock (spectrum)
-                {
-                    Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
-                }
+                Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
-                    _spectrum[i] = _spectrum[i] * (1 - ratio) + _temp[i] * ratio;
+                    _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }
             else
             {
-                lock (spectrum)
-                {
-                    Waterfall.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
-                }
+                Waterfall.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
             Draw();
             _performNeeded = true;
@@ -390,7 +384,7 @@ namespace SDRSharp.PanView
                 }
 
                 // Frequencies
-                var baseLabelLength = (int) graphics.MeasureString("1,000.000MHz", font).Width;
+                var baseLabelLength = (int) graphics.MeasureString("1,000,000.000kHz", font).Width;
                 var frequencyStep = (int) (_spectrumWidth / _scale * baseLabelLength / (ClientRectangle.Width - 2 * AxisMargin));
                 int stepSnap = 1000;
                 frequencyStep = frequencyStep / stepSnap * stepSnap + stepSnap;
@@ -477,16 +471,14 @@ namespace SDRSharp.PanView
                 return;
             }
 
-            var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float)_spectrum.Length;
-            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / Waterfall.MinimumLevel;
+            var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrum.Length;
+            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) byte.MaxValue;
 
             using (var spectrumPen = new Pen(Color.DarkGray))
             {
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
-                    var strenght = (float) _spectrum[i] + Waterfall.MinimumLevel;
-                    strenght = Math.Max(strenght, 0);
-                    strenght = Math.Min(strenght, Waterfall.MinimumLevel);
+                    var strenght = _spectrum[i];
                     var newX = (int) (i * xIncrement);
                     var newY = (int) (ClientRectangle.Height - AxisMargin - strenght * yIncrement);
                     
@@ -525,7 +517,7 @@ namespace SDRSharp.PanView
                 _bkgBuffer = new Bitmap(Width, Height);
                 var length = Width - 2 * AxisMargin;
                 var oldSpectrum = _spectrum;
-                _spectrum = new double[length];
+                _spectrum = new byte[length];
                 if (oldSpectrum != null)
                 {
                     Waterfall.SmoothCopy(oldSpectrum, _spectrum, oldSpectrum.Length, 1, 0);
@@ -534,10 +526,10 @@ namespace SDRSharp.PanView
                 {
                     for (var i = 0; i < _spectrum.Length; i++)
                     {
-                        _spectrum[i] = -Waterfall.MinimumLevel;
+                        _spectrum[i] = 0;
                     }
                 }
-                _temp = new double[length];
+                _temp = new byte[length];
                 _points = new Point[length + 2];
                 if (_spectrumWidth > 0)
                 {

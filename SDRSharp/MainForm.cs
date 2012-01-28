@@ -17,7 +17,7 @@ using Timer = System.Windows.Forms.Timer;
 
 namespace SDRSharp
 {
-    public partial class MainForm : Form
+    public unsafe partial class MainForm : Form
     {
         private static readonly string _baseTitle = "SDR# v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -25,12 +25,13 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
         private const int MaxFFTBins = 1024 * 1024 * 4;
-        private const int FFTOverlapLimit = 65536;
+        private const int MaxFFTQueue = 5;
+        private const int FFTOverlapLimit = 65536 / 2;
 
         private int _fftBins;
         private int _fftFillPosition;
         private bool _fftOverlap;
-        private bool _fftAvailable;
+        private bool _fftSpectrumAvailable;
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -38,17 +39,25 @@ namespace SDRSharp
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly AudioControl _audioControl = new AudioControl();
-        private readonly FifoStream<Complex> _fftStream = new FifoStream<Complex>();
-        private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
+        private readonly FifoStream _fftStream = new FifoStream();
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
-        private readonly double[] _fftWindow = new double[MaxFFTBins];
-        private readonly double[] _fftSpectrum = new double[MaxFFTBins];
+        private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
+        private readonly float[] _fftWindow = new float[MaxFFTBins];
+        private readonly float[] _fftSpectrum = new float[MaxFFTBins];
+        private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
+        private readonly Pipe<byte[]> _fftQueue = new Pipe<byte[]>(MaxFFTQueue);
         private readonly Timer _fftTimer;
 
         public MainForm()
         {
             InitializeComponent();
             _fftTimer = new Timer(components);
+
+            for (var i = 0; i < MaxFFTQueue; i++)
+            {
+                _fftQueue.AdvanceWrite();
+                _fftQueue.Head = new byte[FFTOverlapLimit];
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -89,12 +98,12 @@ namespace SDRSharp
             _vfo.FilterOrder = 100;
             _vfo.FmSquelch = 50;
             _vfo.UseAGC = true;
-            _vfo.AgcThreshold = -100.0;
+            _vfo.AgcThreshold = -100.0f;
             _vfo.AgcDecay = 100;
             _vfo.AgcSlope = 0;
             _vfo.AgcHang = false;
 
-            _audioControl.AudioGain = 25.0;
+            _audioControl.AudioGain = 25.0f;
             _audioControl.BufferNeeded += ProcessBuffer;
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
@@ -206,23 +215,28 @@ namespace SDRSharp
             }
         }
 
-        private void ProcessBuffer(Complex[] iqBuffer, double[] audioBuffer)
+        private void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
         {
-            _iqBalancer.Process(iqBuffer);
-            _fftStream.Write(iqBuffer, 0, iqBuffer.Length);
-            _vfo.ProcessBuffer(iqBuffer, audioBuffer);
+            _iqBalancer.Process(iqBuffer, length);
+            _fftStream.Write(iqBuffer, 0, length);
+            _vfo.ProcessBuffer(iqBuffer, audioBuffer, length);
         }
 
         private void ProcessFFT()
         {
             while (_audioControl.IsPlaying)
             {
+                // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
+                var fftGain = (float) (10.0 * Math.Log10(_fftBins / 2));
+                var compensation = 24.0f - fftGain;
+
                 while (_audioControl.IsPlaying)
                 {
                     if (_fftOverlap)
                     {
                         var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
                         var overlapRatio = _audioControl.SampleRate / fftRate;
+
                         var bytes = (int)(_fftBins * overlapRatio);
 
                         if (_fftStream.Length < bytes)
@@ -234,10 +248,23 @@ namespace SDRSharp
                         {
                             _fftStream.Advance(bytes - _fftBins);
                         }
-                        bytes = Math.Min(bytes, _fftBins);
-                        Array.Copy(_iqBuffer, bytes, _iqBuffer, 0, _fftBins - bytes);
-                        _fftStream.Read(_iqBuffer, _fftBins - bytes, bytes);
+
+                        var toRead = Math.Min(bytes, _fftBins);
+                        Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
+                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
                         Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
+                        Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+                        Fourier.ForwardTransform(_fftBuffer, _fftBins);
+                        Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _fftBins, compensation);
+
+                        lock (_fftQueue)
+                        {
+                            if (_fftQueue.Head.Length >= _fftBins)
+                            {
+                                Fourier.ScaleFFT(_fftSpectrum, _fftQueue.Head, _fftBins);
+                                _fftQueue.AdvanceWrite();
+                            }
+                        }
                     }
                     else
                     {
@@ -249,40 +276,61 @@ namespace SDRSharp
                             break;
                         }
                         _fftFillPosition = 0;
-                    }
 
-                    Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-                    Fourier.ForwardTransform(_fftBuffer, _fftBins);
-
-                    // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
-                    var fftGain = 10.0 * Math.Log10(_fftBins / 2);
-                    var compensation = 24.0 - fftGain;
-
-                    lock (_fftSpectrum)
-                    {
+                        Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
+                        Fourier.ForwardTransform(_fftBuffer, _fftBins);
                         Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _fftBins, compensation);
-                        _fftAvailable = true;
+                        lock (_scaledFFTSpectrum)
+                        {
+                            if (_scaledFFTSpectrum.Length >= _fftBins)
+                            {
+                                Fourier.ScaleFFT(_fftSpectrum, _scaledFFTSpectrum, _fftBins);
+                                _fftSpectrumAvailable = true;
+                            }
+                        }
                     }
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
             _fftStream.Flush();
         }
 
         private void fftTimer_Tick(object sender, EventArgs e)
         {
-            if (_audioControl.IsPlaying && ((!_fftOverlap && _fftAvailable) || _fftOverlap))
+            if (_audioControl.IsPlaying)
             {
-                if (!panSplitContainer.Panel1Collapsed)
+                if (_fftOverlap)
                 {
-                    spectrumAnalyzer.Render(_fftSpectrum, _fftBins);
+                    lock (_fftQueue)
+                    {
+                        Array.Copy(_fftQueue.Tail, _scaledFFTSpectrum, _fftBins);
+                        _fftQueue.AdvanceRead();
+                    }
+                    if (!panSplitContainer.Panel1Collapsed)
+                    {
+                        spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftBins);
+                    }
+                    if (!panSplitContainer.Panel2Collapsed)
+                    {
+                        waterfall.Render(_scaledFFTSpectrum, _fftBins);
+                    }
                 }
-                if (!panSplitContainer.Panel2Collapsed)
+                else if (_fftSpectrumAvailable)
                 {
-                    waterfall.Render(_fftSpectrum, _fftBins);
+                    lock (_scaledFFTSpectrum)
+                    {
+                        if (!panSplitContainer.Panel1Collapsed)
+                        {
+                            spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftBins);
+                        }
+                        if (!panSplitContainer.Panel2Collapsed)
+                        {
+                            waterfall.Render(_scaledFFTSpectrum, _fftBins);
+                        }
+                        _fftSpectrumAvailable = false;
+                    }
                 }
-                _fftAvailable = false;
             }
 
             spectrumAnalyzer.Perform();
@@ -665,7 +713,6 @@ namespace SDRSharp
             if (gradient != null && gradient.Positions.Length > 0)
             {
                 waterfall.GradientColorBlend = gradient;
-                spectrumAnalyzer.GradientColorBlend = gradient;
                 SaveSetting("gradient", GradientToString(gradient.Colors));
             }
         }

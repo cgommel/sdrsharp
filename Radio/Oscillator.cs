@@ -4,15 +4,14 @@ namespace SDRSharp.Radio
 {
     public class Oscillator
     {
-        private const double Epsilon = 1e-10;
         private const double Rad2Pi = 2.0 * Math.PI;
 
         private int _sampleRate;
         private int _frequency;
         private double _phase;
         private double _anglePerSample;
-        private double _outI;
-        private double _outQ;
+        private float _outI;
+        private float _outQ;
 
         public int SampleRate
         {
@@ -39,12 +38,12 @@ namespace SDRSharp.Radio
             _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
         }
 
-        public double OutI
+        public float OutI
         {
             get { return _outI; }
         }
 
-        public double OutQ
+        public float OutQ
         {
             get { return _outQ; }
         }
@@ -59,8 +58,8 @@ namespace SDRSharp.Radio
 
         public void Tick()
         {
-            _outI = Math.Cos(_phase);
-            _outQ = Math.Sin(_phase);
+            _outI = (float) Math.Cos(_phase);
+            _outQ = (float) Math.Sin(_phase);
             _phase = (_phase + _anglePerSample) % Rad2Pi;
         }
 

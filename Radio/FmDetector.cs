@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
@@ -6,39 +7,40 @@ namespace SDRSharp.Radio
     /// The theory behind this code is in section 4.2.1
     /// of http://www.digitalsignallabs.com/Digradio.pdf
     /// </summary>
-    public class FmDetector
+    public unsafe class FmDetector
     {
-        private const double AFGain = 0.001;
-        private const double TimeConst = 0.000001;
+        private const float AFGain = 0.001f;
+        private const float TimeConst = 0.000001f;
 
         private const int MinHissFrequency = 4000;
         private const int MaxHissFrequency = 6000;
         private const int HissFilterOrder = 21;
-        private const double HissFactor = 0.001;
+        private const float HissFactor = 0.001f;
 
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
-        private double[] _hissBuffer;
+        private float[] _hissBuffer;
+        private float* _hissPtr;
+        private GCHandle _hissHandle;
         private FirFilter _hissFilter;
         private Complex _iqState;
-        private double _noiseLevel;
+        private float _noiseLevel;
         private int _sampleRate;
-        private double _noiseAveragingRatio;
+        private float _noiseAveragingRatio;
         private int _squelchThreshold;
-        private double _noiseThreshold;
+        private float _noiseThreshold;
 
-        public void Demodulate(Complex[] iq, double[] audio)
+        public void Demodulate(Complex* iq, float* audio, int length)
         {
-            audio[0] = GetAudio(_iqState, iq[0]);
-            for (var i = 1; i < iq.Length; i++)
+            for (var i = 0; i < length; i++)
             {
-                audio[i] = GetAudio(iq[i - 1], iq[i]);
+                audio[i] = GetAudio(_iqState, iq[i]);
+                _iqState = iq[i];
             }
-            _iqState = iq[iq.Length - 1];
-            _dcRemover.Process(audio);
-            ProcessSquelch(audio);
+            _dcRemover.Process(audio, length);
+            ProcessSquelch(audio, length);
         }
 
-        public double GetAudio(Complex previous, Complex current)
+        public float GetAudio(Complex previous, Complex current)
         {
             // Polar discriminator
             var f = current * previous.Conjugate();
@@ -56,37 +58,41 @@ namespace SDRSharp.Radio
             return a * AFGain;
         }
 
-        private void ProcessSquelch(double[] audio)
+        private void ProcessSquelch(float* audio, int length)
         {
             if (_squelchThreshold > 0)
             {
-                if (_hissBuffer == null || _hissBuffer.Length != audio.Length)
+                if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
-                    _hissBuffer = (double[]) audio.Clone();
-                }
-                else
-                {
-                    Array.Copy(audio, _hissBuffer, audio.Length);
+                    if (_hissHandle.IsAllocated)
+                    {
+                        _hissHandle.Free();
+                    }
+                    _hissBuffer = new float[length];
+                    _hissHandle = GCHandle.Alloc(_hissBuffer, GCHandleType.Pinned);
+                    _hissPtr = (float*) _hissHandle.AddrOfPinnedObject();
                 }
 
-                _hissFilter.Process(_hissBuffer);
+                Utils.Memcpy(_hissPtr, audio, length * sizeof(float));
+
+                _hissFilter.Process(_hissPtr, length);
 
                 for (var i = 0; i < _hissBuffer.Length; i++)
                 {
                     var n = (1 - _noiseAveragingRatio) * _noiseLevel + _noiseAveragingRatio * Math.Abs(_hissBuffer[i]);
-                    if (!double.IsNaN(n))
+                    if (!float.IsNaN(n))
                     {
                         _noiseLevel = n;
                     }
                     if (_noiseLevel > _noiseThreshold)
                     {
-                        audio[i] = 0.0;
+                        audio[i] = 0.0f;
                     }
                 }
             }
         }
 
-        public double Offset
+        public float Offset
         {
             get { return _dcRemover.Offset; }
         }
@@ -100,7 +106,7 @@ namespace SDRSharp.Radio
             set
             {
                 _sampleRate = value;
-                _noiseAveragingRatio = 30.0 / _sampleRate;
+                _noiseAveragingRatio = 30.0f / _sampleRate;
                 var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
                 _hissFilter = new FirFilter(bpk);
             }
@@ -112,7 +118,7 @@ namespace SDRSharp.Radio
             set
             {
                 _squelchThreshold = value;
-                _noiseThreshold = Math.Log10(2 - _squelchThreshold / 100.0) * HissFactor;
+                _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold / 100.0) * HissFactor;
             }
         }
     }

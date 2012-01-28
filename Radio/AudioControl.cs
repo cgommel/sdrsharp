@@ -1,26 +1,33 @@
 using System;
+using System.Runtime.InteropServices;
 using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp.Radio
 {
-    public delegate void BufferNeededDelegate(Complex[] iqBuffer, double[] audioBuffer);
+    public unsafe delegate void BufferNeededDelegate(Complex* iqBuffer, float* audioBuffer, int length);
 
-    public class AudioControl
+    public unsafe class AudioControl : IDisposable
     {
-        private const double InputGain = 0.01;
+        private const float InputGain = 0.01f;
 
-        private double[] _audioBuffer;
+        private float[] _audioBuffer;
+        private float* _audioPtr;
+        private GCHandle _audioHandle;
         private Complex[] _iqBuffer;
+        private Complex* _iqPtr;
+        private GCHandle _iqHandle;
         private Complex[] _recorderIQBuffer;
+        private Complex* _recorderIQPtr;
+        private GCHandle _recorderIQHandle;
 
         private WavePlayer _wavePlayer;
         private WaveRecorder _waveRecorder;
         private WaveDuplex _waveDuplex;
         private WaveFile _waveFile;
-        private FifoStream<Complex> _audioStream;
+        private FifoStream _audioStream;
 
-        private double _audioGain;
-        private double _outputGain;
+        private float _audioGain;
+        private float _outputGain;
         private int _sampleRate;
         private int _inputDevice;
         private int _bufferSize;
@@ -32,10 +39,26 @@ namespace SDRSharp.Radio
 
         public AudioControl()
         {
-            AudioGain = 10.0;
+            AudioGain = 10.0f;
         }
 
-        public double AudioGain
+        public void Dispose()
+        {
+            if (_iqHandle.IsAllocated)
+            {
+                _iqHandle.Free();
+            }
+            if (_audioHandle.IsAllocated)
+            {
+                _audioHandle.Free();
+            }
+            if (_recorderIQHandle.IsAllocated)
+            {
+                _recorderIQHandle.Free();
+            }
+        }
+
+        public float AudioGain
         {
             get
             {
@@ -44,7 +67,7 @@ namespace SDRSharp.Radio
             set
             {
                 _audioGain = value;
-                _outputGain = Math.Pow(value / 10.0, 10);
+                _outputGain = (float) Math.Pow(value / 10.0, 10);
             }
         }
 
@@ -92,7 +115,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        private void DuplexFiller(float[] buffer)
+        private void DuplexFiller(float* buffer, int length)
         {
             if (BufferNeeded == null)
             {
@@ -101,20 +124,32 @@ namespace SDRSharp.Radio
 
             #region Fill IQ buffer
 
-            if (_iqBuffer == null || _iqBuffer.Length != buffer.Length / 2)
+            if (_iqBuffer == null || _iqBuffer.Length != length)
             {
-                _iqBuffer = new Complex[buffer.Length / 2];
+                if (_iqHandle.IsAllocated)
+                {
+                    _iqHandle.Free();
+                }
+                _iqBuffer = new Complex[length];
+                _iqHandle = GCHandle.Alloc(_iqBuffer, GCHandleType.Pinned);
+                _iqPtr = (Complex*) _iqHandle.AddrOfPinnedObject();
             }
 
-            FillIQ(buffer, _iqBuffer);
+            FillIQ(buffer, _iqPtr, length);
 
             #endregion
 
             #region Prepare audio buffer
 
-            if (_audioBuffer == null || _audioBuffer.Length != buffer.Length / 2)
+            if (_audioBuffer == null || _audioBuffer.Length != length)
             {
-                _audioBuffer = new double[buffer.Length / 2];
+                if (_audioHandle.IsAllocated)
+                {
+                    _audioHandle.Free();
+                }
+                _audioBuffer = new float[length];
+                _audioHandle = GCHandle.Alloc(_audioBuffer, GCHandleType.Pinned);
+                _audioPtr = (float*) _audioHandle.AddrOfPinnedObject();
             }
 
             #endregion
@@ -124,30 +159,42 @@ namespace SDRSharp.Radio
                 SwapIQBuffer();
             }
 
-            BufferNeeded(_iqBuffer, _audioBuffer);
+            BufferNeeded(_iqPtr, _audioPtr, length);
 
             #region Fill audio buffer
 
-            FillAudio(buffer);
+            FillAudio(buffer, length);
 
             #endregion
         }
 
-        private void PlayerFiller(float[] buffer)
+        private void PlayerFiller(float* buffer, int length)
         {
             if (BufferNeeded == null)
             {
                 return;
             }
 
-            if (_audioBuffer == null || _audioBuffer.Length != buffer.Length / 2)
+            if (_audioBuffer == null || _audioBuffer.Length != length)
             {
-                _audioBuffer = new double[buffer.Length / 2];
+                if (_audioHandle.IsAllocated)
+                {
+                    _audioHandle.Free();
+                }
+                _audioBuffer = new float[length];
+                _audioHandle = GCHandle.Alloc(_audioBuffer, GCHandleType.Pinned);
+                _audioPtr = (float*) _audioHandle.AddrOfPinnedObject();
             }
 
-            if (_iqBuffer == null || _iqBuffer.Length != buffer.Length / 2)
+            if (_iqBuffer == null || _iqBuffer.Length != length)
             {
-                _iqBuffer = new Complex[buffer.Length / 2];
+                if (_iqHandle.IsAllocated)
+                {
+                    _iqHandle.Free();
+                }
+                _iqBuffer = new Complex[length];
+                _iqHandle = GCHandle.Alloc(_iqBuffer, GCHandleType.Pinned);
+                _iqPtr = (Complex*) _iqHandle.AddrOfPinnedObject();
             }
 
             if (_waveFile != null)
@@ -164,26 +211,32 @@ namespace SDRSharp.Radio
                 SwapIQBuffer();
             }
 
-            BufferNeeded(_iqBuffer, _audioBuffer);
+            BufferNeeded(_iqPtr, _audioPtr, length);
 
-            FillAudio(buffer);
+            FillAudio(buffer, length);
         }
 
-        private void RecorderFiller(float[] buffer)
+        private void RecorderFiller(float* buffer, int length)
         {
-            if (_audioStream.Length > buffer.Length * 2)
+            if (_audioStream.Length > length * 4)
             {
                 return;
             }
 
             #region Fill IQ buffer
 
-            if (_recorderIQBuffer == null || _recorderIQBuffer.Length != buffer.Length / 2)
+            if (_recorderIQBuffer == null || _recorderIQBuffer.Length != length)
             {
-                _recorderIQBuffer = new Complex[buffer.Length / 2];
+                if (_recorderIQHandle.IsAllocated)
+                {
+                    _recorderIQHandle.Free();
+                }
+                _recorderIQBuffer = new Complex[length];
+                _recorderIQHandle = GCHandle.Alloc(_recorderIQBuffer, GCHandleType.Pinned);
+                _recorderIQPtr = (Complex*) _recorderIQHandle.AddrOfPinnedObject();
             }
 
-            FillIQ(buffer, _recorderIQBuffer);
+            FillIQ(buffer, _recorderIQPtr, length);
 
             #endregion
 
@@ -194,20 +247,20 @@ namespace SDRSharp.Radio
             #endregion
         }
 
-        private static void FillIQ(float[] buffer, Complex[] iqBuffer)
+        private static void FillIQ(float* buffer, Complex* iqBuffer, int length)
         {
-            for (var i = 0; i < iqBuffer.Length; i++)
+            for (var i = 0; i < length; i++)
             {
                 iqBuffer[i].Real = buffer[i * 2] * InputGain;
                 iqBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
             }
         }
 
-        private void FillAudio(float[] buffer)
+        private void FillAudio(float* buffer, int length)
         {
-            for (var i = 0; i < _audioBuffer.Length; i++)
+            for (var i = 0; i < length; i++)
             {
-                var audio = (float)(_audioBuffer[i] * _outputGain);
+                var audio = _audioPtr[i] * _outputGain;
                 buffer[i * 2] = audio;
                 buffer[i * 2 + 1] = audio;
             }
@@ -217,9 +270,9 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < _iqBuffer.Length; i++)
             {
-                var temp = _iqBuffer[i].Real;
-                _iqBuffer[i].Real = _iqBuffer[i].Imag;
-                _iqBuffer[i].Imag = temp;
+                var temp = _iqPtr[i].Real;
+                _iqPtr[i].Real = _iqPtr[i].Imag;
+                _iqPtr[i].Imag = temp;
             }
         }
 
@@ -295,7 +348,7 @@ namespace SDRSharp.Radio
                     }
                     else
                     {
-                        _audioStream = new FifoStream<Complex>();
+                        _audioStream = new FifoStream();
                         _waveRecorder = new WaveRecorder(_inputDevice, _sampleRate, _bufferSize, RecorderFiller);
                         _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, _bufferSize, PlayerFiller);
                     }

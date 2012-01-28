@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace SDRSharp.Radio
 {
-    public class FifoStream<T>
+    public unsafe class FifoStream
     {
         private const int BlockSize = 65536;
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
@@ -14,21 +14,21 @@ namespace SDRSharp.Radio
         private readonly Stack _usedBlocks = new Stack();
         private readonly ArrayList _blocks = new ArrayList();
 
-        private T[] AllocBlock()
+        private Complex[] AllocBlock()
         {
-            T[] result = _usedBlocks.Count > 0 ? (T[])_usedBlocks.Pop() : new T[BlockSize];
+            Complex[] result = _usedBlocks.Count > 0 ? (Complex[])_usedBlocks.Pop() : new Complex[BlockSize];
             return result;
         }
-        private void FreeBlock(T[] block)
+        private void FreeBlock(Complex[] block)
         {
             if (_usedBlocks.Count < MaxBlocksInCache)
                 _usedBlocks.Push(block);
         }
-        private T[] GetWBlock()
+        private Complex[] GetWBlock()
         {
-            T[] result;
+            Complex[] result;
             if (_writePos < BlockSize && _blocks.Count > 0)
-                result = (T[])_blocks[_blocks.Count - 1];
+                result = (Complex[])_blocks[_blocks.Count - 1];
             else
             {
                 result = AllocBlock();
@@ -53,7 +53,7 @@ namespace SDRSharp.Radio
         {
             lock (this)
             {
-                foreach (T[] block in _blocks)
+                foreach (Complex[] block in _blocks)
                     FreeBlock(block);
                 _blocks.Clear();
                 _readPos = 0;
@@ -62,7 +62,7 @@ namespace SDRSharp.Radio
             }
         }
         
-        public int Read(T[] buf, int ofs, int count)
+        public int Read(Complex[] buf, int ofs, int count)
         {
             lock (this)
             {
@@ -72,7 +72,29 @@ namespace SDRSharp.Radio
             }
         }
         
-        public void Write(T[] buf, int ofs, int count)
+        public void Write(Complex* buf, int ofs, int count)
+        {
+            lock (this)
+            {
+                int left = count;
+                while (left > 0)
+                {
+                    int toWrite = Math.Min(BlockSize - _writePos, left);
+                    //Array.Copy(buf, ofs + count - left, GetWBlock(), _writePos, toWrite);
+                    var block = GetWBlock();
+                    fixed (Complex* blockPtr = block)
+                    {
+                        Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(Complex));
+                    }
+                    _writePos += toWrite;
+                    left -= toWrite;
+                }
+                _size += count;
+            }
+        }
+
+        
+        public void Write(Complex[] buf, int ofs, int count)
         {
             lock (this)
             {
@@ -99,7 +121,7 @@ namespace SDRSharp.Radio
                     if (_readPos == BlockSize)
                     {
                         _readPos = 0;
-                        FreeBlock((T[])_blocks[0]);
+                        FreeBlock((Complex[])_blocks[0]);
                         _blocks.RemoveAt(0);
                     }
                     int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
@@ -110,7 +132,7 @@ namespace SDRSharp.Radio
                 return count - sizeLeft;
             }
         }
-        public int Peek(T[] buf, int ofs, int count)
+        public int Peek(Complex[] buf, int ofs, int count)
         {
             lock (this)
             {
@@ -128,7 +150,7 @@ namespace SDRSharp.Radio
                     }
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    Array.Copy((T[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
+                    Array.Copy((Complex[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
                     sizeLeft -= toFeed;
                     tempBlockPos += toFeed;
                     tempSize -= toFeed;

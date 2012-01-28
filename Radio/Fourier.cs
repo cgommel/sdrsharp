@@ -11,20 +11,23 @@ namespace SDRSharp.Radio
 {
     public static unsafe class Fourier
     {
-        public const double MaxPower = 0.0;
-        public const double MinPower = -130.0;
+        public const float MaxPower = 0.0f;
+        public const float MinPower = -130.0f;
 
 #if !MANAGED_ONLY
         [DllImport("SDRSharp.Filters.dll")]
         private static extern void FFT(Complex* coeffs, int len);
 #endif
 
-        public static void ForwardTransform(Complex[] buffer)
+        public static void ForwardTransform(Complex[] buffer, int length)
         {
-            ForwardTransform(buffer, buffer.Length);
+            fixed (Complex* bufferPtr = buffer)
+            {
+                ForwardTransform(bufferPtr, length);
+            }
         }
 
-        public static void ForwardTransform(Complex[] buffer, int length)
+        public static void ForwardTransform(Complex* buffer, int length)
         {
 #if MANAGED_ONLY
             ManagedForwardTransform(buffer, length);
@@ -33,27 +36,26 @@ namespace SDRSharp.Radio
 #endif
         }
 
-        public static void SpectrumPower(Complex[] buffer, double[] power)
+        public static void SpectrumPower(Complex* buffer, float* power, int length)
         {
-            SpectrumPower(buffer, power, buffer.Length);
-        }
-
-        public static void SpectrumPower(Complex[] buffer, double[] power, int length)
-        {
-            SpectrumPower(buffer, power, length, 0.0);
+            SpectrumPower(buffer, power, length, 0.0f);
         }
         
-        public static void SpectrumPower(Complex[] buffer, double[] power, int length, double offset)
+        public static void SpectrumPower(Complex[] buffer, float[] power, int length, float offset)
         {
-            if (buffer.Length < length || power.Length < length)
+            fixed (Complex* bufferPtr = buffer)
+            fixed (float* powerPtr = power)
             {
-                throw new ArgumentException("The lenghts of arguments do not match");
+                SpectrumPower(bufferPtr, powerPtr, length, offset);
             }
-
+        }
+        
+        public static void SpectrumPower(Complex* buffer, float* power, int length, float offset)
+        {
             for (var i = 0; i < length; i++)
             {
-                var strength = 20.0 * Math.Log10(buffer[i].Modulus()) + offset;
-                if (double.IsNaN(strength))
+                var strength = (float) (20.0 * Math.Log10(buffer[i].Modulus())) + offset;
+                if (float.IsNaN(strength))
                 {
                     strength = MinPower;
                 }
@@ -69,20 +71,30 @@ namespace SDRSharp.Radio
             }
         }
 
-        public static void ApplyFFTWindow(Complex[] buffer, double[] window)
+        public static void ScaleFFT(float[] src, byte[] dest, int length)
         {
-            ApplyFFTWindow(buffer, window, buffer.Length);
+            for (var i = 0; i < length; i++)
+            {
+                var magnitude = Math.Max(MinPower, src[i]);
+                magnitude = Math.Min(MaxPower, magnitude);
+
+                dest[i] = (byte)(magnitude * byte.MaxValue / (MaxPower - MinPower));
+            }
         }
 
-        public static void ApplyFFTWindow(Complex[] buffer, double[] window, int length)
+        public static void ApplyFFTWindow(Complex[] buffer, float[] window, int length)
         {
-            if (length > buffer.Length || length > window.Length)
+            fixed (Complex* bufferPtr = buffer)
+            fixed (float* windowPtr = window)
             {
-                throw new ArgumentException("Lengths of arguments do not match");
+                ApplyFFTWindow(bufferPtr, windowPtr, length);
             }
+        }
 
-            var m1 = 0.0;
-            var m2 = 0.0;
+        public static void ApplyFFTWindow(Complex* buffer, float* window, int length)
+        {
+            var m1 = 0.0f;
+            var m2 = 0.0f;
             for (var i = 0; i < length; i++)
             {
                 m1 += buffer[i].Modulus();
@@ -90,7 +102,7 @@ namespace SDRSharp.Radio
                 m2 += buffer[i].Modulus();
             }
             var r = m1 / m2;
-            if (!double.IsNaN(r))
+            if (!float.IsNaN(r))
             {
                 for (var i = 0; i < length; i++)
                 {
@@ -108,7 +120,7 @@ namespace SDRSharp.Radio
                 int nm1 = length - 1;
                 int nd2 = length / 2;
                 int i, j, jm1, k, l, m, le, le2, ip, nd4;
-                double ur, ui, sr, si, tr, ti;
+                float ur, ui, sr, si, tr, ti;
 
                 m = 0;
                 i = length;
@@ -190,12 +202,9 @@ namespace SDRSharp.Radio
 
 #else
 
-        private static void NativeForwardTransform(Complex[] samples, int length)
+        private static void NativeForwardTransform(Complex* samples, int length)
         {
-            fixed (Complex* ptr = samples)
-            {
-                FFT(ptr, length);
-            }
+            FFT(samples, length);
         }
 
 #endif

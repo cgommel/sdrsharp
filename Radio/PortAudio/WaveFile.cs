@@ -6,7 +6,7 @@ namespace SDRSharp.Radio.PortAudio
 {
 	public class WaveFile : IDisposable
 	{
-	    private const double InputGain = 0.01;
+	    private const float InputGain = 0.01f;
 
 		private readonly Stream _stream;
 	    private readonly bool _isPCM;
@@ -128,16 +128,16 @@ namespace SDRSharp.Radio.PortAudio
                     {
                         for (int i = 0; i < numReads; i++)
                         {
-                            iqPtr[i].Real = *(Int24*)(rawPtr + i * 6) / 8388608.0 * InputGain;
-                            iqPtr[i].Imag = *(Int24*)(rawPtr + i * 6 + 3) / 8388608.0 * InputGain;
+                            iqPtr[i].Real = *(Int24*)(rawPtr + i * 6) / 8388608.0f * InputGain;
+                            iqPtr[i].Imag = *(Int24*)(rawPtr + i * 6 + 3) / 8388608.0f * InputGain;
                         }
                     }
                     else
                     {
                         for (int i = 0; i < numReads; i++)
                         {
-                            iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0 * InputGain;
-                            iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0 * InputGain;
+                            iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0f * InputGain;
+                            iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0f * InputGain;
                         }
                     }
                 }
@@ -195,7 +195,7 @@ namespace SDRSharp.Radio.PortAudio
             public byte B;
             public sbyte A;
             
-            public static implicit operator double (Int24 i)
+            public static implicit operator float (Int24 i)
             {
                 return (i.C << 8 | i.B << 16 | i.A << 24) >> 8;
             }
