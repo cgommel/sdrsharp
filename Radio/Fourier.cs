@@ -1,11 +1,4 @@
-﻿#if __MonoCS__
-#define MANAGED_ONLY
-#endif
-
-using System;
-#if !MANAGED_ONLY
-using System.Runtime.InteropServices;
-#endif
+﻿using System;
 
 namespace SDRSharp.Radio
 {
@@ -14,26 +7,12 @@ namespace SDRSharp.Radio
         public const float MaxPower = 0.0f;
         public const float MinPower = -130.0f;
 
-#if !MANAGED_ONLY
-        [DllImport("SDRSharp.Filters.dll")]
-        private static extern void FFT(Complex* coeffs, int len);
-#endif
-
         public static void ForwardTransform(Complex[] buffer, int length)
         {
             fixed (Complex* bufferPtr = buffer)
             {
                 ForwardTransform(bufferPtr, length);
             }
-        }
-
-        public static void ForwardTransform(Complex* buffer, int length)
-        {
-#if MANAGED_ONLY
-            ManagedForwardTransform(buffer, length);
-#else
-            NativeForwardTransform(buffer, length);
-#endif
         }
 
         public static void SpectrumPower(Complex* buffer, float* power, int length)
@@ -111,9 +90,7 @@ namespace SDRSharp.Radio
             }
         }
 
-#if MANAGED_ONLY
-
-        private static void ManagedForwardTransform(Complex* samples, int length)
+        public static void ForwardTransform(Complex* samples, int length)
         {
             int nm1 = length - 1;
             int nd2 = length / 2;
@@ -196,15 +173,5 @@ namespace SDRSharp.Radio
                 samples[nd2 + nd2 - i - 1] = tmp;
             }
         }
-
-#else
-
-        private static void NativeForwardTransform(Complex* samples, int length)
-        {
-            FFT(samples, length);
-        }
-
-#endif
-
     }
 }

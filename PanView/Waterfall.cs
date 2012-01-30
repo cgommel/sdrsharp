@@ -6,7 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
+using SDRSharp.Radio;
 
 namespace SDRSharp.PanView
 {
@@ -24,7 +24,6 @@ namespace SDRSharp.PanView
     {
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
-        public const float MinimumLevel = 130.0f;
 
         public const int CursorSnapDistance = 4;
         public const float MaxZoom = 4.0f;
@@ -64,9 +63,6 @@ namespace SDRSharp.PanView
         private bool _useSmoothing;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
-
-        [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-        public static extern IntPtr Memcpy(IntPtr dest, IntPtr src, UIntPtr count);
 
         public Waterfall()
         {
@@ -428,7 +424,7 @@ namespace SDRSharp.PanView
             return defaultValue;
         }
 
-        private void Draw()
+        private unsafe void Draw()
         {
             #region Draw only if needed
 
@@ -442,8 +438,8 @@ namespace SDRSharp.PanView
             #region Shift image
 
             var bmpData = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppPArgb);
-            var ptr = new IntPtr((long) bmpData.Scan0 + bmpData.Stride);
-            Memcpy(ptr, bmpData.Scan0, new UIntPtr((ulong)((bmpData.Height - 1) * bmpData.Width * 4)));
+            var ptr = (void*) ((long)bmpData.Scan0 + bmpData.Width * 4);
+            Utils.Memcpy(ptr, (void*) bmpData.Scan0, (bmpData.Height - 1) * bmpData.Width * 4);
             _buffer.UnlockBits(bmpData);
 
             DrawGradient();

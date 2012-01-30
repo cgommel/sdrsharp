@@ -2,6 +2,8 @@
 #define MANAGED_ONLY
 #endif
 
+#undef MANAGED_ONLY
+
 #if !MANAGED_ONLY
 
 using System;
@@ -62,7 +64,5 @@ namespace SDRSharp.Radio
         [DllImport(Libc, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Memcpy(void* dest, void* src, int len);
 #endif
-
-
     }
 }

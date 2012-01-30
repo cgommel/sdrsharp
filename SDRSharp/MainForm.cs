@@ -25,7 +25,7 @@ namespace SDRSharp
         private const int DefaultAMBandwidth = 10000;
         private const int DefaultSSBBandwidth = 2400;
         private const int MaxFFTBins = 1024 * 1024 * 4;
-        private const int MaxFFTQueue = 5;
+        private const int MaxFFTQueue = 3;
         private const int FFTOverlapLimit = 65536 / 2;
 
         private int _fftBins;

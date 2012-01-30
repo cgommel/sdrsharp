@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using SDRSharp.Radio;
 
 namespace SDRSharp.PanView
 {
@@ -455,11 +456,11 @@ namespace SDRSharp.PanView
             DrawCursor();
         }
 
-        private void CopyBackground()
+        private unsafe void CopyBackground()
         {
             var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            Waterfall.Memcpy(data1.Scan0, data2.Scan0, new UIntPtr((ulong) (data1.Width * data1.Height * 4)));
+            Utils.Memcpy((void*) data1.Scan0, (void*) data2.Scan0, data1.Width * data1.Height * 4);
             _buffer.UnlockBits(data1);
             _bkgBuffer.UnlockBits(data2);
         }
