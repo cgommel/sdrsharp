@@ -1,22 +1,10 @@
-﻿#if __MonoCS__
-#define MANAGED_ONLY
-#endif
-
-#undef MANAGED_ONLY
-
-#if !MANAGED_ONLY
-
-using System;
-using System.Runtime.InteropServices;
-
-#endif
+﻿using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
     public unsafe static class Utils
     {
-#if MANAGED_ONLY
-        public static void Memcpy(void* dest, void* src, int len)
+        public static void ManagedMemcpy(void* dest, void* src, int len)
         {
             var d = (byte*) dest;
             var s = (byte*) src;
@@ -58,11 +46,13 @@ namespace SDRSharp.Radio
             }
         }
 
+#if LINUX
+        private const string Libc = "libc.so";
 #else
         private const string Libc = "msvcrt.dll";
+#endif
 
         [DllImport(Libc, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Memcpy(void* dest, void* src, int len);
-#endif
+        public static extern void* Memcpy(void* dest, void* src, int len);
     }
 }

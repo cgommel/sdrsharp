@@ -97,9 +97,9 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"</PostBuildEvent>
-    <PreBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.cs" "$(ProjectDir)Properties\AssemblyInfo.tpl.cs"
-SubWCRev "$(SolutionDir)." "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"
-</PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

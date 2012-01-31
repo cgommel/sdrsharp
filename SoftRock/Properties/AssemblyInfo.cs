@@ -4,19 +4,6 @@
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SoftRock Si570 Controller")]
-[assembly: AssemblyDescription("SoftRock Si570 Controller - $WCNOW$")]
+[assembly: AssemblyDescription("SoftRock Si570 Controller")]
 [assembly: AssemblyProduct("SDR#")]
 [assembly: AssemblyCopyright("Copyright © Youssef TOUIL 2011")]
-
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.$WCREV$")]
-[assembly: AssemblyFileVersion("1.0.0.$WCREV$")]
