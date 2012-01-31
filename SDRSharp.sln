@@ -1,8 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.Radio", "Radio\SDRSharp.Radio.csproj", "{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp", "SDRSharp\SDRSharp.csproj", "{7EB66BC2-6667-468F-8A95-CF49491CD67F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.Radio", "Radio\SDRSharp.Radio.csproj", "{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.PanView", "PanView\SDRSharp.PanView.csproj", "{C9292D31-4761-48FC-BEE0-9035D27F68BC}"
 EndProject
