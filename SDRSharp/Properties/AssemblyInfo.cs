@@ -7,6 +7,3 @@ using System.Reflection;
 [assembly: AssemblyDescription("Software Defined Radio")]
 [assembly: AssemblyProduct("SDR#")]
 [assembly: AssemblyCopyright("Copyright © Youssef TOUIL 2012")]
-
-[assembly: AssemblyVersion("1.0.0.$WCREV$")]
-[assembly: AssemblyFileVersion("1.0.0.$WCREV$")]
