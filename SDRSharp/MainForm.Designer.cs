@@ -211,11 +211,13 @@ namespace SDRSharp
             this.stepSizeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.stepSizeComboBox.FormattingEnabled = true;
             this.stepSizeComboBox.Items.AddRange(new object[] {
+            "1 Hz",
             "10 Hz",
             "100 Hz",
             "1 kHz",
             "2.5 kHz",
             "5 kHz",
+            "6.25 kHz",
             "8.33 kHz",
             "9 kHz",
             "10 kHz",
@@ -314,7 +316,7 @@ namespace SDRSharp
             this.centerFreqNumericUpDown.CausesValidation = false;
             this.centerFreqNumericUpDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.centerFreqNumericUpDown.Increment = new decimal(new int[] {
-            1000,
+            10,
             0,
             0,
             0});
@@ -823,6 +825,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 208);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = false;
             this.spectrumAnalyzer.Zoom = 0;
             this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
@@ -842,6 +845,7 @@ namespace SDRSharp
             this.waterfall.Size = new System.Drawing.Size(668, 454);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;
+            this.waterfall.UseSmoothing = false;
             this.waterfall.Zoom = 0;
             this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
             this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);

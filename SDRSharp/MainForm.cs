@@ -118,7 +118,7 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Value = 0;
 
-            stepSizeComboBox.SelectedIndex = 2;
+            stepSizeComboBox.SelectedIndex = 1;
 
             var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
 
@@ -747,6 +747,7 @@ namespace SDRSharp
             if (match.Success)
             {
                 centerFreqNumericUpDown.Increment = (int) (double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) * 1000);
+                frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
             }
             else
             {
@@ -754,6 +755,7 @@ namespace SDRSharp
                 if (match.Success)
                 {
                     centerFreqNumericUpDown.Increment = int.Parse(match.Groups[1].Value);
+                    frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
                 }
             }
         }

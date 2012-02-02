@@ -151,9 +151,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PreBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.cs" "$(ProjectDir)Properties\AssemblyInfo.tpl.cs"
+SubWCRev "$(SolutionDir)." "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"
+</PreBuildEvent>
+    <PostBuildEvent>move /Y "$(ProjectDir)Properties\AssemblyInfo.tpl.cs" "$(ProjectDir)Properties\AssemblyInfo.cs"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
