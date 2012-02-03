@@ -115,7 +115,7 @@ namespace SDRSharp.PanView
                     var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
                     var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
                     var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
-                    colorBlend.Colors[i] = Color.FromArgb(alpha, r, g, b);
+                    colorBlend.Colors[i] = Color.FromArgb(r, g, b);
                 }
             }
 
@@ -123,6 +123,11 @@ namespace SDRSharp.PanView
             var distance = 1f / (positions.Length - 1);
             for (var i = 0; i < positions.Length; i++)
             {
+                var r = colorBlend.Colors[i].R;
+                var g = colorBlend.Colors[i].G;
+                var b = colorBlend.Colors[i].B;
+
+                colorBlend.Colors[i] = Color.FromArgb(alpha, r, g, b);
                 positions[i] = i * distance;
             }
             colorBlend.Positions = positions;
