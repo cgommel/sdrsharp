@@ -104,7 +104,11 @@ namespace SDRSharp.PanView
             {
                 //colorBlend.Colors = new[] { Color.White, Color.Yellow, Color.Red, Color.FromArgb(56, 3, 2), Color.Black };
                 colorBlend.Colors = new[] { Color.White, Color.LightBlue, Color.DodgerBlue, Color.FromArgb(0, 0, 80), Color.Black, Color.Black };
-                //colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };                
+                //colorBlend.Colors = new[] { Color.Red, Color.Orange, Color.Yellow, Color.Lime, Color.DodgerBlue, Color.DarkBlue, Color.Black, Color.Black };
+                for (var i = 0; i < colorBlend.Colors.Length; i++)
+                {
+                    colorBlend.Colors[i] = Color.FromArgb(alpha, colorBlend.Colors[i]);
+                }
             }
             else
             {

@@ -6,7 +6,7 @@ namespace SDRSharp.Radio
 {
     public unsafe class IQBalancer : IDisposable
     {
-        private const int FFTBins = 128;
+        private const int FFTBins = 1024;
         private const float DcTimeConst = 0.001f;
         private const float Increment = 0.001f;
 
@@ -70,7 +70,7 @@ namespace SDRSharp.Radio
 
         private static int GetDefaultAutomaticBalancePasses()
         {
-            var passesString = ConfigurationManager.AppSettings["automaticBalancePasses"];
+            var passesString = ConfigurationManager.AppSettings["automaticIQBalancePasses"];
             int result;
             if (int.TryParse(passesString, out result))
             {
@@ -84,7 +84,7 @@ namespace SDRSharp.Radio
             if (_autoBalanceIQ)
             {
                 RemoveDC(iq, length);
-                EstimateImbalance(iq, length, MaxAutomaticPasses);
+                EstimateImbalance(iq, length);
                 Adjust(iq, length, _phase, _gain);
             }
         }
@@ -111,8 +111,13 @@ namespace SDRSharp.Radio
             }
         }
 
-        private void EstimateImbalance(Complex* iq, int length, int passes)
+        private void EstimateImbalance(Complex* iq, int length)
         {
+            if (length < FFTBins)
+            {
+                return;
+            }
+
             Utils.Memcpy(_fftPtr, iq, FFTBins * sizeof(Complex));
             Adjust(_fftPtr, FFTBins, _phase, _gain);
             Fourier.ApplyFFTWindow(_fftPtr, _windowPtr, FFTBins);
@@ -121,33 +126,23 @@ namespace SDRSharp.Radio
 
             var utility = Utility(_spectrumPtr, FFTBins);
 
-            var i = 0;
-            for (var count = 0; count < passes; count++)
+            for (var count = 0; count < _maxAutomaticPasses; count++)
             {
-                for (var j = 0; j < 4; j++)
+                var gainIncrement = Increment * GetRandomDirection();
+                var phaseIncrement = Increment * GetRandomDirection();
+
+                Utils.Memcpy(_fftPtr, iq, FFTBins * sizeof(Complex));
+                Adjust(_fftPtr, FFTBins, _phase + phaseIncrement, _gain + gainIncrement);
+                Fourier.ApplyFFTWindow(_fftPtr, _windowPtr, FFTBins);
+                Fourier.ForwardTransform(_fftPtr, FFTBins);
+                Fourier.SpectrumPower(_fftPtr, _spectrumPtr, FFTBins);
+
+                var u = Utility(_spectrumPtr, FFTBins);
+                if (u > utility)
                 {
-                    var gainIncrement = Increment * GetRandomDirection();
-                    var phaseIncrement = Increment * GetRandomDirection();
-
-                    Utils.Memcpy(_fftPtr, iq + i, FFTBins * sizeof(Complex));
-                    Adjust(_fftPtr, FFTBins, _phase + phaseIncrement, _gain + gainIncrement);
-                    Fourier.ApplyFFTWindow(_fftPtr, _windowPtr, FFTBins);
-                    Fourier.ForwardTransform(_fftPtr, FFTBins);
-                    Fourier.SpectrumPower(_fftPtr, _spectrumPtr, FFTBins);
-
-                    var u = Utility(_spectrumPtr, FFTBins);
-                    if (u > utility)
-                    {
-                        utility = u;
-                        _gain += gainIncrement;
-                        _phase += phaseIncrement;
-                    }
-                }
-
-                i += FFTBins;
-                if (i >= length - FFTBins)
-                {
-                    i = 0;
+                    utility = u;
+                    _gain += gainIncrement;
+                    _phase += phaseIncrement;
                 }
             }
         }
@@ -163,7 +158,7 @@ namespace SDRSharp.Radio
             var halfLength = length / 2;
             for (var i = 0; i < halfLength; i++)
             {
-                var distanceFromCenter = Math.Abs(i - halfLength);
+                var distanceFromCenter = halfLength - i;
 
                 if (distanceFromCenter > 0.05f * halfLength)
                 {
@@ -176,22 +171,10 @@ namespace SDRSharp.Radio
 
         private static void Adjust(Complex* buffer, int length, float phase, float gain)
         {
-            var m1 = 0.0f;
-            var m2 = 0.0f;
             for (var i = 0; i < length; i++)
             {
-                m1 += buffer[i].Modulus();
                 buffer[i].Real += phase * buffer[i].Imag;
                 buffer[i].Imag *= gain;
-                m2 += buffer[i].Modulus();
-            }
-            var r = m1 / m2;
-            if (!float.IsNaN(r))
-            {
-                for (var i = 0; i < length; i++)
-                {
-                    buffer[i] *= r;
-                }
             }
         }
     }
