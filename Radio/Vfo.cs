@@ -32,6 +32,7 @@ namespace SDRSharp.Radio
         private bool _needNewFilters;
         private bool _useAgc;
         private int _decimationFactor = 1;
+        private bool _needNewDecimator;
 
         public Vfo()
         {
@@ -164,7 +165,7 @@ namespace SDRSharp.Radio
             set
             {
                 _decimationFactor = value;
-                _needNewFilters = true;
+                _needNewDecimator = true;
                 Configure();
             }
         }
@@ -174,7 +175,11 @@ namespace SDRSharp.Radio
             _localOscillator.SampleRate = _sampleRate;
             _localOscillator.Frequency = _frequency;
             _agc.SampleRate = _sampleRate / _decimationFactor;
-            _decimator = new Decimator(_sampleRate, _decimationFactor);
+            if (_needNewDecimator)
+            {
+                _needNewDecimator = false;
+                _decimator = new Decimator(_decimationFactor);
+            }
             if (_needNewFilters)
             {
                 _needNewFilters = false;

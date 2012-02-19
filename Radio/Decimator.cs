@@ -4,20 +4,27 @@ namespace SDRSharp.Radio
 {
     public unsafe class Decimator
     {
-        private const int DefaultFilterOrder = 10;
-        private readonly IQFirFilter[] _filters;
-        private readonly int _decimationFactor;
+        private static readonly float[] _filterKernel = {
+          0.0001091015490441f,                 0,-0.0008931218291173f,                 0,
+            0.00398874281589f,                 0, -0.01283769838303f,                 0,
+            0.03400417599697f,                 0, -0.08499629276978f,                 0,
+             0.3106255550843f,               0.5f,   0.3106255550843f,                 0,
+           -0.08499629276978f,                 0,  0.03400417599697f,                 0,
+           -0.01283769838303f,                 0,  0.00398874281589f,                 0,
+          -0.0008931218291173f,                 0,0.0001091015490441f
+        };
 
-        public Decimator(double sampleRate, int decimationFactor)
+        private readonly IQFirFilter[] _filters;
+
+        public Decimator(int decimationFactor)
         {
-            _decimationFactor = decimationFactor;
             var stages = (int) (Math.Log(decimationFactor) / Math.Log(2));
             _filters = new IQFirFilter[stages];
             for (var i = 0; i < stages; i++)
             {
-                var kernel = FilterBuilder.MakeLowPassKernel(sampleRate, DefaultFilterOrder, (int)(sampleRate / _decimationFactor), WindowType.BlackmanHarris);
-                _filters[i] = new IQFirFilter(kernel);
-                sampleRate /= 2;
+                //var taps = Math.Max(10, (5 - i) * 20);
+                //var kernel = FilterBuilder.MakeLowPassKernel(24000, taps, 12000, WindowType.BlackmanHarris);
+                _filters[i] = new IQFirFilter(_filterKernel);
             }
         }
 
