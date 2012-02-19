@@ -59,14 +59,14 @@ namespace SDRSharp.Radio
         private float _threshold;
         private float _slopeFactor;
         private float _decay;
-        private int _sampleRate;
+        private double _sampleRate;
         private bool _useHang;
 
         #endregion
 
         #region Properties
 
-        public int SampleRate
+        public double SampleRate
         {
             get { return _sampleRate; }
             set

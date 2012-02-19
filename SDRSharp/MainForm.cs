@@ -95,7 +95,7 @@ namespace SDRSharp
 
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
-            _vfo.FilterOrder = 100;
+            _vfo.FilterOrder = 400;
             _vfo.FmSquelch = 50;
             _vfo.UseAGC = true;
             _vfo.AgcThreshold = -100.0f;
@@ -429,11 +429,12 @@ namespace SDRSharp
             }
 
             _vfo.SampleRate = _audioControl.SampleRate;
-            spectrumAnalyzer.SpectrumWidth = _audioControl.SampleRate;
-            waterfall.SpectrumWidth = _audioControl.SampleRate;
+            _vfo.DecimationFactor = _audioControl.DecimationFactor;
+            spectrumAnalyzer.SpectrumWidth = (int) _audioControl.SampleRate;
+            waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + _audioControl.SampleRate / 2;
-            frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - _audioControl.SampleRate / 2;
+            frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + (int) (_audioControl.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - (int) (_audioControl.SampleRate / 2);
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
@@ -503,8 +504,8 @@ namespace SDRSharp
             waterfall.CenterFrequency = newCenterFreq;
             spectrumAnalyzer.CenterFrequency = newCenterFreq;
 
-            frequencyNumericUpDown.Maximum = newCenterFreq + _vfo.SampleRate / 2;
-            frequencyNumericUpDown.Minimum = newCenterFreq - _vfo.SampleRate / 2;
+            frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
             if (_frontendController != null && soundCardRadioButton.Checked)
@@ -747,7 +748,7 @@ namespace SDRSharp
             if (match.Success)
             {
                 centerFreqNumericUpDown.Increment = (int) (double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) * 1000);
-                frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
+                //frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
             }
             else
             {
@@ -755,7 +756,7 @@ namespace SDRSharp
                 if (match.Success)
                 {
                     centerFreqNumericUpDown.Increment = int.Parse(match.Groups[1].Value);
-                    frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
+                    //frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
                 }
             }
         }

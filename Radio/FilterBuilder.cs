@@ -89,7 +89,7 @@ namespace SDRSharp.Radio
             return w;
         }
 
-        public static float[] MakeLowPassKernel(int sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
+        public static float[] MakeLowPassKernel(double sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
         {
             var cutoffRadians = (float) (2 * Math.PI * cutoffFrequency / sampleRate);
             
@@ -113,12 +113,12 @@ namespace SDRSharp.Radio
             return h;
         }
 
-        public static float[] MakeHighPassKernel(int sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
+        public static float[] MakeHighPassKernel(double sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
         {
             return InvertSpectrum(MakeLowPassKernel(sampleRate, filterOrder, cutoffFrequency, windowType));
         }
 
-        public static float[] MakeBandPassKernel(int sampleRate, int filterOrder, int cutoff1, int cutoff2, WindowType windowType)
+        public static float[] MakeBandPassKernel(double sampleRate, int filterOrder, int cutoff1, int cutoff2, WindowType windowType)
         {
             var bw = (cutoff2 - cutoff1) / 2;
             var fshift = cutoff2 - bw;
@@ -136,7 +136,7 @@ namespace SDRSharp.Radio
 
         #region Utility functions
 
-        private static void Normalize(float[] h)
+        public static void Normalize(float[] h)
         {
             // Normalize the filter kernel for unity gain at DC
             var sum = 0.0f;

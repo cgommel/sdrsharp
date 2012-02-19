@@ -93,12 +93,11 @@ namespace SDRSharp.Radio.PortAudio
 			_dataPos = _stream.Position;
 		}
 
-        public void Read(Complex[] iqBuffer)
+        public void Read(Complex[] iqBuffer, int length)
         {
-            if (_tempBuffer == null || _tempBuffer.Length != iqBuffer.Length)
+            if (_tempBuffer == null || _tempBuffer.Length != length)
             {
-                //var bytesPerSample = _isPCM ? _blockAlign : 8;
-                _tempBuffer = new byte[_blockAlign * iqBuffer.Length];
+                _tempBuffer = new byte[_blockAlign * length];
             }
             var pos = 0;
             var size = _tempBuffer.Length;
@@ -112,12 +111,12 @@ namespace SDRSharp.Radio.PortAudio
                     break;
                 pos += got;
             }
-            FillIQ(iqBuffer);
+            FillIQ(iqBuffer, length);
         }
 
-        private unsafe void FillIQ(Complex[] iqBuffer)
+        private unsafe void FillIQ(Complex[] iqBuffer, int length)
         {
-            var numReads = iqBuffer.Length;
+            var numReads = length;
 
             fixed (Complex* iqPtr = iqBuffer)
             fixed (byte* rawPtr = _tempBuffer)

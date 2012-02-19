@@ -24,7 +24,7 @@ namespace SDRSharp.Radio
         private FirFilter _hissFilter;
         private Complex _iqState;
         private float _noiseLevel;
-        private int _sampleRate;
+        private double _sampleRate;
         private float _noiseAveragingRatio;
         private int _squelchThreshold;
         private float _noiseThreshold;
@@ -97,7 +97,7 @@ namespace SDRSharp.Radio
             get { return _dcRemover.Offset; }
         }
 
-        public int SampleRate
+        public double SampleRate
         {
             get
             {
@@ -106,7 +106,7 @@ namespace SDRSharp.Radio
             set
             {
                 _sampleRate = value;
-                _noiseAveragingRatio = 30.0f / _sampleRate;
+                _noiseAveragingRatio = (float) (30.0 / _sampleRate);
                 var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
                 _hissFilter = new FirFilter(bpk);
             }

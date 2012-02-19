@@ -32,6 +32,11 @@ namespace SDRSharp.Radio
             _queueHandle.Free();
         }
 
+        public float[] Coefficients
+        {
+            get { return _coefficients; }
+        }
+
         public float Process(float sample)
         {
             _queuePtr[0] = sample;

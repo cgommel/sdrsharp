@@ -8,6 +8,7 @@ namespace SDRSharp.Radio
 
     public unsafe class AudioControl : IDisposable
     {
+        private const int MaxOutputSampleRate = 32000;
         private const float InputGain = 0.01f;
 
         private float[] _audioBuffer;
@@ -28,11 +29,14 @@ namespace SDRSharp.Radio
 
         private float _audioGain;
         private float _outputGain;
-        private int _sampleRate;
         private int _inputDevice;
-        private int _bufferSize;
+        private double _inputSampleRate;
+        private int _inputBufferSize;
         private int _bufferSizeInMs;
         private int _outputDevice;
+        private double _outputSampleRate;
+        private int _outputBufferSize;
+        private int _decimationFactor;
         private bool _swapIQ;
 
         public event BufferNeededDelegate BufferNeeded;
@@ -83,11 +87,11 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int SampleRate
+        public double SampleRate
         {
             get
             {
-                return _sampleRate;
+                return _inputSampleRate;
             }
         }
 
@@ -95,7 +99,7 @@ namespace SDRSharp.Radio
         {
             get
             {
-                return _sampleRate != 0;
+                return _inputSampleRate != 0;
             }
         }
 
@@ -103,7 +107,7 @@ namespace SDRSharp.Radio
         {
             get
             {
-                return _bufferSize;
+                return _inputBufferSize;
             }
         }
 
@@ -112,6 +116,14 @@ namespace SDRSharp.Radio
             get
             {
                 return _bufferSizeInMs;
+            }
+        }
+
+        public int DecimationFactor
+        {
+            get
+            {
+                return _decimationFactor;
             }
         }
 
@@ -124,7 +136,7 @@ namespace SDRSharp.Radio
 
             #region Fill IQ buffer
 
-            if (_iqBuffer == null || _iqBuffer.Length != length)
+            if (_iqBuffer == null || _iqBuffer.Length < length)
             {
                 if (_iqHandle.IsAllocated)
                 {
@@ -141,7 +153,7 @@ namespace SDRSharp.Radio
 
             #region Prepare audio buffer
 
-            if (_audioBuffer == null || _audioBuffer.Length != length)
+            if (_audioBuffer == null || _audioBuffer.Length < length)
             {
                 if (_audioHandle.IsAllocated)
                 {
@@ -175,7 +187,7 @@ namespace SDRSharp.Radio
                 return;
             }
 
-            if (_audioBuffer == null || _audioBuffer.Length != length)
+            if (_audioBuffer == null || _audioBuffer.Length < length)
             {
                 if (_audioHandle.IsAllocated)
                 {
@@ -186,24 +198,24 @@ namespace SDRSharp.Radio
                 _audioPtr = (float*) _audioHandle.AddrOfPinnedObject();
             }
 
-            if (_iqBuffer == null || _iqBuffer.Length != length)
+            if (_iqBuffer == null || _iqBuffer.Length < length * _decimationFactor)
             {
                 if (_iqHandle.IsAllocated)
                 {
                     _iqHandle.Free();
                 }
-                _iqBuffer = new Complex[length];
+                _iqBuffer = new Complex[length * _decimationFactor];
                 _iqHandle = GCHandle.Alloc(_iqBuffer, GCHandleType.Pinned);
                 _iqPtr = (Complex*) _iqHandle.AddrOfPinnedObject();
             }
 
             if (_waveFile != null)
             {
-                _waveFile.Read(_iqBuffer);
+                _waveFile.Read(_iqBuffer, length * _decimationFactor);
             }
             else
             {
-                _audioStream.Read(_iqBuffer, 0, _iqBuffer.Length);
+                _audioStream.Read(_iqBuffer, 0, length * _decimationFactor);
             }
 
             if (_swapIQ)
@@ -211,7 +223,7 @@ namespace SDRSharp.Radio
                 SwapIQBuffer();
             }
 
-            BufferNeeded(_iqPtr, _audioPtr, length);
+            BufferNeeded(_iqPtr, _audioPtr, length * _decimationFactor);
 
             FillAudio(buffer, length);
         }
@@ -225,7 +237,7 @@ namespace SDRSharp.Radio
 
             #region Fill IQ buffer
 
-            if (_recorderIQBuffer == null || _recorderIQBuffer.Length != length)
+            if (_recorderIQBuffer == null || _recorderIQBuffer.Length < length)
             {
                 if (_recorderIQHandle.IsAllocated)
                 {
@@ -333,7 +345,7 @@ namespace SDRSharp.Radio
                     _waveFile = null;
                 }
             }
-            _sampleRate = 0;
+            _inputSampleRate = 0;
         }
 
         public void Play()
@@ -344,31 +356,45 @@ namespace SDRSharp.Radio
                 {
                     if (_inputDevice == _outputDevice)
                     {
-                        _waveDuplex = new WaveDuplex(_inputDevice, _sampleRate, _bufferSize, DuplexFiller);
+                        _waveDuplex = new WaveDuplex(_inputDevice, _inputSampleRate, _inputBufferSize, DuplexFiller);
                     }
                     else
                     {
                         _audioStream = new FifoStream();
-                        _waveRecorder = new WaveRecorder(_inputDevice, _sampleRate, _bufferSize, RecorderFiller);
-                        _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, _bufferSize, PlayerFiller);
+                        _waveRecorder = new WaveRecorder(_inputDevice, _inputSampleRate, _inputBufferSize, RecorderFiller);
+                        _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
                     }
                 }
                 else
                 {
-                    _wavePlayer = new WavePlayer(_outputDevice, _sampleRate, _bufferSize, PlayerFiller);
+                    _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
                 }
             }
         }
 
-        public void OpenDevice(int inputDevice, int outputDevice, int sampleRate, int bufferSizeInMs)
+        public void OpenDevice(int inputDevice, int outputDevice, int inputSampleRate, int bufferSizeInMs)
         {
             Stop();
 
             _inputDevice = inputDevice;
             _outputDevice = outputDevice;
-            _sampleRate = sampleRate;
+            _inputSampleRate = inputSampleRate;
             _bufferSizeInMs = bufferSizeInMs;
-            _bufferSize = _bufferSizeInMs * _sampleRate / 1000;
+            _inputBufferSize = (int)(_bufferSizeInMs * _inputSampleRate / 1000);
+
+            _decimationFactor = GetDecimationFactor();
+
+            if (_decimationFactor < 2 || _inputDevice == _outputDevice)
+            {
+                _outputSampleRate = _inputSampleRate;
+                _outputBufferSize = _inputBufferSize;
+            }
+            else
+            {
+                _inputBufferSize = _inputBufferSize / _decimationFactor * _decimationFactor;
+                _outputSampleRate = _inputSampleRate / _decimationFactor;
+                _outputBufferSize = _inputBufferSize / _decimationFactor;
+            }
         }
 
         public void OpenFile(string filename, int outputDevice, int bufferSizeInMs)
@@ -378,16 +404,47 @@ namespace SDRSharp.Radio
             try
             {
                 _waveFile = new WaveFile(filename);
-                _sampleRate = _waveFile.SampleRate;
                 _outputDevice = outputDevice;
                 _bufferSizeInMs = bufferSizeInMs;
-                _bufferSize = _bufferSizeInMs * _sampleRate / 1000;
+                _inputSampleRate = _waveFile.SampleRate;
+                _inputBufferSize = (int)(_bufferSizeInMs * _inputSampleRate / 1000);
 
+                _decimationFactor = GetDecimationFactor();
+
+                if (_decimationFactor < 2)
+                {
+                    _outputSampleRate = _inputSampleRate;
+                    _outputBufferSize = _inputBufferSize;
+                }
+                else
+                {
+                    _inputBufferSize = _inputBufferSize / _decimationFactor * _decimationFactor;
+                    _outputSampleRate = _inputSampleRate / _decimationFactor;
+                    _outputBufferSize = _inputBufferSize / _decimationFactor;
+                }
             }
             catch
             {
                 Stop();
             }
+        }
+
+        private int GetDecimationFactor()
+        {
+            if (_inputSampleRate <= MaxOutputSampleRate)
+            {
+                return 1;
+            }
+
+            int result = 1;
+            int suggestedRate;
+            do
+            {
+                result *= 2;
+                suggestedRate = MaxOutputSampleRate * result;
+            } while (_inputSampleRate > suggestedRate);
+
+            return result;
         }
     }
 }

@@ -13,7 +13,7 @@
             }
         }
 
-        public int SampleRate
+        public double SampleRate
         {
             get { return _bfo.SampleRate; }
             set { _bfo.SampleRate = value; }

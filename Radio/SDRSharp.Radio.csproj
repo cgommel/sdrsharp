@@ -67,6 +67,7 @@
     <Compile Include="AudioControl.cs" />
     <Compile Include="AutomaticGain.cs" />
     <Compile Include="DcRemover.cs" />
+    <Compile Include="Decimator.cs" />
     <Compile Include="DetectorType.cs" />
     <Compile Include="FifoStream.cs" />
     <Compile Include="FilterBuilder.cs" />

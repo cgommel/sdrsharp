@@ -13,7 +13,7 @@ namespace SDRSharp.Radio.PortAudio
         private readonly AudioBufferAvailableDelegate _bufferAvailable;
         private readonly PaStreamCallbackDelegate _paCallback = PaStreamCallback;
 
-        public WaveRecorder(int deviceIndex, int sampleRate, int framesPerBuffer, AudioBufferAvailableDelegate bufferAvailable)
+        public WaveRecorder(int deviceIndex, double sampleRate, int framesPerBuffer, AudioBufferAvailableDelegate bufferAvailable)
         {
             _bufferAvailable = bufferAvailable;
 

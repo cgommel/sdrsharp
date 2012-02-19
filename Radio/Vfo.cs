@@ -20,16 +20,18 @@ namespace SDRSharp.Radio
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
+        private Decimator _decimator;
         private FirFilter _audioFilter;
         private IQFirFilter _iqFilter;
         private DetectorType _detectorType;
         private WindowType _windowType;
-        private int _sampleRate;
+        private double _sampleRate;
         private int _bandwidth;
         private int _frequency;
         private int _filterOrder;
         private bool _needNewFilters;
         private bool _useAgc;
+        private int _decimationFactor = 1;
 
         public Vfo()
         {
@@ -78,7 +80,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int SampleRate
+        public double SampleRate
         {
             get
             {
@@ -156,11 +158,23 @@ namespace SDRSharp.Radio
             set { _fmDetector.SquelchThreshold = value; }
         }
 
+        public int DecimationFactor
+        {
+            get { return _decimationFactor; }
+            set
+            {
+                _decimationFactor = value;
+                _needNewFilters = true;
+                Configure();
+            }
+        }
+
         private void Configure()
         {
-            _agc.SampleRate = _sampleRate;
             _localOscillator.SampleRate = _sampleRate;
             _localOscillator.Frequency = _frequency;
+            _agc.SampleRate = _sampleRate / _decimationFactor;
+            _decimator = new Decimator(_sampleRate, _decimationFactor);
             if (_needNewFilters)
             {
                 _needNewFilters = false;
@@ -171,14 +185,14 @@ namespace SDRSharp.Radio
                 int bfo;
                 if (_frequency > _sampleRate / 2 - _bandwidth)
                 {
-                    bfo = _sampleRate / 2 - _frequency;
+                    bfo = (int) (_sampleRate / 2 - _frequency);
                 }
                 else
                 {
                     bfo = _bandwidth;
                 }
                 bfo = bfo / 2 + MinSSBAudioFrequency;
-                _usbDetector.SampleRate = _sampleRate;
+                _usbDetector.SampleRate = _sampleRate / _decimationFactor;
                 _usbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency -= _usbDetector.BfoFrequency;
             }
@@ -187,20 +201,20 @@ namespace SDRSharp.Radio
                 int bfo;
                 if (_frequency < -_sampleRate / 2 + _bandwidth)
                 {
-                    bfo = _sampleRate / 2 + _frequency;
+                    bfo = (int) (_sampleRate / 2 + _frequency);
                 }
                 else
                 {
                     bfo = _bandwidth;
                 }
                 bfo = bfo / 2 + MinSSBAudioFrequency;
-                _lsbDetector.SampleRate = _sampleRate;
+                _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
                 _lsbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency += _lsbDetector.BfoFrequency;
             }
             else if (_detectorType == DetectorType.FM)
             {
-                _fmDetector.SampleRate = _sampleRate;
+                _fmDetector.SampleRate = _sampleRate / _decimationFactor;
             }
         }
 
@@ -224,7 +238,7 @@ namespace SDRSharp.Radio
             {
                 iqBW = _bandwidth / 2;
             }
-            var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate, iqOrder, iqBW, _windowType);
+            var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / _decimationFactor, iqOrder, iqBW, _windowType);
             _iqFilter = new IQFirFilter(coeffs);
 
             if (cwMode)
@@ -247,13 +261,18 @@ namespace SDRSharp.Radio
                 cutoff1 = MinBCAudioFrequency;
                 cutoff2 = Math.Min(_bandwidth / 2, MaxBCAudioFrequency);
             }
-            coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate, _filterOrder, cutoff1, cutoff2, _windowType);
+            coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate / _decimationFactor, _filterOrder, cutoff1, cutoff2, _windowType);
             _audioFilter = new FirFilter(coeffs);
         }
 
         public void ProcessBuffer(Complex* iq, float* audio, int length)
         {
             DownConvert(iq, length);
+            if (_decimationFactor >= 2)
+            {
+                _decimator.Process(iq, length);
+                length /= _decimationFactor;
+            }
             _iqFilter.Process(iq, length);
             Demodulate(iq, audio, length);
             _audioFilter.Process(audio, length);

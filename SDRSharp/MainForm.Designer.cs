@@ -405,7 +405,7 @@ namespace SDRSharp
             this.filterOrderNumericUpDown.TabIndex = 9;
             this.filterOrderNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.filterOrderNumericUpDown.Value = new decimal(new int[] {
-            100,
+            400,
             0,
             0,
             0});

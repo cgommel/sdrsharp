@@ -6,14 +6,14 @@ namespace SDRSharp.Radio
     {
         private const double Epsilon = 1e-10;
 
-        private int _sampleRate;
+        private double _sampleRate;
         private int _frequency;
         private int _tick;
         private double _anglePerSample;
         private float _outI;
         private float _outQ;
 
-        public int SampleRate
+        public double SampleRate
         {
             get { return _sampleRate; }
             set
