@@ -19,7 +19,8 @@ namespace SDRSharp.Radio
         public static float[] MakeWindow(WindowType windowType, int length)
         {
             var w = new float[length];
-            for (var i = 0; i < length; i++)
+            length--;
+            for (var i = 0; i <= length; i++)
             {
                 float n;
                 float a0;
@@ -91,22 +92,21 @@ namespace SDRSharp.Radio
 
         public static float[] MakeLowPassKernel(double sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
         {
-            var cutoffRadians = (float) (2 * Math.PI * cutoffFrequency / sampleRate);
+            var cutoffRadians = 2 * Math.PI * cutoffFrequency / sampleRate;
             
             var h = new float[filterOrder + 1];
             var w = MakeWindow(windowType, filterOrder + 1);
 
             for (var i = 0; i <= filterOrder; i++)
             {
-                var n = i - filterOrder / 2.0;
+                var n = i - filterOrder / 2;
                 if (n == 0)
                 {
-                    h[i] = cutoffRadians;
+                    h[i] = (float) cutoffRadians;
                 }
                 else
                 {
-                    h[i] = (float) (Math.Sin(cutoffRadians * n) / n);
-                    h[i] *= w[i];
+                    h[i] = (float) (Math.Sin(cutoffRadians * n) / n) * w[i];
                 }
             }
             Normalize(h);

@@ -14,7 +14,7 @@ namespace SDRSharp.Radio
 
         private const int MinHissFrequency = 4000;
         private const int MaxHissFrequency = 6000;
-        private const int HissFilterOrder = 21;
+        private const int HissFilterOrder = 20;
         private const float HissFactor = 0.001f;
 
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);

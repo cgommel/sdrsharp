@@ -81,10 +81,15 @@ namespace SDRSharp.Radio.PortAudio
             }
 
 			// assume the data chunk is aligned
-            //while(_stream.Position < _stream.Length && ReadChunk(reader) != "data")
-            //{
-            //}
-		    ReadChunk(reader);
+            while (_stream.Position < _stream.Length && ReadChunk(reader) != "data")
+            {
+                len = reader.ReadInt32();
+                while (_stream.Position < _stream.Length && len > 0)
+                {
+                    reader.ReadByte();
+                    len--;
+                }
+            }
 
 			if (_stream.Position >= _stream.Length)
 				throw new Exception("Invalid file format");
