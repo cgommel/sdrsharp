@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp.Radio
@@ -10,6 +11,8 @@ namespace SDRSharp.Radio
     {
         private const int MaxOutputSampleRate = 32000;
         private const float InputGain = 0.01f;
+        private const int WaveBufferLength = 64 * 1024;
+        private const int MaxWavePending = 512 * 1024;
 
         private float[] _audioBuffer;
         private float* _audioPtr;
@@ -17,15 +20,16 @@ namespace SDRSharp.Radio
         private Complex[] _iqBuffer;
         private Complex* _iqPtr;
         private GCHandle _iqHandle;
-        private Complex[] _recorderIQBuffer;
-        private Complex* _recorderIQPtr;
-        private GCHandle _recorderIQHandle;
+        private Complex[] _inputIQBuffer;
+        private Complex* _inputIQPtr;
+        private GCHandle _inputIQHandle;
 
         private WavePlayer _wavePlayer;
         private WaveRecorder _waveRecorder;
         private WaveDuplex _waveDuplex;
         private WaveFile _waveFile;
         private FifoStream _audioStream;
+        private Thread _waveReadThread;
 
         private float _audioGain;
         private float _outputGain;
@@ -56,9 +60,9 @@ namespace SDRSharp.Radio
             {
                 _audioHandle.Free();
             }
-            if (_recorderIQHandle.IsAllocated)
+            if (_inputIQHandle.IsAllocated)
             {
-                _recorderIQHandle.Free();
+                _inputIQHandle.Free();
             }
         }
 
@@ -209,13 +213,10 @@ namespace SDRSharp.Radio
                 _iqPtr = (Complex*) _iqHandle.AddrOfPinnedObject();
             }
 
-            if (_waveFile != null)
+            var r = _audioStream.Read(_iqBuffer, 0, length * _decimationFactor);
+            if (r < length * _decimationFactor)
             {
-                _waveFile.Read(_iqBuffer, length * _decimationFactor);
-            }
-            else
-            {
-                _audioStream.Read(_iqBuffer, 0, length * _decimationFactor);
+                Console.WriteLine("Underrun");
             }
 
             if (_swapIQ)
@@ -237,26 +238,50 @@ namespace SDRSharp.Radio
 
             #region Fill IQ buffer
 
-            if (_recorderIQBuffer == null || _recorderIQBuffer.Length < length)
+            if (_inputIQBuffer == null || _inputIQBuffer.Length < length)
             {
-                if (_recorderIQHandle.IsAllocated)
+                if (_inputIQHandle.IsAllocated)
                 {
-                    _recorderIQHandle.Free();
+                    _inputIQHandle.Free();
                 }
-                _recorderIQBuffer = new Complex[length];
-                _recorderIQHandle = GCHandle.Alloc(_recorderIQBuffer, GCHandleType.Pinned);
-                _recorderIQPtr = (Complex*) _recorderIQHandle.AddrOfPinnedObject();
+                _inputIQBuffer = new Complex[length];
+                _inputIQHandle = GCHandle.Alloc(_inputIQBuffer, GCHandleType.Pinned);
+                _inputIQPtr = (Complex*) _inputIQHandle.AddrOfPinnedObject();
             }
 
-            FillIQ(buffer, _recorderIQPtr, length);
+            FillIQ(buffer, _inputIQPtr, length);
 
             #endregion
 
             #region Fill the FiFo
 
-            _audioStream.Write(_recorderIQBuffer, 0, _recorderIQBuffer.Length);
+            _audioStream.Write(_inputIQBuffer, 0, _inputIQBuffer.Length);
 
             #endregion
+        }
+
+        private void WaveFileProc()
+        {
+            if (_inputIQBuffer == null || _inputIQBuffer.Length < WaveBufferLength)
+            {
+                if (_inputIQHandle.IsAllocated)
+                {
+                    _inputIQHandle.Free();
+                }
+                _inputIQBuffer = new Complex[WaveBufferLength];
+                _inputIQHandle = GCHandle.Alloc(_inputIQBuffer, GCHandleType.Pinned);
+                _inputIQPtr = (Complex*)_inputIQHandle.AddrOfPinnedObject();
+            }
+
+            while (IsPlaying)
+            {
+                if (_audioStream.Length < MaxWavePending)
+                {
+                    _waveFile.Read(_inputIQBuffer, WaveBufferLength);
+                    _audioStream.Write(_inputIQBuffer, 0, _inputIQBuffer.Length);
+                }
+                Thread.Sleep(5);
+            }
         }
 
         private static void FillIQ(float* buffer, Complex* iqBuffer, int length)
@@ -312,17 +337,6 @@ namespace SDRSharp.Radio
                     _waveRecorder = null;
                 }
             }
-            if (_audioStream != null)
-            {
-                try
-                {
-                    _audioStream.Close();
-                }
-                finally
-                {
-                    _audioStream = null;
-                }
-            }
             if (_waveDuplex != null)
             {
                 try
@@ -334,18 +348,31 @@ namespace SDRSharp.Radio
                     _waveDuplex = null;
                 }
             }
+            _inputSampleRate = 0;
             if (_waveFile != null)
             {
                 try
                 {
+                    _waveReadThread.Join();
                     _waveFile.Dispose();
                 }
                 finally
                 {
+                    _waveReadThread = null;
                     _waveFile = null;
                 }
             }
-            _inputSampleRate = 0;
+            if (_audioStream != null)
+            {
+                try
+                {
+                    _audioStream.Close();
+                }
+                finally
+                {
+                    _audioStream = null;
+                }
+            }
         }
 
         public void Play()
@@ -367,7 +394,10 @@ namespace SDRSharp.Radio
                 }
                 else
                 {
+                    _audioStream = new FifoStream();
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
+                    _waveReadThread = new Thread(WaveFileProc);
+                    _waveReadThread.Start();
                 }
             }
         }
@@ -382,15 +412,15 @@ namespace SDRSharp.Radio
             _bufferSizeInMs = bufferSizeInMs;
             _inputBufferSize = (int)(_bufferSizeInMs * _inputSampleRate / 1000);
 
-            _decimationFactor = GetDecimationFactor();
-
-            if (_decimationFactor < 2 || _inputDevice == _outputDevice)
+            if (_inputDevice == _outputDevice)
             {
+                _decimationFactor = 1;
                 _outputSampleRate = _inputSampleRate;
                 _outputBufferSize = _inputBufferSize;
             }
             else
             {
+                _decimationFactor = GetDecimationFactor();
                 _inputBufferSize = _inputBufferSize / _decimationFactor * _decimationFactor;
                 _outputSampleRate = _inputSampleRate / _decimationFactor;
                 _outputBufferSize = _inputBufferSize / _decimationFactor;
