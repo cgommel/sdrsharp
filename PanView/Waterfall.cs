@@ -74,6 +74,9 @@ namespace SDRSharp.PanView
             _graphics2 = Graphics.FromImage(_buffer2);
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin / 2, AxisMargin / 2, Width - AxisMargin / 2, Height - AxisMargin / 2), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
+
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, false);
+            UpdateStyles();
         }
 
         public static ColorBlend GetGradientBlend()
@@ -363,38 +366,42 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
+        public unsafe static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
         {
-            var r = sourceLength / scale / destination.Length;
-            if (r > 1.0f)
+            fixed (byte* srcPtr = source)
+            fixed (byte* dstPtr = destination)
             {
-                var n = (int) Math.Ceiling(r);
-                for (var i = 0; i < destination.Length; i++)
+                var r = sourceLength / scale / destination.Length;
+                if (r > 1.0f)
                 {
-                    var k = (int) (i * r - n / 2.0f);
-                    var max = (byte) 0;
-                    for (var j = 0; j < n; j++)
+                    var n = (int)Math.Ceiling(r);
+                    for (var i = 0; i < destination.Length; i++)
                     {
-                        var index = k + j + offset;
-                        if (index >= 0 && index < sourceLength)
+                        var k = (int)(i * r - n / 2.0f);
+                        var max = (byte)0;
+                        for (var j = 0; j < n; j++)
                         {
-                            if (max < source[index])
+                            var index = k + j + offset;
+                            if (index >= 0 && index < sourceLength)
                             {
-                                max = source[index];
+                                if (max < srcPtr[index])
+                                {
+                                    max = srcPtr[index];
+                                }
                             }
                         }
+                        dstPtr[i] = max;
                     }
-                    destination[i] = max;
                 }
-            }
-            else
-            {
-                for (var i = 0; i < destination.Length; i++)
+                else
                 {
-                    var index = (int) (r * i + offset);
-                    if (index >= 0 && index < sourceLength)
+                    for (var i = 0; i < destination.Length; i++)
                     {
-                        destination[i] = source[index];
+                        var index = (int)(r * i + offset);
+                        if (index >= 0 && index < sourceLength)
+                        {
+                            dstPtr[i] = srcPtr[index];
+                        }
                     }
                 }
             }
@@ -403,7 +410,7 @@ namespace SDRSharp.PanView
         public void Render(byte[] spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
-            var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float) _spectrumWidth);
+            var offset = (int)((length - scaledLength) / 2.0 + length * (double)(_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
 
             if (_useSmoothing)
             {
@@ -431,6 +438,20 @@ namespace SDRSharp.PanView
                 return result;
             }
             return defaultValue;
+        }
+
+        public static bool GetBooleanSetting(string name)
+        {
+            string resultString;
+            try
+            {
+                resultString = ConfigurationManager.AppSettings[name] ?? string.Empty;
+            }
+            catch
+            {
+                return false;
+            }
+            return "YyTt".IndexOf(resultString[0]) >= 0;
         }
 
         private unsafe void Draw()

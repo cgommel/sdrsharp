@@ -91,6 +91,7 @@ namespace SDRSharp.Radio
             {
                 _sampleRate = value;
                 _needNewFilters = true;
+                _needNewDecimator = true;
                 Configure();
             }
         }

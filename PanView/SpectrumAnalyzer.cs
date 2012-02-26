@@ -16,6 +16,7 @@ namespace SDRSharp.PanView
 
         private readonly static double _attack = Waterfall.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
         private readonly static double _decay = Waterfall.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+        private readonly static bool _fillSpectrumAnalyzer = Waterfall.GetBooleanSetting("fillSpectrumAnalyzer");
 
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
@@ -55,6 +56,8 @@ namespace SDRSharp.PanView
             _graphics = Graphics.FromImage(_buffer);
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, false);
+            UpdateStyles();
         }
 
         ~SpectrumAnalyzer()
@@ -322,8 +325,7 @@ namespace SDRSharp.PanView
         public void Render(byte[] spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
-            var offset = (int)((length - scaledLength) / 2.0f + (_displayCenterFrequency - _centerFrequency) * length / (float)_spectrumWidth);
-
+            var offset = (int)((length - scaledLength) / 2.0 + length * (double) (_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
             if (_useSmoothing)
             {
                 Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
@@ -486,12 +488,14 @@ namespace SDRSharp.PanView
                     _points[i + 1].X = AxisMargin + newX;
                     _points[i + 1].Y = newY;
                 }
-                _points[0].X = AxisMargin;
-                _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
-                _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
-                _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
-
-                _graphics.FillPolygon(_gradientBrush, _points);
+                if (_fillSpectrumAnalyzer)
+                {
+                    _points[0].X = AxisMargin;
+                    _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
+                    _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
+                    _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
+                    _graphics.FillPolygon(_gradientBrush, _points);
+                }
 
                 _points[0] = _points[1];
                 _points[_points.Length - 1] = _points[_points.Length - 2];

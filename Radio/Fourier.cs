@@ -33,7 +33,8 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                var strength = (float) (20.0 * Math.Log10(buffer[i].Modulus())) + offset;
+                var m = buffer[i].Real * buffer[i].Real + buffer[i].Imag * buffer[i].Imag;
+                var strength = (float) (20.0 * 0.5 * Math.Log10(m)) + offset;
                 if (float.IsNaN(strength))
                 {
                     strength = MinPower;
@@ -50,14 +51,29 @@ namespace SDRSharp.Radio
             }
         }
 
-        public static void ScaleFFT(float[] src, byte[] dest, int length)
+        public static void ScaleFFT(float* src, byte* dest, int length)
         {
             for (var i = 0; i < length; i++)
             {
-                var magnitude = Math.Max(MinPower, src[i]);
-                magnitude = Math.Min(MaxPower, magnitude);
+                var magnitude = src[i];
+                if (magnitude < MinPower)
+                {
+                    magnitude = MinPower;
+                }
+                else if (magnitude > MaxPower)
+                {
+                    magnitude = MaxPower;
+                }
+                dest[i] = (byte) (magnitude * byte.MaxValue / (MaxPower - MinPower));
+            }
+        }
 
-                dest[i] = (byte)(magnitude * byte.MaxValue / (MaxPower - MinPower));
+        public static void ScaleFFT(float[] src, byte[] dest, int length)
+        {
+            fixed (float* srcPtr = src)
+            fixed (byte* destPtr = dest)
+            {
+                ScaleFFT(srcPtr, destPtr, length);
             }
         }
 
@@ -72,21 +88,9 @@ namespace SDRSharp.Radio
 
         public static void ApplyFFTWindow(Complex* buffer, float* window, int length)
         {
-            var m1 = 0.0f;
-            var m2 = 0.0f;
             for (var i = 0; i < length; i++)
             {
-                m1 += buffer[i].Modulus();
                 buffer[i] *= window[i];
-                m2 += buffer[i].Modulus();
-            }
-            var r = m1 / m2;
-            if (!float.IsNaN(r))
-            {
-                for (var i = 0; i < length; i++)
-                {
-                    buffer[i] *= r;
-                }
             }
         }
 

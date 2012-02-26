@@ -22,8 +22,6 @@ namespace SDRSharp.Radio
             _filters = new IQFirFilter[stages];
             for (var i = 0; i < stages; i++)
             {
-                //var taps = Math.Max(10, (5 - i) * 20);
-                //var kernel = FilterBuilder.MakeLowPassKernel(24000, taps, 12000, WindowType.BlackmanHarris);
                 _filters[i] = new IQFirFilter(_filterKernel);
             }
         }

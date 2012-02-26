@@ -415,7 +415,7 @@ namespace SDRSharp
                 _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) bufferSizeNumericUpDown.Value);
 
                 var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
-                match = Regex.Match(friendlyFilename, "([0-9]+)KHz", RegexOptions.IgnoreCase);
+                match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
                     var center = int.Parse(match.Groups[1].Value) * 1000;
