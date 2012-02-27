@@ -11,7 +11,7 @@ namespace SDRSharp.Radio
     {
         private const int MaxOutputSampleRate = 32000;
         private const float InputGain = 0.01f;
-        private const int WaveBufferLength = 64 * 1024;
+        private const int WaveBufferLength = 8 * 1024;
         private const int MaxWavePending = 512 * 1024;
 
         private float[] _audioBuffer;
@@ -213,11 +213,7 @@ namespace SDRSharp.Radio
                 _iqPtr = (Complex*) _iqHandle.AddrOfPinnedObject();
             }
 
-            var r = _audioStream.Read(_iqBuffer, 0, length * _decimationFactor);
-            if (r < length * _decimationFactor)
-            {
-                Console.WriteLine("Underrun");
-            }
+            _audioStream.Read(_iqBuffer, 0, length * _decimationFactor);
 
             if (_swapIQ)
             {
