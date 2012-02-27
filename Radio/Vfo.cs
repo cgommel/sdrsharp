@@ -167,6 +167,7 @@ namespace SDRSharp.Radio
             {
                 _decimationFactor = value;
                 _needNewDecimator = true;
+                _needNewFilters = true;
                 Configure();
             }
         }
