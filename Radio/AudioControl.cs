@@ -13,7 +13,7 @@ namespace SDRSharp.Radio
         private const int WaveBufferLength = 8 * 1024;
         private const int MaxWavePending = 512 * 1024;
 
-        private static readonly float _inputGain = (float) (0.01f * Math.Pow(Utils.GetDoubleSetting("inputGain", 0) / 10.0, 10));
+        private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
         private float[] _audioBuffer;
         private float* _audioPtr;
