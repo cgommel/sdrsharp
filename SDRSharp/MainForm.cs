@@ -39,7 +39,7 @@ namespace SDRSharp
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly AudioControl _audioControl = new AudioControl();
-        private readonly FifoStream _fftStream = new FifoStream();
+        private readonly ComplexFifoStream _fftStream = new ComplexFifoStream();
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
         private readonly float[] _fftWindow = new float[MaxFFTBins];
@@ -145,19 +145,8 @@ namespace SDRSharp
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
             _fftTimer.Tick += fftTimer_Tick;
-            _fftTimer.Interval = GetIntSetting("displayTimerInterval", 50);
+            _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
             _fftTimer.Enabled = true;
-        }
-
-        private static int GetIntSetting(string name, int defaultValue)
-        {
-            var strValue = ConfigurationManager.AppSettings[name];
-            int result;
-            if (int.TryParse(strValue, out result))
-            {
-                return result;
-            }
-            return defaultValue;
         }
 
         private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -714,17 +703,8 @@ namespace SDRSharp
             if (gradient != null && gradient.Positions.Length > 0)
             {
                 waterfall.GradientColorBlend = gradient;
-                SaveSetting("gradient", GradientToString(gradient.Colors));
+                Utils.SaveSetting("gradient", GradientToString(gradient.Colors));
             }
-        }
-
-        private static void SaveSetting(string key, string value)
-        {
-            var configurationFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            configurationFile.AppSettings.Settings.Remove(key);
-            configurationFile.AppSettings.Settings.Add(key, value);
-            configurationFile.Save(ConfigurationSaveMode.Full);
-            ConfigurationManager.RefreshSection("appSettings");
         }
 
         private static string GradientToString(Color[] colors)

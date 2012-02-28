@@ -10,9 +10,10 @@ namespace SDRSharp.Radio
     public unsafe class AudioControl : IDisposable
     {
         private const int MaxOutputSampleRate = 32000;
-        private const float InputGain = 0.01f;
         private const int WaveBufferLength = 8 * 1024;
         private const int MaxWavePending = 512 * 1024;
+
+        private static readonly float _inputGain = (float) (0.01f * Math.Pow(Utils.GetDoubleSetting("inputGain", 0) / 10.0, 10));
 
         private float[] _audioBuffer;
         private float* _audioPtr;
@@ -28,7 +29,7 @@ namespace SDRSharp.Radio
         private WaveRecorder _waveRecorder;
         private WaveDuplex _waveDuplex;
         private WaveFile _waveFile;
-        private FifoStream _audioStream;
+        private ComplexFifoStream _audioStream;
         private Thread _waveReadThread;
 
         private float _audioGain;
@@ -284,8 +285,8 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                iqBuffer[i].Real = buffer[i * 2] * InputGain;
-                iqBuffer[i].Imag = buffer[i * 2 + 1] * InputGain;
+                iqBuffer[i].Real = buffer[i * 2] * _inputGain;
+                iqBuffer[i].Imag = buffer[i * 2 + 1] * _inputGain;
             }
         }
 
@@ -383,14 +384,14 @@ namespace SDRSharp.Radio
                     }
                     else
                     {
-                        _audioStream = new FifoStream();
+                        _audioStream = new ComplexFifoStream();
                         _waveRecorder = new WaveRecorder(_inputDevice, _inputSampleRate, _inputBufferSize, RecorderFiller);
                         _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
                     }
                 }
                 else
                 {
-                    _audioStream = new FifoStream();
+                    _audioStream = new ComplexFifoStream();
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
                     _waveReadThread = new Thread(WaveFileProc);
                     _waveReadThread.Start();

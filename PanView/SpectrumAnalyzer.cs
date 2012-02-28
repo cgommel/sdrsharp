@@ -14,9 +14,9 @@ namespace SDRSharp.PanView
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
 
-        private readonly static double _attack = Waterfall.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
-        private readonly static double _decay = Waterfall.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
-        private readonly static bool _fillSpectrumAnalyzer = Waterfall.GetBooleanSetting("fillSpectrumAnalyzer");
+        private readonly static double _attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
+        private readonly static double _decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+        private readonly static bool _fillSpectrumAnalyzer = Utils.GetBooleanSetting("fillSpectrumAnalyzer");
 
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
@@ -47,7 +47,7 @@ namespace SDRSharp.PanView
         private bool _changingCenterFrequency;
         private bool _useSmoothing;
         private LinearGradientBrush _gradientBrush;
-        private ColorBlend _gradientColorBlend = Waterfall.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
+        private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
         public SpectrumAnalyzer()
         {
