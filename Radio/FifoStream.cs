@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Threading;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class ComplexFifoStream
+    public unsafe class ComplexFifoStream : IDisposable
     {
         private const int BlockSize = 65536;
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
@@ -11,19 +12,44 @@ namespace SDRSharp.Radio
         private int _size;
         private int _readPos;
         private int _writePos;
+        private bool _terminated;
+        private readonly AutoResetEvent _event;
         private readonly Stack _usedBlocks = new Stack();
         private readonly ArrayList _blocks = new ArrayList();
+
+        public ComplexFifoStream() : this(false)
+        {
+        }
+
+        public ComplexFifoStream(bool blockingRead)
+        {
+            if (blockingRead)
+            {
+                _event = new AutoResetEvent(false);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_event != null)
+            {
+                _terminated = true;
+                _event.Close();
+            }
+        }
 
         private Complex[] AllocBlock()
         {
             Complex[] result = _usedBlocks.Count > 0 ? (Complex[])_usedBlocks.Pop() : new Complex[BlockSize];
             return result;
         }
+
         private void FreeBlock(Complex[] block)
         {
             if (_usedBlocks.Count < MaxBlocksInCache)
                 _usedBlocks.Push(block);
         }
+
         private Complex[] GetWBlock()
         {
             Complex[] result;
@@ -37,6 +63,7 @@ namespace SDRSharp.Radio
             }
             return result;
         }
+
         public int Length
         {
             get
@@ -44,9 +71,15 @@ namespace SDRSharp.Radio
                 return _size;
             }
         }
+
         public void Close()
         {
             Flush();
+            if (_event != null)
+            {
+                _terminated = true;
+                _event.Set();
+            }
         }
 
         public void Flush()
@@ -61,9 +94,25 @@ namespace SDRSharp.Radio
                 _size = 0;
             }
         }
-        
+
+        public int Read(Complex[] buf, int count)
+        {
+            return Read(buf, 0, count);
+        }
+
         public int Read(Complex[] buf, int ofs, int count)
         {
+            if (_event != null)
+            {
+                while (_size < count && !_terminated)
+                {
+                    _event.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return 0;
+                }
+            }
             lock (this)
             {
                 int result = Peek(buf, ofs, count);
@@ -90,10 +139,18 @@ namespace SDRSharp.Radio
                     left -= toWrite;
                 }
                 _size += count;
+                if (_event != null)
+                {
+                    _event.Set();
+                }
             }
         }
-
         
+        public void Write(Complex[] buf, int count)
+        {
+            Write(buf, 0, count);
+        }
+
         public void Write(Complex[] buf, int ofs, int count)
         {
             lock (this)
@@ -107,6 +164,10 @@ namespace SDRSharp.Radio
                     left -= toWrite;
                 }
                 _size += count;
+                if (_event != null)
+                {
+                    _event.Set();
+                }
             }
         }
 
@@ -160,7 +221,7 @@ namespace SDRSharp.Radio
         }
     }
 
-    public unsafe class FloatFifoStream
+    public unsafe class FloatFifoStream : IDisposable
     {
         private const int BlockSize = 65536;
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
@@ -168,19 +229,46 @@ namespace SDRSharp.Radio
         private int _size;
         private int _readPos;
         private int _writePos;
+        private int _maxSize;
+        private bool _terminated;
+        private readonly AutoResetEvent _event;
         private readonly Stack _usedBlocks = new Stack();
         private readonly ArrayList _blocks = new ArrayList();
+
+        public FloatFifoStream() : this(0)
+        {
+        }
+
+        public FloatFifoStream(int maxSize)
+        {
+            if (maxSize > 0)
+            {
+                _maxSize = maxSize;
+                _event = new AutoResetEvent(true);
+            }                
+        }
+
+        public void Dispose()
+        {
+            if (_event != null)
+            {
+                _terminated = true;
+                _event.Close();
+            }
+        }
 
         private float[] AllocBlock()
         {
             float[] result = _usedBlocks.Count > 0 ? (float[])_usedBlocks.Pop() : new float[BlockSize];
             return result;
         }
+
         private void FreeBlock(float[] block)
         {
             if (_usedBlocks.Count < MaxBlocksInCache)
                 _usedBlocks.Push(block);
         }
+
         private float[] GetWBlock()
         {
             float[] result;
@@ -194,6 +282,7 @@ namespace SDRSharp.Radio
             }
             return result;
         }
+
         public int Length
         {
             get
@@ -201,9 +290,15 @@ namespace SDRSharp.Radio
                 return _size;
             }
         }
+
         public void Close()
         {
             Flush();
+            if (_event != null)
+            {
+                _event.Set();
+                _terminated = true;
+            }
         }
 
         public void Flush()
@@ -219,28 +314,54 @@ namespace SDRSharp.Radio
             }
         }
 
+        public int Read(float[] buf, int count)
+        {
+            return Read(buf, 0, count);
+        }
+
         public int Read(float[] buf, int ofs, int count)
         {
+            int result;
             lock (this)
             {
-                int result = Peek(buf, ofs, count);
+                result = Peek(buf, ofs, count);
                 Advance(result);
-                return result;
             }
+            if (_event != null)
+            {
+                _event.Set();
+            }
+            return result;
         }
 
         public int Read(float* buf, int ofs, int count)
         {
+            int result;
             lock (this)
             {
-                int result = Peek(buf, ofs, count);
+                result = Peek(buf, ofs, count);
                 Advance(result);
-                return result;
             }
+            if (_event != null)
+            {
+                _event.Set();
+            }
+            return result;
         }
 
         public void Write(float* buf, int ofs, int count)
         {
+            if (_event != null)
+            {
+                while (_size >= _maxSize && !_terminated)
+                {
+                    _event.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return;
+                }
+            }
             lock (this)
             {
                 int left = count;
@@ -260,9 +381,24 @@ namespace SDRSharp.Radio
             }
         }
 
+        public void Write(float[] buf, int count)
+        {
+            Write(buf, 0, count);
+        }
 
         public void Write(float[] buf, int ofs, int count)
         {
+            if (_event != null)
+            {
+                while (_size >= _maxSize && !_terminated)
+                {
+                    _event.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return;
+                }
+            }
             lock (this)
             {
                 int left = count;
