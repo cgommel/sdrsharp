@@ -189,32 +189,14 @@ namespace SDRSharp.Radio
             }
             if (_detectorType == DetectorType.USB)
             {
-                int bfo;
-                if (_frequency > _sampleRate / 2 - _bandwidth)
-                {
-                    bfo = (int) (_sampleRate / 2 - _frequency);
-                }
-                else
-                {
-                    bfo = _bandwidth;
-                }
-                bfo = bfo / 2 + MinSSBAudioFrequency;
+                var bfo = _bandwidth > DefaultCwSideTone ? _bandwidth / 2 : DefaultCwSideTone;
                 _usbDetector.SampleRate = _sampleRate / _decimationFactor;
                 _usbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency -= _usbDetector.BfoFrequency;
             }
             else if (_detectorType == DetectorType.LSB)
             {
-                int bfo;
-                if (_frequency < -_sampleRate / 2 + _bandwidth)
-                {
-                    bfo = (int) (_sampleRate / 2 + _frequency);
-                }
-                else
-                {
-                    bfo = _bandwidth;
-                }
-                bfo = bfo / 2 + MinSSBAudioFrequency;
+                var bfo = _bandwidth > DefaultCwSideTone ? _bandwidth / 2 : DefaultCwSideTone;
                 _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
                 _lsbDetector.BfoFrequency = -bfo;
                 _localOscillator.Frequency += _lsbDetector.BfoFrequency;
@@ -233,11 +215,7 @@ namespace SDRSharp.Radio
             var iqOrder = Math.Min(_filterOrder, MaxQuadratureFilterOrder);
             var cwMode = ((_detectorType == DetectorType.LSB) || (_detectorType == DetectorType.USB)) && (_bandwidth <= DefaultCwSideTone);
 
-            if (cwMode)
-            {
-                iqBW = DefaultCwSideTone / 2;
-            }
-            else if (_detectorType == DetectorType.FM)
+            if (_detectorType == DetectorType.FM)
             {
                 iqBW = Math.Max(_bandwidth, MaxNFMBandwidth) / 2;
             }

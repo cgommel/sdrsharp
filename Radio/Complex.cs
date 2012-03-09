@@ -67,6 +67,16 @@ namespace SDRSharp.Radio
             return (leftHandSide.Imag != rightHandSide.Imag);
         }
 
+        public static Complex operator +(Complex a, Complex b)
+        {
+            return new Complex(a.Real + b.Real, a.Imag + b.Imag);
+        }
+
+        public static Complex operator -(Complex a, Complex b)
+        {
+            return new Complex(a.Real - b.Real, a.Imag - b.Imag);
+        }
+
         public static Complex operator *(Complex a, Complex b)
         {
             return new Complex(a.Real * b.Real - a.Imag * b.Imag,

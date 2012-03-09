@@ -91,7 +91,7 @@ namespace SDRSharp
 
             _fftWindowType = WindowType.BlackmanHarris;
             fftWindowComboBox.SelectedIndex = (int) _fftWindowType;
-            filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris;
+            filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris - 1;
 
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
