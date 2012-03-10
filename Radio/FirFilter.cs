@@ -115,6 +115,7 @@ namespace SDRSharp.Radio
             {
                 result += *ptr1++ * (*ptr2++ + *ptr3--);
             }
+            result += _queuePtr[halfLen] * _coeffPtr[halfLen];
 
             Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
 
