@@ -258,9 +258,9 @@ namespace SDRSharp.Radio
                 _decimator.Process(iq, length);
                 length /= _decimationFactor;
             }
-            _iqFilter.ProcessSymmetricKernel(iq, length);
+            _iqFilter.Process(iq, length);
             Demodulate(iq, audio, length);
-            _audioFilter.ProcessSymmetricKernel(audio, length);
+            _audioFilter.Process(audio, length);
             if (_useAgc)
             {
                 _agc.Process(audio, length);
