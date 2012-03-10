@@ -30,7 +30,7 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < _filters.Length; n++)
             {
-                _filters[n].Process(buffer, length);
+                _filters[n].ProcessSparseSymmetricKernel(buffer, length);
                 length /= 2;
                 for (var i = 0; i < length; i++)
                 {

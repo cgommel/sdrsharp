@@ -36,6 +36,98 @@ namespace SDRSharp.Radio
         {
             get { return _coefficients; }
         }
+        
+        public float ProcessSparseSymmetricKernel(float sample)
+        {
+            _queuePtr[0] = sample;
+
+            var result = 0.0f;
+
+            var halfLen = _queueSize / 2;
+            var len = halfLen;
+
+            var ptr1 = _coeffPtr;
+            var ptr2 = _queuePtr;
+            var ptr3 = _queuePtr + _queueSize - 1;
+
+            if (len >= 8)
+            {
+                do
+                {
+                    result += ptr1[0] * (ptr2[0] + ptr3[0])
+                            + ptr1[2] * (ptr2[2] + ptr3[-2])
+                            + ptr1[4] * (ptr2[4] + ptr3[-4])
+                            + ptr1[6] * (ptr2[6] + ptr3[-6]);
+
+                    ptr1 += 8;
+                    ptr2 += 8;
+                    ptr3 -= 8;
+                } while ((len -= 8) >= 8);
+            }
+            if (len >= 4)
+            {
+                result += ptr1[0] * (ptr2[0] + ptr3[0])
+                        + ptr1[2] * (ptr2[2] + ptr3[-2]);
+                ptr1 += 4;
+                ptr2 += 4;
+                ptr3 -= 4;
+                len -= 4;
+            }
+            while (len-- > 0)
+            {
+                result += *ptr1++ * (*ptr2++ + *ptr3--);
+            }
+            result += _queuePtr[halfLen] * _coeffPtr[halfLen];
+
+            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+
+            return result;
+        }
+
+        public float ProcessSymmetricKernel(float sample)
+        {
+            _queuePtr[0] = sample;
+
+            var result = 0.0f;
+
+            var halfLen = _queueSize / 2;
+            var len = halfLen;
+
+            var ptr1 = _coeffPtr;
+            var ptr2 = _queuePtr;
+            var ptr3 = _queuePtr + _queueSize - 1;
+
+            if (len >= 4)
+            {
+                do
+                {
+                    result += ptr1[0] * (ptr2[0] + ptr3[0])
+                            + ptr1[1] * (ptr2[1] + ptr3[-1])
+                            + ptr1[2] * (ptr2[2] + ptr3[-2])
+                            + ptr1[3] * (ptr2[3] + ptr3[-3]);
+
+                    ptr1 += 4;
+                    ptr2 += 4;
+                    ptr3 -= 4;
+                } while ((len -= 4) >= 4);
+            }
+            while (len-- > 0)
+            {
+                result += *ptr1++ * (*ptr2++ + *ptr3--);
+            }
+
+            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+
+            return result;
+        }
+
+        public void ProcessSymmetricKernel(float* buffer, int length)
+        {
+            for (var n = 0; n < length; n++)
+            {
+                buffer[n] = ProcessSymmetricKernel(buffer[n]);
+            }
+        }
 
         public float Process(float sample)
         {
@@ -46,14 +138,14 @@ namespace SDRSharp.Radio
             var len = _queueSize;
             var ptr1 = _queuePtr;
             var ptr2 = _coeffPtr;
-            if (len > 4)
+            if (len >= 4)
             {
                 do
                 {
-                    result += ptr1[0] * ptr2[0];
-                    result += ptr1[1] * ptr2[1];
-                    result += ptr1[2] * ptr2[2];
-                    result += ptr1[3] * ptr2[3];
+                    result += ptr1[0] * ptr2[0]
+                            + ptr1[1] * ptr2[1]
+                            + ptr1[2] * ptr2[2]
+                            + ptr1[3] * ptr2[3];
                     ptr1 += 4;
                     ptr2 += 4;
                 } while ((len -= 4) >= 4);
@@ -62,11 +154,6 @@ namespace SDRSharp.Radio
             {
                 result += *ptr1++ * *ptr2++;
             }
-
-            //for (var i = 0; i < _queueSize; i++)
-            //{
-            //    result += _queuePtr[i] * _coeffPtr[i];
-            //}
 
             Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
 
