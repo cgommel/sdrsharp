@@ -36,7 +36,7 @@ namespace SDRSharp.Radio
 
         public float Argument()
         {
-            return (float) Math.Atan(Imag / Real);
+            return (float) Math.Atan2(Imag, Real);
         }
 
         public Complex Conjugate()
