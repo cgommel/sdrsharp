@@ -83,6 +83,7 @@ namespace SDRSharp.Radio
             {
                 return false;
             }
+            resultString += " ";
             return "YyTt".IndexOf(resultString[0]) >= 0;
         }
 
