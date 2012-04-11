@@ -44,6 +44,11 @@ namespace SDRSharp.SoftRock
             }
         }
 
+        public bool IsSoundCardBased
+        {
+            get { return true; }
+        }
+
         public int Frequency
         {
             get
@@ -54,6 +59,11 @@ namespace SDRSharp.SoftRock
             {
                 SetSi570Frequency(value);
             }
+        }
+
+        public void ShowSettingsDialog(IntPtr parentHandle)
+        {
+            throw new NotImplementedException();
         }
 
         private static int GetSi570Frequency()

@@ -56,6 +56,11 @@ namespace SDRSharp.FUNcube
             }
         }
 
+        public bool IsSoundCardBased
+        {
+            get { return true; }
+        }
+
         public int Frequency
         {
             get
@@ -66,6 +71,10 @@ namespace SDRSharp.FUNcube
             {
                 SetFrequency((int) (value * _freqCorrection));
             }
+        }
+
+        public void ShowSettingsDialog(IntPtr parentHandle)
+        {
         }
 
         public void Dispose()
