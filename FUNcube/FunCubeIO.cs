@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Configuration;
 using System.Globalization;
-using FUNCubeDongleController;
 using SDRSharp.Radio;
 
 namespace SDRSharp.FUNcube
 {
-    #region Enum Types definition
+    #region Enum Type definitions
 
     public enum TunerLNAGain
     {
@@ -226,7 +225,7 @@ namespace SDRSharp.FUNcube
 
     public class FunCubeIO : IFrontendController, IDisposable
     {
-        #region FUNCube Dongle HID Commands
+        #region FUNCube Dongle Commands
         private const byte FCD_HID_CMD_SET_FREQUENCY_HZ = 101; // Send with 4 byte unsigned little endian frequency in Hz, returns wit actual frequency set in Hz
         private const byte FCD_HID_CMD_GET_FREQUENCY_HZ = 102; // Returns 4 byte unsigned little endian frequency in Hz.
         
@@ -524,6 +523,46 @@ namespace SDRSharp.FUNcube
             Close();
         }
 
+        private static bool WriteCommand(byte command, byte value)
+        {
+            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
+            {
+                var au8BufOut = new byte[65]; // endpoint size + 1
+                var au8BufIn = new byte[65]; // endpoint size + 1
+
+                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
+                au8BufOut[1] = command;
+                au8BufOut[2] = value;
+
+                usb.Write(au8BufOut, 0, au8BufOut.Length);
+                usb.Read(au8BufIn, 0, au8BufIn.Length);
+
+                return au8BufIn[2] == 1;
+            }
+        }
+
+        private static byte ReadFlag(byte command)
+        {
+            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
+            {
+                var au8BufOut = new byte[65]; // endpoint size + 1
+                var au8BufIn = new byte[65]; // endpoint size + 1
+
+                au8BufOut[0] = 0;
+                au8BufOut[1] = command;
+
+                usb.Write(au8BufOut, 0, au8BufOut.Length);
+                usb.Read(au8BufIn, 0, au8BufIn.Length);
+
+                if (au8BufIn[2] != 1)
+                {
+                    return 0;
+                }
+
+                return au8BufIn[3];
+            }
+        }
+
         private static int GetFrequency()
         {
             using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
@@ -572,642 +611,162 @@ namespace SDRSharp.FUNcube
 
         private static TunerLNAGain GetLNAGain()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_LNA_GAIN;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerLNAGain) au8BufIn[3];
-            }
+            return (TunerLNAGain) ReadFlag(FCD_HID_CMD_GET_LNA_GAIN);
         }
 
         private static bool SetLNAGain(TunerLNAGain gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_LNA_GAIN;
-                au8BufOut[2] = (byte) gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_LNA_GAIN, (byte) gain);
         }
 
         private static TunerRFFilter GetRFFilter()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_RF_FILTER;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerRFFilter)au8BufIn[3];
-            }
+            return (TunerRFFilter) ReadFlag(FCD_HID_CMD_GET_RF_FILTER);
         }
 
         private static bool SetRFFilter(TunerRFFilter filter)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_RF_FILTER;
-                au8BufOut[2] = (byte)filter;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_RF_FILTER, (byte)filter);
         }
 
         private static TunerMixerGain GetMixerGain()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_MIXER_GAIN;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerMixerGain)au8BufIn[3];
-            }
+            return (TunerMixerGain) ReadFlag(FCD_HID_CMD_GET_MIXER_GAIN);
         }
 
         private static bool SetMixerGain(TunerMixerGain mixerGain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_MIXER_GAIN;
-                au8BufOut[2] = (byte)mixerGain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_MIXER_GAIN, (byte) mixerGain);
         }
 
         private static TunerMixerFilter GetMixerFilter()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_MIXER_FILTER;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerMixerFilter)au8BufIn[3];
-            }
+            return (TunerMixerFilter) ReadFlag(FCD_HID_CMD_GET_MIXER_FILTER);
         }
 
         private static bool SetMixerFilter(TunerMixerFilter mixerFilter)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_MIXER_FILTER;
-                au8BufOut[2] = (byte)mixerFilter;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_MIXER_FILTER, (byte) mixerFilter);
         }
 
         private static TunerIFGain1 GetIFGain1()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN1;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain1)au8BufIn[3];
-            }
+            return (TunerIFGain1) ReadFlag(FCD_HID_CMD_GET_IF_GAIN1);
         }
 
         private static bool SetIFGain1(TunerIFGain1 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN1;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN1, (byte) gain);
         }
 
         private static TunerIFRCFilter GetIFRCFilter()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_RC_FILTER;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFRCFilter)au8BufIn[3];
-            }
+            return (TunerIFRCFilter)ReadFlag(FCD_HID_CMD_GET_IF_RC_FILTER);
         }
 
         private static bool SetIFRCFilter(TunerIFRCFilter filter)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_RC_FILTER;
-                au8BufOut[2] = (byte)filter;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_RC_FILTER, (byte) filter);
         }
 
         private static TunerIFGain2 GetIFGain2()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN2;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain2)au8BufIn[3];
-            }
+            return (TunerIFGain2) ReadFlag(FCD_HID_CMD_GET_IF_GAIN2);
         }
 
         private static bool SetIFGain2(TunerIFGain2 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN2;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN2, (byte) gain);
         }
 
         private static TunerIFGain3 GetIFGain3()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN3;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain3)au8BufIn[3];
-            }
+            return (TunerIFGain3) ReadFlag(FCD_HID_CMD_GET_IF_GAIN3);
         }
 
         private static bool SetIFGain3(TunerIFGain3 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN3;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN3, (byte) gain);
         }
 
         private static TunerIFGain4 GetIFGain4()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN4;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain4)au8BufIn[3];
-            }
+            return (TunerIFGain4) ReadFlag(FCD_HID_CMD_GET_IF_GAIN4);
         }
 
         private static bool SetIFGain4(TunerIFGain4 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN4;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN4, (byte) gain);
         }
 
         private static TunerIFFilter GetIFFilter()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_FILTER;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFFilter)au8BufIn[3];
-            }
+            return (TunerIFFilter) ReadFlag(FCD_HID_CMD_GET_IF_FILTER);
         }
 
         private static bool SetIFFilter(TunerIFFilter filter)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_FILTER;
-                au8BufOut[2] = (byte)filter;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_FILTER, (byte) filter);
         }
 
         private static TunerIFGain5 GetIFGain5()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN5;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain5)au8BufIn[3];
-            }
+            return (TunerIFGain5) ReadFlag(FCD_HID_CMD_GET_IF_GAIN5);
         }
 
         private static bool SetIFGain5(TunerIFGain5 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN5;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN5, (byte) gain);
         }
 
         private static TunerIFGain6 GetIFGain6()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN6;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGain6)au8BufIn[3];
-            }
+            return (TunerIFGain6) ReadFlag(FCD_HID_CMD_GET_IF_GAIN6);
         }
 
         private static bool SetIFGain6(TunerIFGain6 gain)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN6;
-                au8BufOut[2] = (byte)gain;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN6, (byte) gain);
         }
 
         private static TunerLNAEnhance GetLNAEnhance()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_LNA_ENHANCE;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerLNAEnhance)au8BufIn[3];
-            }
+            return (TunerLNAEnhance) ReadFlag(FCD_HID_CMD_GET_LNA_ENHANCE);
         }
 
         private static bool SetLNAEnhance(TunerLNAEnhance enhance)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_LNA_ENHANCE;
-                au8BufOut[2] = (byte)enhance;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_LNA_ENHANCE, (byte) enhance);
         }
 
         private static TunerBand GetBand()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_BAND;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerBand)au8BufIn[3];
-            }
+            return (TunerBand) ReadFlag(FCD_HID_CMD_GET_BAND);
         }
 
         private static bool SetBand(TunerBand band)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_BAND;
-                au8BufOut[2] = (byte)band;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_BAND, (byte) band);
         }
 
         private static TunerBiasCurrent GetBiasCurrent()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_BIAS_CURRENT;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerBiasCurrent)au8BufIn[3];
-            }
+            return (TunerBiasCurrent) ReadFlag(FCD_HID_CMD_GET_BIAS_CURRENT);
         }
 
         private static bool SetBiasCurrent(TunerBiasCurrent biasCurrent)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_BIAS_CURRENT;
-                au8BufOut[2] = (byte)biasCurrent;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_BIAS_CURRENT, (byte) biasCurrent);
         }
 
         private static TunerIFGainMode GetIFGainMode()
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0;
-                au8BufOut[1] = FCD_HID_CMD_GET_IF_GAIN_MODE;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                if (au8BufIn[2] != 1)
-                {
-                    return 0;
-                }
-
-                return (TunerIFGainMode)au8BufIn[3];
-            }
+            return (TunerIFGainMode) ReadFlag(FCD_HID_CMD_GET_IF_GAIN_MODE);
         }
 
         private static bool SetIFGainMode(TunerIFGainMode gainMode)
         {
-            using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
-            {
-                var au8BufOut = new byte[65]; // endpoint size + 1
-                var au8BufIn = new byte[65]; // endpoint size + 1
-
-                au8BufOut[0] = 0; // First byte is report ID. Ignored by HID Class firmware as only config'd for one report
-                au8BufOut[1] = FCD_HID_CMD_SET_IF_GAIN_MODE;
-                au8BufOut[2] = (byte)gainMode;
-
-                usb.Write(au8BufOut, 0, au8BufOut.Length);
-                usb.Read(au8BufIn, 0, au8BufIn.Length);
-
-                return au8BufIn[2] == 1;
-            }
+            return WriteCommand(FCD_HID_CMD_SET_IF_GAIN_MODE, (byte) gainMode);
         }
     }
 }

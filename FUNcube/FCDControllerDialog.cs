@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using SDRSharp.FUNcube;
 
-namespace FUNCubeDongleController
+namespace SDRSharp.FUNcube
 {
     public partial class FCDControllerDialog : Form
     {
@@ -53,9 +48,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     if (LNAGainComboBox.SelectedIndex > 1)
                     {
                         funCubeIO.LNAGain = (TunerLNAGain) (LNAGainComboBox.SelectedIndex + 2);
@@ -82,9 +77,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.RFFilter = RFFilterComboBox.SelectedIndex == 0 ? TunerRFFilter.TRFE_LPF268MHZ : TunerRFFilter.TRFE_LPF299MHZ;
                 }
                 catch (Exception)
@@ -103,9 +98,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.MixerGain = (TunerMixerGain) mixerGainComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -124,9 +119,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     if (mixerFilterComboBox.SelectedIndex < 8)
                     {
                         funCubeIO.MixerFilter = (TunerMixerFilter) (15 - mixerFilterComboBox.SelectedIndex);
@@ -151,9 +146,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain1 = (TunerIFGain1) IFGain1ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -171,9 +166,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFRCFilter = (TunerIFRCFilter) (15 - IFRCFilterComboBox.SelectedIndex);
                 }
                 catch (Exception)
@@ -191,9 +186,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain2 = (TunerIFGain2) IFGain2ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -211,9 +206,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain3 = (TunerIFGain3) IFGain3ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -231,9 +226,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain4 = (TunerIFGain4) IFGain4ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -251,9 +246,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain5 = (TunerIFGain5) IFGain5ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -271,9 +266,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGain6 = (TunerIFGain6) IFGain6ComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -291,9 +286,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFFilter = (TunerIFFilter) (31 - IFFilterComboBox.SelectedIndex);
                 }
                 catch (Exception)
@@ -311,9 +306,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     if (LNAEnhanceComboBox.SelectedIndex > 0)
                     {
                         funCubeIO.LNAEnhance = (TunerLNAEnhance) (2 * LNAEnhanceComboBox.SelectedIndex - 1);
@@ -338,9 +333,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.BiasCurrent = (TunerBiasCurrent) BiasCurrentComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -359,9 +354,9 @@ namespace FUNCubeDongleController
         {
             if (!updating)
             {
+                updating = true;
                 try
                 {
-                    updating = true;
                     funCubeIO.IFGainMode = (TunerIFGainMode) IFGainModeComboBox.SelectedIndex;
                 }
                 catch (Exception)
@@ -383,9 +378,9 @@ namespace FUNCubeDongleController
 
         private void ReadDeviceValues()
         {
+            updating = true;
             try
             {
-                updating = true;
                 if (!LNAGainComboBox.DroppedDown)
                 {
                     if ((int)funCubeIO.LNAGain >= 4)

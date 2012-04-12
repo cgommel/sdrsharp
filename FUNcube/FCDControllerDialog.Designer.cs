@@ -1,4 +1,4 @@
-﻿namespace FUNCubeDongleController
+﻿namespace SDRSharp.FUNcube
 {
     partial class FCDControllerDialog
     {
