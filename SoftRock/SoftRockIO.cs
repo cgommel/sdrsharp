@@ -63,7 +63,6 @@ namespace SDRSharp.SoftRock
 
         public void ShowSettingsDialog(IntPtr parentHandle)
         {
-            throw new NotImplementedException();
         }
 
         private static int GetSi570Frequency()

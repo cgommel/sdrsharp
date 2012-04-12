@@ -759,5 +759,13 @@ namespace SDRSharp
             spectrumAnalyzer.Zoom = zoomTrackBar.Value * 100 / zoomTrackBar.Maximum;
             waterfall.Zoom = spectrumAnalyzer.Zoom;
         }
+
+        private void frontendGuiButton_Click(object sender, EventArgs e)
+        {
+            if (_frontendController != null)
+            {
+                _frontendController.ShowSettingsDialog(Handle);
+            }
+        }
     }
 }
