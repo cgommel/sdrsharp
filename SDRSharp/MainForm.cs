@@ -21,9 +21,13 @@ namespace SDRSharp
     {
         private static readonly string _baseTitle = "SDR# v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-        private const int DefaultFMBandwidth = 12500;
+        private const int DefaultBufferSize = 100;
+        private const int DefaultNFMBandwidth = 12500;
+        private const int DefaultWFMBandwidth = 180000;
         private const int DefaultAMBandwidth = 10000;
+        private const int DefaultDSBBandwidth = 6000;
         private const int DefaultSSBBandwidth = 2400;
+        private const int DefaultCWBandwidth = 300;
         private const int MaxFFTBins = 1024 * 1024 * 4;
         private const int MaxFFTQueue = 3;
         private const int FFTOverlapLimit = 65536 / 2;
@@ -118,7 +122,7 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Value = 0;
 
-            stepSizeComboBox.SelectedIndex = 1;
+            stepSizeComboBox.SelectedIndex = 3;
 
             var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
 
@@ -357,7 +361,6 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = false;
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = true;
-                bufferSizeNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
 
@@ -393,7 +396,7 @@ namespace SDRSharp
                 {
                     sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
                 }
-                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) bufferSizeNumericUpDown.Value);
+                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, DefaultBufferSize);
             }
             else
             {
@@ -401,7 +404,7 @@ namespace SDRSharp
                 {
                     return;
                 }
-                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) bufferSizeNumericUpDown.Value);
+                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, DefaultBufferSize);
 
                 var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
                 match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
@@ -450,7 +453,6 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = false;
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = false;
-                bufferSizeNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
             }
             catch (Exception ex)
@@ -472,7 +474,6 @@ namespace SDRSharp
                 frontEndComboBox.Enabled = true;
             }
             outputDeviceComboBox.Enabled = true;
-            bufferSizeNumericUpDown.Enabled = true;
         }
 
         private void audioGainNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -520,16 +521,17 @@ namespace SDRSharp
             }
         }
 
-        private void fmRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void nfmRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            fmSquelchNumericUpDown.Enabled = fmRadioButton.Checked;
-            if (fmRadioButton.Checked)
+            fmSquelchNumericUpDown.Enabled = nfmRadioButton.Checked;
+            if (nfmRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultFMBandwidth;
-                _vfo.DetectorType = DetectorType.FM;
-                _vfo.Bandwidth = DefaultFMBandwidth;
+                filterBandwidthNumericUpDown.Value = DefaultNFMBandwidth;
+                _vfo.DetectorType = DetectorType.NFM;
+                _vfo.Bandwidth = DefaultNFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
@@ -544,6 +546,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultAMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
@@ -558,6 +561,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
+
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
@@ -572,8 +576,70 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
+
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
+            }
+        }
+
+        private void wfmRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (wfmRadioButton.Checked)
+            {
+
+                filterBandwidthNumericUpDown.Value = DefaultWFMBandwidth;
+                _vfo.DetectorType = DetectorType.WFM;
+                _vfo.Bandwidth = DefaultWFMBandwidth;
+                waterfall.BandType = BandType.Center;
+                spectrumAnalyzer.BandType = BandType.Center;
+
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
+            }
+        }
+
+        private void dsbRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dsbRadioButton.Checked)
+            {
+                filterBandwidthNumericUpDown.Value = DefaultDSBBandwidth;
+                _vfo.DetectorType = DetectorType.DSB;
+                _vfo.Bandwidth = DefaultDSBBandwidth;
+                waterfall.BandType = BandType.Center;
+                spectrumAnalyzer.BandType = BandType.Center;
+
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
+            }
+        }
+
+        private void cwlRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cwlRadioButton.Checked)
+            {
+                filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
+                _vfo.DetectorType = DetectorType.CWL;
+                _vfo.Bandwidth = DefaultCWBandwidth;
+                waterfall.BandType = BandType.Lower;
+                spectrumAnalyzer.BandType = BandType.Lower;
+
+                waterfall.FilterOffset = Vfo.DefaultCwSideTone - _vfo.Bandwidth / 2;
+                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+            }
+        }
+
+        private void cwuRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cwuRadioButton.Checked)
+            {
+                filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
+                _vfo.DetectorType = DetectorType.CWU;
+                _vfo.Bandwidth = DefaultCWBandwidth;
+                waterfall.BandType = BandType.Upper;
+                spectrumAnalyzer.BandType = BandType.Upper;
+
+                waterfall.FilterOffset = Vfo.DefaultCwSideTone - _vfo.Bandwidth / 2;
+                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
         }
 
@@ -607,26 +673,14 @@ namespace SDRSharp
 
         private void filterBandwidthNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.Bandwidth = (int)filterBandwidthNumericUpDown.Value;
+            _vfo.Bandwidth = (int) filterBandwidthNumericUpDown.Value;
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
-            if (_vfo.DetectorType == DetectorType.LSB || _vfo.DetectorType == DetectorType.USB)
+
+            if (_vfo.DetectorType == DetectorType.CWL || _vfo.DetectorType == DetectorType.CWU)
             {
-                if (_vfo.Bandwidth > Vfo.DefaultCwSideTone)
-                {
-                    waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
-                    spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
-                }
-                else
-                {
-                    waterfall.FilterOffset = Vfo.DefaultCwSideTone - _vfo.Bandwidth/2;
-                    spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
-                }
-            }
-            else
-            {
-                waterfall.FilterOffset = 0;
-                spectrumAnalyzer.FilterOffset = 0;
+                waterfall.FilterOffset = Vfo.DefaultCwSideTone - _vfo.Bandwidth / 2;
+                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
         }
 

@@ -2,9 +2,13 @@
 {
     public enum DetectorType
     {
-        FM,
+        NFM,
+        WFM,
         AM,
+        DSB,
         LSB,
-        USB
+        USB,
+        CWL,
+        CWU
     }
 }

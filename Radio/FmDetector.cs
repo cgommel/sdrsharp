@@ -3,19 +3,26 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
+    public enum FmMode
+    {
+        Narrow,
+        Wide
+    }
+
     /// <summary>
     /// The theory behind this code is in section 4.2.1
     /// of http://www.digitalsignallabs.com/Digradio.pdf
     /// </summary>
     public unsafe class FmDetector
     {
-        private const float AFGain = 0.001f;
+        private const float NarrowAFGain = 0.00001f;
+        private const float WideAFGain = 0.000001f;
         private const float TimeConst = 0.000001f;
 
         private const int MinHissFrequency = 4000;
         private const int MaxHissFrequency = 6000;
         private const int HissFilterOrder = 20;
-        private const float HissFactor = 0.001f;
+        private const float HissFactor = 0.00002f;
 
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private float[] _hissBuffer;
@@ -28,6 +35,8 @@ namespace SDRSharp.Radio
         private float _noiseAveragingRatio;
         private int _squelchThreshold;
         private float _noiseThreshold;
+        private FmMode _mode;
+        private float _afGain = NarrowAFGain;
 
         public void Demodulate(Complex* iq, float* audio, int length)
         {
@@ -55,7 +64,7 @@ namespace SDRSharp.Radio
             // Angle estimate
             var a = f.Argument();
 
-            return a * AFGain;
+            return a * _afGain;
         }
 
         private void ProcessSquelch(float* audio, int length)
@@ -119,6 +128,16 @@ namespace SDRSharp.Radio
             {
                 _squelchThreshold = value;
                 _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold / 100.0) * HissFactor;
+            }
+        }
+
+        public FmMode Mode
+        {
+            get { return _mode; }
+            set
+            {
+                _mode = value;
+                _afGain = value == FmMode.Narrow ? NarrowAFGain : WideAFGain;
             }
         }
     }

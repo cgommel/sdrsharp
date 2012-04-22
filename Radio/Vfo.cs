@@ -10,7 +10,7 @@ namespace SDRSharp.Radio
         public const int MinBCAudioFrequency = 20;
         public const int MaxBCAudioFrequency = 16000;
         public const int MaxQuadratureFilterOrder = 300;
-        public const int MaxNFMBandwidth = 10000;
+        public const int MaxNFMBandwidth = 15000;
         public const int MinNFMAudioFrequency = 300;
 
         private readonly AutomaticGainControl _agc = new AutomaticGainControl();
@@ -20,6 +20,7 @@ namespace SDRSharp.Radio
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
+        private readonly DsbDetector _dsbDetector = new DsbDetector();
         private Decimator _decimator;
         private FirFilter _audioFilter;
         private IQFirFilter _iqFilter;
@@ -187,23 +188,41 @@ namespace SDRSharp.Radio
                 _needNewFilters = false;
                 InitFilters();
             }
-            if (_detectorType == DetectorType.USB)
+            switch (_detectorType)
             {
-                var bfo = _bandwidth > DefaultCwSideTone ? _bandwidth / 2 : DefaultCwSideTone;
-                _usbDetector.SampleRate = _sampleRate / _decimationFactor;
-                _usbDetector.BfoFrequency = -bfo;
-                _localOscillator.Frequency -= _usbDetector.BfoFrequency;
-            }
-            else if (_detectorType == DetectorType.LSB)
-            {
-                var bfo = _bandwidth > DefaultCwSideTone ? _bandwidth / 2 : DefaultCwSideTone;
-                _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
-                _lsbDetector.BfoFrequency = -bfo;
-                _localOscillator.Frequency += _lsbDetector.BfoFrequency;
-            }
-            else if (_detectorType == DetectorType.FM)
-            {
-                _fmDetector.SampleRate = _sampleRate / _decimationFactor;
+                case DetectorType.USB:
+                    _usbDetector.SampleRate = _sampleRate / _decimationFactor;
+                    _usbDetector.BfoFrequency = -_bandwidth / 2;
+                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.LSB:
+                    _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
+                    _lsbDetector.BfoFrequency = -_bandwidth / 2;
+                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.CWU:
+                    _usbDetector.SampleRate = _sampleRate / _decimationFactor;
+                    _usbDetector.BfoFrequency = -DefaultCwSideTone;
+                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.CWL:
+                    _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
+                    _lsbDetector.BfoFrequency = -DefaultCwSideTone;
+                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.NFM:
+                    _fmDetector.Mode = FmMode.Narrow;
+                    _fmDetector.SampleRate = _sampleRate / _decimationFactor;
+                    break;
+
+                case DetectorType.WFM:
+                    _fmDetector.Mode = FmMode.Wide;
+                    _fmDetector.SampleRate = _sampleRate / _decimationFactor;
+                    break;
             }
         }
 
@@ -213,9 +232,8 @@ namespace SDRSharp.Radio
             int cutoff1;
             int cutoff2;
             var iqOrder = Math.Min(_filterOrder, MaxQuadratureFilterOrder);
-            var cwMode = ((_detectorType == DetectorType.LSB) || (_detectorType == DetectorType.USB)) && (_bandwidth <= DefaultCwSideTone);
 
-            if (_detectorType == DetectorType.FM)
+            if (_detectorType == DetectorType.NFM)
             {
                 iqBW = Math.Max(_bandwidth, MaxNFMBandwidth) / 2;
             }
@@ -226,17 +244,22 @@ namespace SDRSharp.Radio
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / _decimationFactor, iqOrder, iqBW, _windowType);
             _iqFilter = new IQFirFilter(coeffs);
 
-            if (cwMode)
+            if (_detectorType == DetectorType.CWL || _detectorType == DetectorType.CWU)
             {
                 cutoff1 = DefaultCwSideTone - _bandwidth / 2;
                 cutoff2 = DefaultCwSideTone + _bandwidth / 2;
             }
             else if (_detectorType == DetectorType.LSB || _detectorType == DetectorType.USB)
             {
-                    cutoff1 = MinSSBAudioFrequency;
-                    cutoff2 = _bandwidth;
+                cutoff1 = MinSSBAudioFrequency;
+                cutoff2 = _bandwidth;
             }
-            else if (_detectorType == DetectorType.FM && _bandwidth <= MaxNFMBandwidth)
+            else if (_detectorType == DetectorType.DSB)
+            {
+                cutoff1 = MinSSBAudioFrequency;
+                cutoff2 = _bandwidth / 2;
+            }
+            else if (_detectorType == DetectorType.NFM)
             {
                 cutoff1 = MinNFMAudioFrequency;
                 cutoff2 = _bandwidth / 2;
@@ -280,7 +303,8 @@ namespace SDRSharp.Radio
         {
             switch (_detectorType)
             {
-                case DetectorType.FM:
+                case DetectorType.WFM:
+                case DetectorType.NFM:
                     _fmDetector.Demodulate(iq, audio, length);
                     break;
 
@@ -288,10 +312,16 @@ namespace SDRSharp.Radio
                     _amDetector.Demodulate(iq, audio, length);
                     break;
 
+                case DetectorType.DSB:
+                    _dsbDetector.Demodulate(iq, audio, length);
+                    break;
+
+                case DetectorType.CWL:
                 case DetectorType.LSB:
                     _lsbDetector.Demodulate(iq, audio, length);
                     break;
 
+                case DetectorType.CWU:
                 case DetectorType.USB:
                     _usbDetector.Demodulate(iq, audio, length);
                     break;
