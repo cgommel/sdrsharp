@@ -104,7 +104,7 @@ namespace SDRSharp
             _vfo.AgcThreshold = -100.0f;
             _vfo.AgcDecay = 100;
             _vfo.AgcSlope = 0;
-            _vfo.AgcHang = false;
+            _vfo.AgcHang = true;
 
             _audioControl.AudioGain = 25.0f;
             _audioControl.BufferNeeded += ProcessBuffer;
