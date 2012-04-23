@@ -1022,7 +1022,7 @@ namespace SDRSharp
             this.audioCollapsiblePanel.Controls.Add(this.inputDeviceComboBox);
             this.audioCollapsiblePanel.Controls.Add(this.label11);
             this.audioCollapsiblePanel.ExpandedHeight = 143;
-            this.audioCollapsiblePanel.Location = new System.Drawing.Point(12, 353);
+            this.audioCollapsiblePanel.Location = new System.Drawing.Point(12, 356);
             this.audioCollapsiblePanel.Name = "audioCollapsiblePanel";
             this.audioCollapsiblePanel.NextPanel = this.agcCollapsiblePanel;
             this.audioCollapsiblePanel.PanelTitle = "Audio";
@@ -1072,11 +1072,11 @@ namespace SDRSharp
             this.agcCollapsiblePanel.Controls.Add(this.agcDecayNumericUpDown);
             this.agcCollapsiblePanel.Controls.Add(this.label4);
             this.agcCollapsiblePanel.ExpandedHeight = 103;
-            this.agcCollapsiblePanel.Location = new System.Drawing.Point(13, 516);
+            this.agcCollapsiblePanel.Location = new System.Drawing.Point(12, 519);
             this.agcCollapsiblePanel.Name = "agcCollapsiblePanel";
             this.agcCollapsiblePanel.NextPanel = this.displayCollapsiblePanel;
             this.agcCollapsiblePanel.PanelTitle = "AGC";
-            this.agcCollapsiblePanel.Size = new System.Drawing.Size(210, 123);
+            this.agcCollapsiblePanel.Size = new System.Drawing.Size(211, 123);
             this.agcCollapsiblePanel.TabIndex = 23;
             // 
             // agcUseHangCheckBox
@@ -1103,11 +1103,11 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
             this.displayCollapsiblePanel.ExpandedHeight = 107;
-            this.displayCollapsiblePanel.Location = new System.Drawing.Point(13, 639);
+            this.displayCollapsiblePanel.Location = new System.Drawing.Point(12, 642);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(210, 127);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(211, 127);
             this.displayCollapsiblePanel.TabIndex = 24;
             // 
             // MainForm
