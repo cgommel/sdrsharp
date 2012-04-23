@@ -151,6 +151,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CollapsiblePanel\SDRSharp.CollapsiblePanel.csproj">
+      <Project>{279AE777-D3DE-449A-9501-A83677F2B97A}</Project>
+      <Name>SDRSharp.CollapsiblePanel</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PanView\SDRSharp.PanView.csproj">
       <Project>{C9292D31-4761-48FC-BEE0-9035D27F68BC}</Project>
       <Name>SDRSharp.PanView</Name>

@@ -21,7 +21,6 @@ namespace SDRSharp
     {
         private static readonly string _baseTitle = "SDR# v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-        private const int DefaultBufferSize = 100;
         private const int DefaultNFMBandwidth = 12500;
         private const int DefaultWFMBandwidth = 180000;
         private const int DefaultAMBandwidth = 10000;
@@ -396,7 +395,7 @@ namespace SDRSharp
                 {
                     sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
                 }
-                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, DefaultBufferSize);
+                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
             }
             else
             {
@@ -404,7 +403,7 @@ namespace SDRSharp
                 {
                     return;
                 }
-                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, DefaultBufferSize);
+                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) latencyNumericUpDown.Value);
 
                 var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
                 match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
@@ -649,6 +648,12 @@ namespace SDRSharp
             agcThresholdNumericUpDown.Enabled = agcCheckBox.Checked;
             agcDecayNumericUpDown.Enabled = agcCheckBox.Checked;
             agcSlopeNumericUpDown.Enabled = agcCheckBox.Checked;
+            agcUseHangCheckBox.Enabled = agcCheckBox.Checked;
+        }
+
+        private void agcUseHangCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _vfo.AgcHang = agcUseHangCheckBox.Checked;
         }
 
         private void agcDecayNumericUpDown_ValueChanged(object sender, EventArgs e)
