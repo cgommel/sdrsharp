@@ -47,7 +47,7 @@ namespace SDRSharp.CollapsiblePanel
             // titlePanel
             // 
             this.titlePanel.BackColor = System.Drawing.Color.DarkGray;
-            this.titlePanel.BackgroundImage = global::StaffDotNet.CollapsiblePanel.Properties.Resources.titleBackground;
+            this.titlePanel.BackgroundImage = global::SDRSharp.CollapsiblePanel.Properties.Resources.titleBackground;
             this.titlePanel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.titlePanel.Controls.Add(this.lblPanelTitle);
             this.titlePanel.Controls.Add(this.togglingImage);
@@ -72,7 +72,7 @@ namespace SDRSharp.CollapsiblePanel
             // togglingImage
             // 
             this.togglingImage.BackColor = System.Drawing.Color.Transparent;
-            this.togglingImage.Image = global::StaffDotNet.CollapsiblePanel.Properties.Resources.ExpandedIcon;
+            this.togglingImage.Image = global::SDRSharp.CollapsiblePanel.Properties.Resources.ExpandedIcon;
             this.togglingImage.Location = new System.Drawing.Point(3, 3);
             this.togglingImage.Name = "togglingImage";
             this.togglingImage.Size = new System.Drawing.Size(14, 13);

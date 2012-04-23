@@ -200,11 +200,11 @@ namespace SDRSharp.CollapsiblePanel
             
             if (_isCollapsed)
             {
-                togglingImage.Image = global::StaffDotNet.CollapsiblePanel.Properties.Resources.ExpandedIcon;
+                togglingImage.Image = global::SDRSharp.CollapsiblePanel.Properties.Resources.ExpandedIcon;
             }
             else
             {
-                togglingImage.Image = global::StaffDotNet.CollapsiblePanel.Properties.Resources.CollapsedIcon;
+                togglingImage.Image = global::SDRSharp.CollapsiblePanel.Properties.Resources.CollapsedIcon;
             }
         }
         
@@ -294,12 +294,12 @@ namespace SDRSharp.CollapsiblePanel
             if (_isCollapsed)
             {
                 _panelState = PanelStateOptions.Collapsed;
-                togglingImage.Image = global::StaffDotNet.CollapsiblePanel.Properties.Resources.ExpandedIcon;
+                togglingImage.Image = global::SDRSharp.CollapsiblePanel.Properties.Resources.ExpandedIcon;
             }
             else
             {
                 _panelState = PanelStateOptions.Expanded;
-                togglingImage.Image = global::StaffDotNet.CollapsiblePanel.Properties.Resources.CollapsedIcon;
+                togglingImage.Image = global::SDRSharp.CollapsiblePanel.Properties.Resources.CollapsedIcon;
             }
 
             if (!this.DesignMode)

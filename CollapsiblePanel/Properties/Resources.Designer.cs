@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace StaffDotNet.CollapsiblePanel.Properties {
+namespace SDRSharp.CollapsiblePanel.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace StaffDotNet.CollapsiblePanel.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("StaffDotNet.CollapsiblePanel.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SDRSharp.CollapsiblePanel.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
