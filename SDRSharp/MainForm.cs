@@ -341,6 +341,7 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = true;
                 inputDeviceComboBox.Enabled = true;
                 outputDeviceComboBox.Enabled = true;
+                latencyNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = true;
                 frontEndComboBox.Enabled = true;
 
@@ -360,6 +361,7 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = false;
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = true;
+                latencyNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
 
@@ -452,6 +454,7 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = false;
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = false;
+                latencyNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
             }
             catch (Exception ex)
@@ -473,6 +476,7 @@ namespace SDRSharp
                 frontEndComboBox.Enabled = true;
             }
             outputDeviceComboBox.Enabled = true;
+            latencyNumericUpDown.Enabled = true;
         }
 
         private void audioGainNumericUpDown_ValueChanged(object sender, EventArgs e)
