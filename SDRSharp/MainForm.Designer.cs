@@ -919,6 +919,7 @@ namespace SDRSharp
             // 
             // frontendGuiButton
             // 
+            this.frontendGuiButton.Enabled = false;
             this.frontendGuiButton.FlatAppearance.BorderSize = 0;
             this.frontendGuiButton.Location = new System.Drawing.Point(6, 133);
             this.frontendGuiButton.Name = "frontendGuiButton";

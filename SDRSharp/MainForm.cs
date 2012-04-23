@@ -166,6 +166,7 @@ namespace SDRSharp
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = 0;
                 frequencyNumericUpDown_ValueChanged(null, null);
+                frontendGuiButton.Enabled = false;
                 return;
             }
             try
@@ -195,6 +196,7 @@ namespace SDRSharp
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
+            frontendGuiButton.Enabled = frontEndComboBox.SelectedIndex < frontEndComboBox.Items.Count - 1;
         }
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
