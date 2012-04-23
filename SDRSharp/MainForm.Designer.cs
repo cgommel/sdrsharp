@@ -1023,7 +1023,7 @@ namespace SDRSharp
             this.audioCollapsiblePanel.Controls.Add(this.inputDeviceComboBox);
             this.audioCollapsiblePanel.Controls.Add(this.label11);
             this.audioCollapsiblePanel.ExpandedHeight = 143;
-            this.audioCollapsiblePanel.Location = new System.Drawing.Point(12, 356);
+            this.audioCollapsiblePanel.Location = new System.Drawing.Point(12, 353);
             this.audioCollapsiblePanel.Name = "audioCollapsiblePanel";
             this.audioCollapsiblePanel.NextPanel = this.agcCollapsiblePanel;
             this.audioCollapsiblePanel.PanelTitle = "Audio";
@@ -1073,11 +1073,12 @@ namespace SDRSharp
             this.agcCollapsiblePanel.Controls.Add(this.agcDecayNumericUpDown);
             this.agcCollapsiblePanel.Controls.Add(this.label4);
             this.agcCollapsiblePanel.ExpandedHeight = 103;
-            this.agcCollapsiblePanel.Location = new System.Drawing.Point(12, 519);
+            this.agcCollapsiblePanel.Location = new System.Drawing.Point(12, 516);
             this.agcCollapsiblePanel.Name = "agcCollapsiblePanel";
             this.agcCollapsiblePanel.NextPanel = this.displayCollapsiblePanel;
+            this.agcCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
             this.agcCollapsiblePanel.PanelTitle = "AGC";
-            this.agcCollapsiblePanel.Size = new System.Drawing.Size(211, 123);
+            this.agcCollapsiblePanel.Size = new System.Drawing.Size(211, 20);
             this.agcCollapsiblePanel.TabIndex = 23;
             // 
             // agcUseHangCheckBox
@@ -1104,11 +1105,12 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
             this.displayCollapsiblePanel.ExpandedHeight = 107;
-            this.displayCollapsiblePanel.Location = new System.Drawing.Point(12, 642);
+            this.displayCollapsiblePanel.Location = new System.Drawing.Point(12, 536);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
+            this.displayCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(211, 127);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(211, 20);
             this.displayCollapsiblePanel.TabIndex = 24;
             // 
             // MainForm

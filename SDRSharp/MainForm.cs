@@ -85,11 +85,11 @@ namespace SDRSharp
             {
                 outputDeviceComboBox.SelectedIndex = 0;
             }
-            _fftBins = 1024;
+            _fftBins = 4096;
             _fftOverlap = true;
 
             viewComboBox.SelectedIndex = 2;
-            fftResolutionComboBox.SelectedIndex = 1;
+            fftResolutionComboBox.SelectedIndex = 3;
             sampleRateComboBox.SelectedIndex = 4;
 
             _fftWindowType = WindowType.BlackmanHarris;
