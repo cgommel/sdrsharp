@@ -34,6 +34,7 @@ namespace SDRSharp.Radio
         private bool _useAgc;
         private int _decimationFactor = 1;
         private bool _needNewDecimator;
+        private int _cwShift;
 
         public Vfo()
         {
@@ -173,6 +174,16 @@ namespace SDRSharp.Radio
             }
         }
 
+        public int CWShift
+        {
+            get { return _cwShift; }
+            set
+            {
+                _cwShift = value;
+                Configure();
+            }
+        }
+
         private void Configure()
         {
             _localOscillator.SampleRate = _sampleRate;
@@ -204,13 +215,13 @@ namespace SDRSharp.Radio
 
                 case DetectorType.CWU:
                     _usbDetector.SampleRate = _sampleRate / _decimationFactor;
-                    _usbDetector.BfoFrequency = -DefaultCwSideTone;
+                    _usbDetector.BfoFrequency = -CWShift;
                     _localOscillator.Frequency -= _usbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.CWL:
                     _lsbDetector.SampleRate = _sampleRate / _decimationFactor;
-                    _lsbDetector.BfoFrequency = -DefaultCwSideTone;
+                    _lsbDetector.BfoFrequency = -CWShift;
                     _localOscillator.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
@@ -246,8 +257,8 @@ namespace SDRSharp.Radio
 
             if (_detectorType == DetectorType.CWL || _detectorType == DetectorType.CWU)
             {
-                cutoff1 = DefaultCwSideTone - _bandwidth / 2;
-                cutoff2 = DefaultCwSideTone + _bandwidth / 2;
+                cutoff1 = CWShift - _bandwidth / 2;
+                cutoff2 = CWShift + _bandwidth / 2;
             }
             else if (_detectorType == DetectorType.LSB || _detectorType == DetectorType.USB)
             {
