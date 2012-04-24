@@ -331,7 +331,7 @@ namespace SDRSharp
             this.wavFileTextBox.Enabled = false;
             this.wavFileTextBox.Location = new System.Drawing.Point(280, 15);
             this.wavFileTextBox.Name = "wavFileTextBox";
-            this.wavFileTextBox.Size = new System.Drawing.Size(636, 20);
+            this.wavFileTextBox.Size = new System.Drawing.Size(637, 20);
             this.wavFileTextBox.TabIndex = 4;
             // 
             // soundCardRadioButton
@@ -362,7 +362,7 @@ namespace SDRSharp
             // 
             this.fileSelectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.fileSelectButton.Enabled = false;
-            this.fileSelectButton.Location = new System.Drawing.Point(922, 13);
+            this.fileSelectButton.Location = new System.Drawing.Point(923, 13);
             this.fileSelectButton.Name = "fileSelectButton";
             this.fileSelectButton.Size = new System.Drawing.Size(26, 23);
             this.fileSelectButton.TabIndex = 5;
@@ -388,8 +388,8 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(668, 724);
-            this.panSplitContainer.SplitterDistance = 225;
+            this.panSplitContainer.Size = new System.Drawing.Size(669, 572);
+            this.panSplitContainer.SplitterDistance = 177;
             this.panSplitContainer.TabIndex = 13;
             // 
             // agcSlopeNumericUpDown
@@ -526,7 +526,7 @@ namespace SDRSharp
             // contrastTrackBar
             // 
             this.contrastTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.contrastTrackBar.Location = new System.Drawing.Point(904, 262);
+            this.contrastTrackBar.Location = new System.Drawing.Point(905, 262);
             this.contrastTrackBar.Maximum = 24;
             this.contrastTrackBar.Minimum = -24;
             this.contrastTrackBar.Name = "contrastTrackBar";
@@ -540,7 +540,7 @@ namespace SDRSharp
             // zoomTrackBar
             // 
             this.zoomTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.zoomTrackBar.Location = new System.Drawing.Point(904, 58);
+            this.zoomTrackBar.Location = new System.Drawing.Point(905, 58);
             this.zoomTrackBar.Maximum = 50;
             this.zoomTrackBar.Name = "zoomTrackBar";
             this.zoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
@@ -554,7 +554,7 @@ namespace SDRSharp
             // 
             this.label19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(909, 42);
+            this.label19.Location = new System.Drawing.Point(910, 42);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(34, 13);
             this.label19.TabIndex = 19;
@@ -564,7 +564,7 @@ namespace SDRSharp
             // 
             this.label20.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(903, 246);
+            this.label20.Location = new System.Drawing.Point(904, 246);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(46, 13);
             this.label20.TabIndex = 20;
@@ -1123,7 +1123,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Frequency = 0;
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(668, 225);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(669, 177);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.UseSmoothing = false;
@@ -1143,7 +1143,7 @@ namespace SDRSharp
             this.waterfall.Frequency = 0;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(668, 495);
+            this.waterfall.Size = new System.Drawing.Size(669, 391);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;
             this.waterfall.UseSmoothing = false;
@@ -1156,7 +1156,7 @@ namespace SDRSharp
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(961, 778);
+            this.ClientSize = new System.Drawing.Size(962, 626);
             this.Controls.Add(this.displayCollapsiblePanel);
             this.Controls.Add(this.agcCollapsiblePanel);
             this.Controls.Add(this.audioCollapsiblePanel);
@@ -1175,6 +1175,7 @@ namespace SDRSharp
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SDR#";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
             this.Load += new System.EventHandler(this.MainForm_Load);
