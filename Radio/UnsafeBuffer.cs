@@ -16,6 +16,11 @@ namespace SDRSharp.Radio
             _ptr = (void*) _handle.AddrOfPinnedObject();
         }
 
+        ~UnsafeBuffer()
+        {
+            Dispose();
+        }
+
         public void Dispose()
         {
             if (_handle.IsAllocated)
