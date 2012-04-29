@@ -127,6 +127,14 @@ namespace SDRSharp.Radio
             }
         }
 
+        public void ProcessSparseSymmetricKernel(float* buffer, int length)
+        {
+            for (var n = 0; n < length; n++)
+            {
+                buffer[n] = ProcessSparseSymmetricKernel(buffer[n]);
+            }
+        }
+
         public float Process(float sample)
         {
             _queuePtr[0] = sample;

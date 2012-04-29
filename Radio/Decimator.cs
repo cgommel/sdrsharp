@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe class Decimator
+    public unsafe class ComplexDecimator
     {
         private static readonly float[] _filterKernel = {
           0.0001091015490441f,                 0,-0.0008931218291173f,                 0,
@@ -15,9 +15,11 @@ namespace SDRSharp.Radio
         };
 
         private readonly IQFirFilter[] _filters;
+        private readonly int _decimationFactor;
 
-        public Decimator(int decimationFactor)
+        public ComplexDecimator(int decimationFactor)
         {
+            _decimationFactor = decimationFactor;
             var stages = (int) (Math.Log(decimationFactor) / Math.Log(2));
             _filters = new IQFirFilter[stages];
             for (var i = 0; i < stages; i++)
@@ -37,6 +39,57 @@ namespace SDRSharp.Radio
                     buffer[i] = buffer[i * 2];
                 }
             }
+        }
+
+        public int Factor
+        {
+            get { return _decimationFactor; }
+        }
+    }
+
+
+    public unsafe class FloatDecimator
+    {
+        private static readonly float[] _filterKernel = {
+          0.0001091015490441f,                 0,-0.0008931218291173f,                 0,
+            0.00398874281589f,                 0, -0.01283769838303f,                 0,
+            0.03400417599697f,                 0, -0.08499629276978f,                 0,
+             0.3106255550843f,               0.5f,   0.3106255550843f,                 0,
+           -0.08499629276978f,                 0,  0.03400417599697f,                 0,
+           -0.01283769838303f,                 0,  0.00398874281589f,                 0,
+          -0.0008931218291173f,                 0,0.0001091015490441f
+        };
+
+        private readonly FirFilter[] _filters;
+        private readonly int _decimationFactor;
+
+        public FloatDecimator(int decimationFactor)
+        {
+            _decimationFactor = decimationFactor;
+            var stages = (int)(Math.Log(decimationFactor) / Math.Log(2));
+            _filters = new FirFilter[stages];
+            for (var i = 0; i < stages; i++)
+            {
+                _filters[i] = new FirFilter(_filterKernel);
+            }
+        }
+
+        public void Process(float* buffer, int length)
+        {
+            for (var n = 0; n < _filters.Length; n++)
+            {
+                _filters[n].ProcessSparseSymmetricKernel(buffer, length);
+                length /= 2;
+                for (var i = 0; i < length; i++)
+                {
+                    buffer[i] = buffer[i * 2];
+                }
+            }
+        }
+
+        public int Factor
+        {
+            get { return _decimationFactor; }
         }
     }
 }

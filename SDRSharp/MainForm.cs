@@ -111,7 +111,7 @@ namespace SDRSharp
             _vfo.AgcDecay = 100;
             _vfo.AgcSlope = 0;
             _vfo.AgcHang = true;
-            _vfo.CWShift = Vfo.DefaultCwSideTone;
+            _vfo.CWToneShift = Vfo.DefaultCwSideTone;
 
             cwShiftNumericUpDown.Value = Vfo.DefaultCwSideTone;
 
@@ -576,7 +576,7 @@ namespace SDRSharp
 
             if (_vfo.DetectorType == DetectorType.CWL || _vfo.DetectorType == DetectorType.CWU)
             {
-                waterfall.FilterOffset = _vfo.CWShift - _vfo.Bandwidth / 2;
+                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
         }
@@ -600,140 +600,114 @@ namespace SDRSharp
 
         #region Mode selection
 
-        private void nfmRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void modeRadioButton_CheckedChanged(object sender, EventArgs e)
         {
+            filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
+            filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
+
+            agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked;
+            agcSlopeNumericUpDown.Enabled = !wfmRadioButton.Checked;
+            agcThresholdNumericUpDown.Enabled = !wfmRadioButton.Checked;
+            agcUseHangCheckBox.Enabled = !wfmRadioButton.Checked;
+            agcCheckBox.Enabled = !wfmRadioButton.Checked;
+
             fmSquelchNumericUpDown.Enabled = nfmRadioButton.Checked;
-            if (nfmRadioButton.Checked)
+            cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
+
+            if (wfmRadioButton.Checked)
+            {
+                filterBandwidthNumericUpDown.Value = DefaultWFMBandwidth;
+                _vfo.DetectorType = DetectorType.WFM;
+                _vfo.Bandwidth = DefaultWFMBandwidth;
+                waterfall.BandType = BandType.Center;
+                spectrumAnalyzer.BandType = BandType.Center;
+
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
+            }
+            else if (nfmRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultNFMBandwidth;
                 _vfo.DetectorType = DetectorType.NFM;
                 _vfo.Bandwidth = DefaultNFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                cwShiftNumericUpDown.Enabled = false;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
-        }
-
-        private void amRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (amRadioButton.Checked)
+            else if (amRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultAMBandwidth;
                 _vfo.DetectorType = DetectorType.AM;
                 _vfo.Bandwidth = DefaultAMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                cwShiftNumericUpDown.Enabled = false;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
-        }
-
-        private void lsbRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (lsbRadioButton.Checked)
+            else if (lsbRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultSSBBandwidth;
                 _vfo.DetectorType = DetectorType.LSB;
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
-                cwShiftNumericUpDown.Enabled = false;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
-        }
-
-        private void usbRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (usbRadioButton.Checked)
+            else if (usbRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultSSBBandwidth;
                 _vfo.DetectorType = DetectorType.USB;
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
-                cwShiftNumericUpDown.Enabled = false;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
-        }
-
-        private void wfmRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (wfmRadioButton.Checked)
-            {
-
-                filterBandwidthNumericUpDown.Value = DefaultWFMBandwidth;
-                _vfo.DetectorType = DetectorType.WFM;
-                _vfo.Bandwidth = DefaultWFMBandwidth;
-                waterfall.BandType = BandType.Center;
-                spectrumAnalyzer.BandType = BandType.Center;
-                cwShiftNumericUpDown.Enabled = false;
-
-                waterfall.FilterOffset = 0;
-                spectrumAnalyzer.FilterOffset = 0;
-            }
-        }
-
-        private void dsbRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (dsbRadioButton.Checked)
+            else if (dsbRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultDSBBandwidth;
                 _vfo.DetectorType = DetectorType.DSB;
                 _vfo.Bandwidth = DefaultDSBBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                cwShiftNumericUpDown.Enabled = false;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
-        }
-
-        private void cwlRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (cwlRadioButton.Checked)
+            else if (cwlRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
                 _vfo.DetectorType = DetectorType.CWL;
                 _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
-                cwShiftNumericUpDown.Enabled = true;
 
-                waterfall.FilterOffset = _vfo.CWShift - _vfo.Bandwidth / 2;
+                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
-        }
-
-        private void cwuRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (cwuRadioButton.Checked)
+            else if (cwuRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
                 _vfo.DetectorType = DetectorType.CWU;
                 _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
-                cwShiftNumericUpDown.Enabled = true;
 
-                waterfall.FilterOffset = _vfo.CWShift - _vfo.Bandwidth / 2;
+                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
         }
 
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.CWShift = (int) cwShiftNumericUpDown.Value;
-            waterfall.FilterOffset = _vfo.CWShift - _vfo.Bandwidth / 2;
+            _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
+            waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
             spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
         }
 
@@ -763,7 +737,7 @@ namespace SDRSharp
 
         private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
         {
-            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum)
+            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum && !wfmRadioButton.Checked)
             {
                 filterBandwidthNumericUpDown.Value = e.Bandwidth;
             }

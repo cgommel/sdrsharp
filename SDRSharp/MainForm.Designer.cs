@@ -393,7 +393,7 @@ namespace SDRSharp
             this.cwuRadioButton.TabIndex = 7;
             this.cwuRadioButton.Text = "CW-U";
             this.cwuRadioButton.UseVisualStyleBackColor = true;
-            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.cwuRadioButton_CheckedChanged);
+            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // cwlRadioButton
             // 
@@ -404,7 +404,7 @@ namespace SDRSharp
             this.cwlRadioButton.TabIndex = 6;
             this.cwlRadioButton.Text = "CW-L";
             this.cwlRadioButton.UseVisualStyleBackColor = true;
-            this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.cwlRadioButton_CheckedChanged);
+            this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // nfmRadioButton
             // 
@@ -415,7 +415,7 @@ namespace SDRSharp
             this.nfmRadioButton.TabIndex = 0;
             this.nfmRadioButton.Text = "NFM";
             this.nfmRadioButton.UseVisualStyleBackColor = true;
-            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.nfmRadioButton_CheckedChanged);
+            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // dsbRadioButton
             // 
@@ -426,7 +426,7 @@ namespace SDRSharp
             this.dsbRadioButton.TabIndex = 5;
             this.dsbRadioButton.Text = "DSB";
             this.dsbRadioButton.UseVisualStyleBackColor = true;
-            this.dsbRadioButton.CheckedChanged += new System.EventHandler(this.dsbRadioButton_CheckedChanged);
+            this.dsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // frequencyNumericUpDown
             // 
@@ -463,7 +463,7 @@ namespace SDRSharp
             this.wfmRadioButton.TabIndex = 4;
             this.wfmRadioButton.Text = "WFM";
             this.wfmRadioButton.UseVisualStyleBackColor = true;
-            this.wfmRadioButton.CheckedChanged += new System.EventHandler(this.wfmRadioButton_CheckedChanged);
+            this.wfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // label2
             // 
@@ -498,7 +498,7 @@ namespace SDRSharp
             this.amRadioButton.TabStop = true;
             this.amRadioButton.Text = "AM";
             this.amRadioButton.UseVisualStyleBackColor = true;
-            this.amRadioButton.CheckedChanged += new System.EventHandler(this.amRadioButton_CheckedChanged);
+            this.amRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // label18
             // 
@@ -519,7 +519,7 @@ namespace SDRSharp
             this.lsbRadioButton.TabIndex = 2;
             this.lsbRadioButton.Text = "LSB";
             this.lsbRadioButton.UseVisualStyleBackColor = true;
-            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.lsbRadioButton_CheckedChanged);
+            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // stepSizeComboBox
             // 
@@ -555,7 +555,7 @@ namespace SDRSharp
             this.usbRadioButton.TabIndex = 3;
             this.usbRadioButton.Text = "USB";
             this.usbRadioButton.UseVisualStyleBackColor = true;
-            this.usbRadioButton.CheckedChanged += new System.EventHandler(this.usbRadioButton_CheckedChanged);
+            this.usbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
             // label17
             // 

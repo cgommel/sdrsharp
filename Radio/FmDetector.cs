@@ -15,8 +15,10 @@ namespace SDRSharp.Radio
     public unsafe class FmDetector
     {
         private const float NarrowAFGain = 0.00001f;
-        private const float WideAFGain = 0.000001f;
+        private const float WideAFGain = 0.00001f;
         private const float TimeConst = 0.000001f;
+
+        private const float DeemphasisTime = 75e-6f; //50e-6f
 
         private const int MinHissFrequency = 4000;
         private const int MaxHissFrequency = 6000;
@@ -35,6 +37,8 @@ namespace SDRSharp.Radio
         private float _noiseThreshold;
         private FmMode _mode;
         private float _afGain = NarrowAFGain;
+        private float _deemphasisAlpha;
+        private float _deemphasisAvg;
 
         public void Demodulate(Complex* iq, float* audio, int length)
         {
@@ -44,7 +48,16 @@ namespace SDRSharp.Radio
                 _iqState = iq[i];
             }
             _dcRemover.Process(audio, length);
-            ProcessSquelch(audio, length);
+            switch (_mode)
+            {
+                case FmMode.Narrow:
+                    ProcessSquelch(audio, length);
+                    break;
+
+                case FmMode.Wide:
+                    ProcessDeemphasis(audio, length);
+                    break;
+            }
         }
 
         public float GetAudio(Complex previous, Complex current)
@@ -94,6 +107,16 @@ namespace SDRSharp.Radio
             }
         }
 
+        private void ProcessDeemphasis(float* audio, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                _deemphasisAvg = (1f - _deemphasisAlpha) * _deemphasisAvg + _deemphasisAlpha * audio[i];
+                audio[i] = _deemphasisAvg;
+            }
+        }
+
+
         public float Offset
         {
             get { return _dcRemover.Offset; }
@@ -111,6 +134,8 @@ namespace SDRSharp.Radio
                 _noiseAveragingRatio = (float) (30.0 / _sampleRate);
                 var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
                 _hissFilter = new FirFilter(bpk);
+
+                _deemphasisAlpha = (float) (1.0 - Math.Exp(-1.0 / (_sampleRate * DeemphasisTime)));
             }
         }
 
@@ -129,8 +154,12 @@ namespace SDRSharp.Radio
             get { return _mode; }
             set
             {
-                _mode = value;
-                _afGain = value == FmMode.Narrow ? NarrowAFGain : WideAFGain;
+                if (_mode != value)
+                {
+                    _mode = value;
+                    _afGain = value == FmMode.Narrow ? NarrowAFGain : WideAFGain;
+                    _deemphasisAvg = 0;
+                }
             }
         }
     }
