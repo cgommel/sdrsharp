@@ -27,6 +27,7 @@ namespace SDRSharp.Radio
             {
                 _handle.Free();
             }
+            GC.SuppressFinalize(this);
         }
 
         public void* Address
