@@ -265,7 +265,8 @@ namespace SDRSharp.FUNcube
 
         #endregion
 
-        private readonly double _freqCorrection = GetFrequencyCorrection();
+        private double _freqCorrection = Utils.GetDoubleSetting("funcubeFrequencyCorrection", -120.0);
+        private int _frequency = 0;
 
         #region Properties
 
@@ -286,17 +287,18 @@ namespace SDRSharp.FUNcube
         {
             get
             {
-                return (int) (GetFrequency() / _freqCorrection);
+                return (int) (GetFrequency() / (1 + _freqCorrection * 0.000001));
             }
             set
             {
-                SetFrequency((int) (value * _freqCorrection));
+                SetFrequency((int) (value * (1 + _freqCorrection * 0.000001)));
+                _frequency = value;
             }
         }
 
         public void ShowSettingsDialog(IntPtr parentHandle)
         {
-            using (var dialog = new FCDControllerDialog())
+            using (var dialog = new FCDControllerDialog(this))
             {
                 dialog.ShowDialog();
             }
@@ -495,19 +497,6 @@ namespace SDRSharp.FUNcube
         }
 
         #endregion
-
-        private static double GetFrequencyCorrection()
-        {
-            double result;
-            if (!double.TryParse(ConfigurationManager.AppSettings["funcubeFrequencyCorrection"],
-                NumberStyles.Number,
-                CultureInfo.InvariantCulture,
-                out result))
-            {
-                result = 0.999976;
-            }
-            return result;
-        }
 
         public void Open()
         {
@@ -767,6 +756,19 @@ namespace SDRSharp.FUNcube
         private static bool SetIFGainMode(TunerIFGainMode gainMode)
         {
             return WriteCommand(FCD_HID_CMD_SET_IF_GAIN_MODE, (byte) gainMode);
+        }
+
+        public double FrequencyCorrection
+        {
+            get
+            {
+                return _freqCorrection;
+            }
+            set
+            {
+                _freqCorrection = value;
+                Frequency = _frequency;
+            }
         }
     }
 }

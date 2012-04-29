@@ -66,7 +66,10 @@
             this.mixerGainComboBox = new System.Windows.Forms.ComboBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.closeButton = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // IFGainModeLabel
@@ -169,7 +172,7 @@
             this.DefaultButton.Location = new System.Drawing.Point(944, 186);
             this.DefaultButton.Name = "DefaultButton";
             this.DefaultButton.Size = new System.Drawing.Size(75, 23);
-            this.DefaultButton.TabIndex = 16;
+            this.DefaultButton.TabIndex = 17;
             this.DefaultButton.Text = "Default";
             this.DefaultButton.UseVisualStyleBackColor = true;
             this.DefaultButton.Click += new System.EventHandler(this.DefaultButton_Click);
@@ -536,9 +539,43 @@
             this.closeButton.Location = new System.Drawing.Point(1025, 186);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(75, 23);
-            this.closeButton.TabIndex = 120;
+            this.closeButton.TabIndex = 18;
             this.closeButton.Text = "Close";
             this.closeButton.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(346, 170);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(136, 13);
+            this.label1.TabIndex = 122;
+            this.label1.Text = "Frequency correction (ppm)";
+            // 
+            // frequencyCorrectionNumericUpDown
+            // 
+            this.frequencyCorrectionNumericUpDown.DecimalPlaces = 1;
+            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(349, 189);
+            this.frequencyCorrectionNumericUpDown.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.frequencyCorrectionNumericUpDown.Minimum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            -2147483648});
+            this.frequencyCorrectionNumericUpDown.Name = "frequencyCorrectionNumericUpDown";
+            this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(133, 20);
+            this.frequencyCorrectionNumericUpDown.TabIndex = 16;
+            this.frequencyCorrectionNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.frequencyCorrectionNumericUpDown.Value = new decimal(new int[] {
+            115,
+            0,
+            0,
+            -2147483648});
+            this.frequencyCorrectionNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyCorrectionNumericUpDown_ValueChanged);
             // 
             // FCDControllerDialog
             // 
@@ -546,6 +583,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
             this.ClientSize = new System.Drawing.Size(1107, 216);
+            this.Controls.Add(this.frequencyCorrectionNumericUpDown);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.closeButton);
             this.Controls.Add(this.IFGainModeLabel);
             this.Controls.Add(this.BiasCurrentLabel);
@@ -589,8 +628,10 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "FUNCube Dongle Controller";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FCDControllerDialog_FormClosing);
             this.Load += new System.EventHandler(this.FCDControllerDialog_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -634,6 +675,8 @@
         private System.Windows.Forms.ComboBox mixerGainComboBox;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button closeButton;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;
     }
 }
 

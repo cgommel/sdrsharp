@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using SDRSharp.Radio;
 
 namespace SDRSharp.FUNcube
 {
@@ -8,9 +9,11 @@ namespace SDRSharp.FUNcube
 
         private FunCubeIO funCubeIO = new FunCubeIO();
         private bool updating = false;
+        private FunCubeIO _owner;
 
-        public FCDControllerDialog()
+        public FCDControllerDialog(FunCubeIO owner)
         {
+            _owner = owner;
             InitializeComponent();
         }
 
@@ -485,6 +488,8 @@ namespace SDRSharp.FUNcube
                     BiasCurrentComboBox.Enabled = true;
                     IFGainModeComboBox.Enabled = true;    
                 }
+
+                frequencyCorrectionNumericUpDown.Value = (decimal) _owner.FrequencyCorrection;
             }
             catch (Exception)
             {
@@ -511,6 +516,16 @@ namespace SDRSharp.FUNcube
             {
                 updating = false;
             }
+        }
+
+        private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _owner.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
+        }
+
+        private void FCDControllerDialog_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Utils.SaveSetting("funcubeFrequencyCorrection", _owner.FrequencyCorrection.ToString());
         }
     }
 }
