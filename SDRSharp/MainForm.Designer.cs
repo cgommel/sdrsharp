@@ -200,8 +200,8 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(651, 572);
-            this.panSplitContainer.SplitterDistance = 177;
+            this.panSplitContainer.Size = new System.Drawing.Size(651, 599);
+            this.panSplitContainer.SplitterDistance = 193;
             this.panSplitContainer.TabIndex = 13;
             // 
             // spectrumAnalyzer
@@ -214,7 +214,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Frequency = 0;
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 177);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.UseSmoothing = false;
@@ -234,7 +234,7 @@ namespace SDRSharp
             this.waterfall.Frequency = 0;
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(651, 391);
+            this.waterfall.Size = new System.Drawing.Size(651, 402);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.TabIndex = 0;
             this.waterfall.UseSmoothing = false;
@@ -308,7 +308,7 @@ namespace SDRSharp
             this.controlPanel.Controls.Add(this.agcCollapsiblePanel);
             this.controlPanel.Location = new System.Drawing.Point(12, 42);
             this.controlPanel.Name = "controlPanel";
-            this.controlPanel.Size = new System.Drawing.Size(229, 572);
+            this.controlPanel.Size = new System.Drawing.Size(229, 599);
             this.controlPanel.TabIndex = 25;
             // 
             // radioCollapsiblePanel
@@ -1150,7 +1150,7 @@ namespace SDRSharp
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
-            this.ClientSize = new System.Drawing.Size(962, 626);
+            this.ClientSize = new System.Drawing.Size(962, 653);
             this.Controls.Add(this.controlPanel);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
