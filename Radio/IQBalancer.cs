@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
@@ -17,33 +16,31 @@ namespace SDRSharp.Radio
         private float _gain = 1.0f;
         private float _phase;
         private readonly Random _rng = new Random();
-        private readonly Complex[] _fft = new Complex[FFTBins];
         private readonly Complex* _fftPtr;
-        private readonly GCHandle _fftHandle;
-        private readonly float[] _spectrum = new float[FFTBins];
+        private readonly UnsafeBuffer _fftBuffer;
         private readonly float* _spectrumPtr;
-        private readonly GCHandle _spectrumHandle;
-        private readonly float[] _window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
+        private readonly UnsafeBuffer _spectrumBuffer;
         private readonly float* _windowPtr;
-        private readonly GCHandle _windowHandle;
+        private readonly UnsafeBuffer _windowBuffer;
 
         public IQBalancer()
         {
-            _fftHandle = GCHandle.Alloc(_fft, GCHandleType.Pinned);
-            _fftPtr = (Complex*) _fftHandle.AddrOfPinnedObject();
+            _fftBuffer = UnsafeBuffer.Create<Complex>(FFTBins);
+            _fftPtr = (Complex*) _fftBuffer;
 
-            _spectrumHandle = GCHandle.Alloc(_spectrum, GCHandleType.Pinned);
-            _spectrumPtr = (float*) _spectrumHandle.AddrOfPinnedObject();
+            _spectrumBuffer = UnsafeBuffer.Create<float>(FFTBins);
+            _spectrumPtr = (float*) _spectrumBuffer;
 
-            _windowHandle = GCHandle.Alloc(_window, GCHandleType.Pinned);
-            _windowPtr = (float*) _windowHandle.AddrOfPinnedObject();
+            var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
+            _windowBuffer = UnsafeBuffer.Create(window);
+            _windowPtr = (float*) _windowBuffer;
         }
 
         public void Dispose()
         {
-            _fftHandle.Free();
-            _spectrumHandle.Free();
-            _windowHandle.Free();
+            _fftBuffer.Dispose();
+            _spectrumBuffer.Dispose();
+            _windowBuffer.Dispose();
         }
 
         public float Phase

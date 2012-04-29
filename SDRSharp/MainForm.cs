@@ -187,7 +187,7 @@ namespace SDRSharp
             while (_audioControl.IsPlaying)
             {
                 // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
-                var fftGain = (float) (10.0 * Math.Log10(_fftBins / 2));
+                var fftGain = (float) (10.0 * Math.Log10((double) _fftBins / 2));
                 var compensation = 24.0f - fftGain;
 
                 while (_audioControl.IsPlaying)

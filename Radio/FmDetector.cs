@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
@@ -25,9 +24,8 @@ namespace SDRSharp.Radio
         private const float HissFactor = 0.00002f;
 
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
-        private float[] _hissBuffer;
         private float* _hissPtr;
-        private GCHandle _hissHandle;
+        private UnsafeBuffer _hissBuffer;
         private FirFilter _hissFilter;
         private Complex _iqState;
         private float _noiseLevel;
@@ -73,13 +71,8 @@ namespace SDRSharp.Radio
             {
                 if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
-                    if (_hissHandle.IsAllocated)
-                    {
-                        _hissHandle.Free();
-                    }
-                    _hissBuffer = new float[length];
-                    _hissHandle = GCHandle.Alloc(_hissBuffer, GCHandleType.Pinned);
-                    _hissPtr = (float*) _hissHandle.AddrOfPinnedObject();
+                    _hissBuffer = UnsafeBuffer.Create<float>(length);
+                    _hissPtr = (float*) _hissBuffer;
                 }
 
                 Utils.Memcpy(_hissPtr, audio, length * sizeof(float));
@@ -88,7 +81,7 @@ namespace SDRSharp.Radio
 
                 for (var i = 0; i < _hissBuffer.Length; i++)
                 {
-                    var n = (1 - _noiseAveragingRatio) * _noiseLevel + _noiseAveragingRatio * Math.Abs(_hissBuffer[i]);
+                    var n = (1 - _noiseAveragingRatio) * _noiseLevel + _noiseAveragingRatio * Math.Abs(_hissPtr[i]);
                     if (!float.IsNaN(n))
                     {
                         _noiseLevel = n;

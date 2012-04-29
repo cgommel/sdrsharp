@@ -1,40 +1,37 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
     public unsafe class FirFilter : IDisposable
     {
         private readonly float* _coeffPtr;
-        private readonly GCHandle _coeffHandle;
-        private readonly float[] _coefficients;
+        private readonly UnsafeBuffer _coeffBuffer;
 
         private readonly float* _queuePtr;
-        private readonly GCHandle _queueHandle;
-        private readonly float[] _queue;
+        private readonly UnsafeBuffer _queueBuffer;
+
         private readonly int _queueSize;
 
         public FirFilter(float[] coefficients)
         {
-            _coefficients = coefficients;
-            _coeffHandle = GCHandle.Alloc(_coefficients, GCHandleType.Pinned);
-            _coeffPtr = (float*) _coeffHandle.AddrOfPinnedObject();
+            _coeffBuffer = UnsafeBuffer.Create(coefficients);
+            _coeffPtr = (float*) _coeffBuffer;
 
-            _queue = new float[_coefficients.Length];
-            _queueHandle = GCHandle.Alloc(_queue, GCHandleType.Pinned);
-            _queuePtr = (float*) _queueHandle.AddrOfPinnedObject();
-            _queueSize = _queue.Length;
+            _queueBuffer = UnsafeBuffer.Create<float>(coefficients.Length);
+            _queuePtr = (float*) _queueBuffer;
+
+            _queueSize = coefficients.Length;
         }
 
         public void Dispose()
         {
-            _coeffHandle.Free();
-            _queueHandle.Free();
+            _coeffBuffer.Dispose();
+            _queueBuffer.Dispose();
         }
 
-        public float[] Coefficients
+        public float* Coefficients
         {
-            get { return _coefficients; }
+            get { return _coeffPtr; }
         }
         
         public float ProcessSparseSymmetricKernel(float sample)
@@ -79,7 +76,7 @@ namespace SDRSharp.Radio
             }
             result += _queuePtr[halfLen] * _coeffPtr[halfLen];
 
-            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
 
             return result;
         }
@@ -117,7 +114,7 @@ namespace SDRSharp.Radio
             }
             result += _queuePtr[halfLen] * _coeffPtr[halfLen];
 
-            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
 
             return result;
         }
@@ -156,7 +153,7 @@ namespace SDRSharp.Radio
                 result += *ptr1++ * *ptr2++;
             }
 
-            Array.Copy(_queue, 0, _queue, 1, _queue.Length - 1);
+            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
 
             return result;
         }

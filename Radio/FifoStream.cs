@@ -95,6 +95,32 @@ namespace SDRSharp.Radio
             }
         }
 
+        public int Read(Complex* buf, int count)
+        {
+            return Read(buf, 0, count);
+        }
+
+        public int Read(Complex* buf, int ofs, int count)
+        {
+            if (_event != null)
+            {
+                while (_size < count && !_terminated)
+                {
+                    _event.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return 0;
+                }
+            }
+            lock (this)
+            {
+                int result = Peek(buf, ofs, count);
+                Advance(result);
+                return result;
+            }
+        }
+
         public int Read(Complex[] buf, int count)
         {
             return Read(buf, 0, count);
@@ -146,29 +172,9 @@ namespace SDRSharp.Radio
             }
         }
         
-        public void Write(Complex[] buf, int count)
+        public void Write(Complex* buf, int count)
         {
             Write(buf, 0, count);
-        }
-
-        public void Write(Complex[] buf, int ofs, int count)
-        {
-            lock (this)
-            {
-                int left = count;
-                while (left > 0)
-                {
-                    int toWrite = Math.Min(BlockSize - _writePos, left);
-                    Array.Copy(buf, ofs + count - left, GetWBlock(), _writePos, toWrite);
-                    _writePos += toWrite;
-                    left -= toWrite;
-                }
-                _size += count;
-                if (_event != null)
-                {
-                    _event.Set();
-                }
-            }
         }
 
         // extra stuff
@@ -193,6 +199,7 @@ namespace SDRSharp.Radio
                 return count - sizeLeft;
             }
         }
+
         public int Peek(Complex[] buf, int ofs, int count)
         {
             lock (this)
@@ -212,6 +219,38 @@ namespace SDRSharp.Radio
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
                     Array.Copy((Complex[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
+                    sizeLeft -= toFeed;
+                    tempBlockPos += toFeed;
+                    tempSize -= toFeed;
+                }
+                return count - sizeLeft;
+            }
+        }
+
+        public int Peek(Complex* buf, int ofs, int count)
+        {
+            lock (this)
+            {
+                int sizeLeft = count;
+                int tempBlockPos = _readPos;
+                int tempSize = _size;
+
+                int currentBlock = 0;
+                while (sizeLeft > 0 && tempSize > 0)
+                {
+                    if (tempBlockPos == BlockSize)
+                    {
+                        tempBlockPos = 0;
+                        currentBlock++;
+                    }
+                    int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
+                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
+                    //Array.Copy((Complex[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
+                    var block = (Complex[]) _blocks[currentBlock];
+                    fixed (Complex* blockPtr = block)
+                    {
+                        Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
+                    }
                     sizeLeft -= toFeed;
                     tempBlockPos += toFeed;
                     tempSize -= toFeed;
@@ -411,6 +450,11 @@ namespace SDRSharp.Radio
                 }
                 _size += count;
             }
+        }
+
+        public void Write(float* buf, int count)
+        {
+            Write(buf, 0, count);
         }
 
         // extra stuff
