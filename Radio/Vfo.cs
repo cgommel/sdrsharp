@@ -201,7 +201,7 @@ namespace SDRSharp.Radio
                 {
                     var afSamplerate = _sampleRate / _decimationFactor;
                     audioDecimationFactor = 1;
-                    while (afSamplerate * audioDecimationFactor < DefaultWFMBandwidth)
+                    while (afSamplerate * audioDecimationFactor < DefaultWFMBandwidth && audioDecimationFactor < _decimationFactor)
                     {
                         audioDecimationFactor *= 2;
                     }
@@ -278,7 +278,7 @@ namespace SDRSharp.Radio
 
                 case DetectorType.WFM:
                     iqBW = 90000;
-                    iqOrder = 80;
+                    iqOrder = 20;
                     break;
 
                 default:
