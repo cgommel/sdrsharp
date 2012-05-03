@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 
@@ -6,10 +7,8 @@ namespace SDRSharp.FUNcube
 {
     public partial class FCDControllerDialog : Form
     {
-
-        private FunCubeIO funCubeIO = new FunCubeIO();
-        private bool updating = false;
-        private FunCubeIO _owner;
+        private bool _updating;
+        private readonly FunCubeIO _owner;
 
         public FCDControllerDialog(FunCubeIO owner)
         {
@@ -49,18 +48,18 @@ namespace SDRSharp.FUNcube
 
         private void LNAGainComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
                     if (LNAGainComboBox.SelectedIndex > 1)
                     {
-                        funCubeIO.LNAGain = (TunerLNAGain) (LNAGainComboBox.SelectedIndex + 2);
+                        _owner.LNAGain = (TunerLNAGain) (LNAGainComboBox.SelectedIndex + 2);
                     }
                     else
                     {
-                        funCubeIO.LNAGain = (TunerLNAGain) LNAGainComboBox.SelectedIndex;
+                        _owner.LNAGain = (TunerLNAGain) LNAGainComboBox.SelectedIndex;
                     }
 
                 }
@@ -70,7 +69,7 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
 
@@ -78,12 +77,12 @@ namespace SDRSharp.FUNcube
 
         private void RFFilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.RFFilter = RFFilterComboBox.SelectedIndex == 0 ? TunerRFFilter.TRFE_LPF268MHZ : TunerRFFilter.TRFE_LPF299MHZ;
+                    _owner.RFFilter = RFFilterComboBox.SelectedIndex == 0 ? TunerRFFilter.TRFE_LPF268MHZ : TunerRFFilter.TRFE_LPF299MHZ;
                 }
                 catch (Exception)
                 {
@@ -91,7 +90,7 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
 
@@ -99,12 +98,12 @@ namespace SDRSharp.FUNcube
 
         private void mixerGainComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.MixerGain = (TunerMixerGain) mixerGainComboBox.SelectedIndex;
+                    _owner.MixerGain = (TunerMixerGain) mixerGainComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -112,7 +111,7 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
 
@@ -120,18 +119,18 @@ namespace SDRSharp.FUNcube
 
         private void mixerFilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
                     if (mixerFilterComboBox.SelectedIndex < 8)
                     {
-                        funCubeIO.MixerFilter = (TunerMixerFilter) (15 - mixerFilterComboBox.SelectedIndex);
+                        _owner.MixerFilter = (TunerMixerFilter) (15 - mixerFilterComboBox.SelectedIndex);
                     }
                     else
                     {
-                        funCubeIO.MixerFilter = (TunerMixerFilter) (mixerFilterComboBox.SelectedIndex - 8);
+                        _owner.MixerFilter = (TunerMixerFilter) (mixerFilterComboBox.SelectedIndex - 8);
                     }
                 }
                 catch (Exception)
@@ -140,19 +139,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain1ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain1 = (TunerIFGain1) IFGain1ComboBox.SelectedIndex;
+                    _owner.IFGain1 = (TunerIFGain1) IFGain1ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -160,19 +159,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFRCFilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFRCFilter = (TunerIFRCFilter) (15 - IFRCFilterComboBox.SelectedIndex);
+                    _owner.IFRCFilter = (TunerIFRCFilter) (15 - IFRCFilterComboBox.SelectedIndex);
                 }
                 catch (Exception)
                 {
@@ -180,19 +179,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain2ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain2 = (TunerIFGain2) IFGain2ComboBox.SelectedIndex;
+                    _owner.IFGain2 = (TunerIFGain2) IFGain2ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -200,19 +199,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain3ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain3 = (TunerIFGain3) IFGain3ComboBox.SelectedIndex;
+                    _owner.IFGain3 = (TunerIFGain3) IFGain3ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -220,19 +219,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain4ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain4 = (TunerIFGain4) IFGain4ComboBox.SelectedIndex;
+                    _owner.IFGain4 = (TunerIFGain4) IFGain4ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -240,19 +239,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain5ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain5 = (TunerIFGain5) IFGain5ComboBox.SelectedIndex;
+                    _owner.IFGain5 = (TunerIFGain5) IFGain5ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -260,19 +259,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFGain6ComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGain6 = (TunerIFGain6) IFGain6ComboBox.SelectedIndex;
+                    _owner.IFGain6 = (TunerIFGain6) IFGain6ComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -280,19 +279,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void IFFilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFFilter = (TunerIFFilter) (31 - IFFilterComboBox.SelectedIndex);
+                    _owner.IFFilter = (TunerIFFilter) (31 - IFFilterComboBox.SelectedIndex);
                 }
                 catch (Exception)
                 {
@@ -300,25 +299,25 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void LNAEnhanceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
                     if (LNAEnhanceComboBox.SelectedIndex > 0)
                     {
-                        funCubeIO.LNAEnhance = (TunerLNAEnhance) (2 * LNAEnhanceComboBox.SelectedIndex - 1);
+                        _owner.LNAEnhance = (TunerLNAEnhance) (2 * LNAEnhanceComboBox.SelectedIndex - 1);
                     }
                     else
                     {
-                        funCubeIO.LNAEnhance = TunerLNAEnhance.TLEE_OFF;
+                        _owner.LNAEnhance = TunerLNAEnhance.TLEE_OFF;
                     }
                 }
                 catch (Exception)
@@ -327,19 +326,19 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void BiasCurrentComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.BiasCurrent = (TunerBiasCurrent) BiasCurrentComboBox.SelectedIndex;
+                    _owner.BiasCurrent = (TunerBiasCurrent) BiasCurrentComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -347,7 +346,7 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
 
@@ -355,12 +354,12 @@ namespace SDRSharp.FUNcube
 
         private void IFGainModeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
-                    funCubeIO.IFGainMode = (TunerIFGainMode) IFGainModeComboBox.SelectedIndex;
+                    _owner.IFGainMode = (TunerIFGainMode) IFGainModeComboBox.SelectedIndex;
                 }
                 catch (Exception)
                 {
@@ -368,7 +367,7 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
 
@@ -381,94 +380,94 @@ namespace SDRSharp.FUNcube
 
         private void ReadDeviceValues()
         {
-            updating = true;
+            _updating = true;
             try
             {
                 if (!LNAGainComboBox.DroppedDown)
                 {
-                    if ((int)funCubeIO.LNAGain >= 4)
+                    if ((int)_owner.LNAGain >= 4)
                     {
-                        LNAGainComboBox.SelectedIndex = (int) funCubeIO.LNAGain - 2;
+                        LNAGainComboBox.SelectedIndex = (int) _owner.LNAGain - 2;
                     }
                     else
                     {
-                        LNAGainComboBox.SelectedIndex = (int) funCubeIO.LNAGain;
+                        LNAGainComboBox.SelectedIndex = (int) _owner.LNAGain;
                     }
 
                 }
                 if (!RFFilterComboBox.DroppedDown)
                 {
-                    RFFilterComboBox.SelectedIndex = funCubeIO.RFFilter == TunerRFFilter.TRFE_LPF268MHZ ? 0 : 1;
+                    RFFilterComboBox.SelectedIndex = _owner.RFFilter == TunerRFFilter.TRFE_LPF268MHZ ? 0 : 1;
                 }
                 if (!mixerGainComboBox.DroppedDown)
                 {
-                    mixerGainComboBox.SelectedIndex = (int) funCubeIO.MixerGain;
+                    mixerGainComboBox.SelectedIndex = (int) _owner.MixerGain;
                 }
                 if (!mixerFilterComboBox.DroppedDown)
                 {
                     if (mixerFilterComboBox.SelectedIndex < 8)
                     {
-                        mixerFilterComboBox.SelectedIndex = 15 - (int) funCubeIO.MixerFilter;
+                        mixerFilterComboBox.SelectedIndex = 15 - (int) _owner.MixerFilter;
                     }
                     else
                     {
-                        mixerFilterComboBox.SelectedIndex = 8 - (int) funCubeIO.MixerFilter;
+                        mixerFilterComboBox.SelectedIndex = 8 - (int) _owner.MixerFilter;
                     }
                 }
                 if (!IFGain1ComboBox.DroppedDown)
                 {
-                    IFGain1ComboBox.SelectedIndex = (int) funCubeIO.IFGain1;
+                    IFGain1ComboBox.SelectedIndex = (int) _owner.IFGain1;
                 }
                 if (!IFGain2ComboBox.DroppedDown)
                 {
-                    IFGain2ComboBox.SelectedIndex = (int) funCubeIO.IFGain2;
+                    IFGain2ComboBox.SelectedIndex = (int) _owner.IFGain2;
                 }
                 if (!IFGain3ComboBox.DroppedDown)
                 {
-                    IFGain3ComboBox.SelectedIndex = (int) funCubeIO.IFGain3;
+                    IFGain3ComboBox.SelectedIndex = (int) _owner.IFGain3;
                 }
                 if (!IFGain4ComboBox.DroppedDown)
                 {
-                    IFGain4ComboBox.SelectedIndex = (int) funCubeIO.IFGain4;
+                    IFGain4ComboBox.SelectedIndex = (int) _owner.IFGain4;
                 }
                 if (!IFGain5ComboBox.DroppedDown)
                 {
-                    IFGain5ComboBox.SelectedIndex = (int) funCubeIO.IFGain5;
+                    IFGain5ComboBox.SelectedIndex = (int) _owner.IFGain5;
                 }
                 if (!IFGain6ComboBox.DroppedDown)
                 {
-                    IFGain6ComboBox.SelectedIndex = (int) funCubeIO.IFGain6;
+                    IFGain6ComboBox.SelectedIndex = (int) _owner.IFGain6;
                 }
                 if (!IFRCFilterComboBox.DroppedDown)
                 {
-                    IFRCFilterComboBox.SelectedIndex = 15 - (int) funCubeIO.IFRCFilter;
+                    IFRCFilterComboBox.SelectedIndex = 15 - (int) _owner.IFRCFilter;
                 }
                 if (!BandComboBox.DroppedDown)
                 {
-                    BandComboBox.SelectedIndex = (int) funCubeIO.Band;
+                    BandComboBox.SelectedIndex = (int) _owner.Band;
                 }
                 if (!IFFilterComboBox.DroppedDown)
                 {
-                    IFFilterComboBox.SelectedIndex = 31 - (int)funCubeIO.IFFilter;
+                    IFFilterComboBox.SelectedIndex = 31 - (int)_owner.IFFilter;
                 }
                 if (!LNAEnhanceComboBox.DroppedDown)
                 {
-                    if (funCubeIO.LNAEnhance == TunerLNAEnhance.TLEE_OFF)
+                    if (_owner.LNAEnhance == TunerLNAEnhance.TLEE_OFF)
                     {
                         LNAEnhanceComboBox.SelectedIndex = 0;
                     }
                     else
                     {
-                        LNAEnhanceComboBox.SelectedIndex = ((int) funCubeIO.LNAEnhance + 1) / 2;
+                        LNAEnhanceComboBox.SelectedIndex = ((int) _owner.LNAEnhance + 1) / 2;
                     }
                 }
                 if (!BiasCurrentComboBox.DroppedDown)
                 {
-                    BiasCurrentComboBox.SelectedIndex = (int) funCubeIO.BiasCurrent;
+                    BiasCurrentComboBox.SelectedIndex = (int) _owner.BiasCurrent;
                 }
                 if (!IFGainModeComboBox.DroppedDown)
                 {
-                    IFGainModeComboBox.SelectedIndex = (int) funCubeIO.IFGainMode;
+                    IFGainModeComboBox.SelectedIndex = (int) _owner.IFGainMode;
                 }
                 if (!LNAGainComboBox.Enabled)
                 {
@@ -514,15 +513,15 @@ namespace SDRSharp.FUNcube
             }
             finally
             {
-                updating = false;
+                _updating = false;
             }
         }
 
         private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            if (!updating)
+            if (!_updating)
             {
-                updating = true;
+                _updating = true;
                 try
                 {
                     _owner.FrequencyCorrection = (double) frequencyCorrectionNumericUpDown.Value;
@@ -532,14 +531,14 @@ namespace SDRSharp.FUNcube
                 }
                 finally
                 {
-                    updating = false;
+                    _updating = false;
                 }
             }
         }
 
         private void FCDControllerDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Utils.SaveSetting("funcubeFrequencyCorrection", _owner.FrequencyCorrection.ToString());
+            Utils.SaveSetting("funcubeFrequencyCorrection", _owner.FrequencyCorrection.ToString(CultureInfo.InvariantCulture));
         }
     }
 }
