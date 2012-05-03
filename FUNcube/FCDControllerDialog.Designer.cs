@@ -75,7 +75,7 @@
             // IFGainModeLabel
             // 
             this.IFGainModeLabel.AutoSize = true;
-            this.IFGainModeLabel.Location = new System.Drawing.Point(249, 170);
+            this.IFGainModeLabel.Location = new System.Drawing.Point(244, 157);
             this.IFGainModeLabel.Name = "IFGainModeLabel";
             this.IFGainModeLabel.Size = new System.Drawing.Size(68, 13);
             this.IFGainModeLabel.TabIndex = 119;
@@ -84,7 +84,7 @@
             // BiasCurrentLabel
             // 
             this.BiasCurrentLabel.AutoSize = true;
-            this.BiasCurrentLabel.Location = new System.Drawing.Point(153, 170);
+            this.BiasCurrentLabel.Location = new System.Drawing.Point(148, 157);
             this.BiasCurrentLabel.Name = "BiasCurrentLabel";
             this.BiasCurrentLabel.Size = new System.Drawing.Size(63, 13);
             this.BiasCurrentLabel.TabIndex = 118;
@@ -97,7 +97,7 @@
             this.IFGainModeComboBox.Items.AddRange(new object[] {
             "Linearity",
             "Sensitivity"});
-            this.IFGainModeComboBox.Location = new System.Drawing.Point(252, 188);
+            this.IFGainModeComboBox.Location = new System.Drawing.Point(247, 175);
             this.IFGainModeComboBox.Name = "IFGainModeComboBox";
             this.IFGainModeComboBox.Size = new System.Drawing.Size(91, 21);
             this.IFGainModeComboBox.TabIndex = 15;
@@ -112,7 +112,7 @@
             "01",
             "10",
             "11 V/U band"});
-            this.BiasCurrentComboBox.Location = new System.Drawing.Point(156, 188);
+            this.BiasCurrentComboBox.Location = new System.Drawing.Point(151, 175);
             this.BiasCurrentComboBox.Name = "BiasCurrentComboBox";
             this.BiasCurrentComboBox.Size = new System.Drawing.Size(90, 21);
             this.BiasCurrentComboBox.TabIndex = 14;
@@ -121,7 +121,7 @@
             // BandLabel
             // 
             this.BandLabel.AutoSize = true;
-            this.BandLabel.Location = new System.Drawing.Point(90, 170);
+            this.BandLabel.Location = new System.Drawing.Point(88, 157);
             this.BandLabel.Name = "BandLabel";
             this.BandLabel.Size = new System.Drawing.Size(32, 13);
             this.BandLabel.TabIndex = 115;
@@ -130,7 +130,7 @@
             // LNAEnhanceLabel
             // 
             this.LNAEnhanceLabel.AutoSize = true;
-            this.LNAEnhanceLabel.Location = new System.Drawing.Point(14, 170);
+            this.LNAEnhanceLabel.Location = new System.Drawing.Point(9, 157);
             this.LNAEnhanceLabel.Name = "LNAEnhanceLabel";
             this.LNAEnhanceLabel.Size = new System.Drawing.Size(73, 13);
             this.LNAEnhanceLabel.TabIndex = 114;
@@ -146,7 +146,7 @@
             "VHF III",
             "UHF",
             "LBAND"});
-            this.BandComboBox.Location = new System.Drawing.Point(93, 188);
+            this.BandComboBox.Location = new System.Drawing.Point(88, 175);
             this.BandComboBox.Name = "BandComboBox";
             this.BandComboBox.Size = new System.Drawing.Size(57, 21);
             this.BandComboBox.TabIndex = 13;
@@ -161,7 +161,7 @@
             "1",
             "2",
             "3"});
-            this.LNAEnhanceComboBox.Location = new System.Drawing.Point(17, 188);
+            this.LNAEnhanceComboBox.Location = new System.Drawing.Point(12, 175);
             this.LNAEnhanceComboBox.Name = "LNAEnhanceComboBox";
             this.LNAEnhanceComboBox.Size = new System.Drawing.Size(70, 21);
             this.LNAEnhanceComboBox.TabIndex = 12;
@@ -169,7 +169,7 @@
             // 
             // DefaultButton
             // 
-            this.DefaultButton.Location = new System.Drawing.Point(944, 186);
+            this.DefaultButton.Location = new System.Drawing.Point(676, 218);
             this.DefaultButton.Name = "DefaultButton";
             this.DefaultButton.Size = new System.Drawing.Size(75, 23);
             this.DefaultButton.TabIndex = 17;
@@ -187,16 +187,16 @@
             "+9 dB",
             "+12 dB",
             "+15 dB"});
-            this.IFGain6ComboBox.Location = new System.Drawing.Point(1016, 136);
+            this.IFGain6ComboBox.Location = new System.Drawing.Point(762, 172);
             this.IFGain6ComboBox.Name = "IFGain6ComboBox";
-            this.IFGain6ComboBox.Size = new System.Drawing.Size(74, 21);
+            this.IFGain6ComboBox.Size = new System.Drawing.Size(70, 21);
             this.IFGain6ComboBox.TabIndex = 11;
             this.IFGain6ComboBox.SelectedIndexChanged += new System.EventHandler(this.IFGain6ComboBox_SelectedIndexChanged);
             // 
             // IFGain6Label
             // 
             this.IFGain6Label.AutoSize = true;
-            this.IFGain6Label.Location = new System.Drawing.Point(1013, 119);
+            this.IFGain6Label.Location = new System.Drawing.Point(759, 156);
             this.IFGain6Label.Name = "IFGain6Label";
             this.IFGain6Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain6Label.TabIndex = 102;
@@ -205,7 +205,7 @@
             // RFFilterLabel
             // 
             this.RFFilterLabel.AutoSize = true;
-            this.RFFilterLabel.Location = new System.Drawing.Point(94, 119);
+            this.RFFilterLabel.Location = new System.Drawing.Point(85, 115);
             this.RFFilterLabel.Name = "RFFilterLabel";
             this.RFFilterLabel.Size = new System.Drawing.Size(43, 13);
             this.RFFilterLabel.TabIndex = 110;
@@ -214,7 +214,7 @@
             // IFGain5Label
             // 
             this.IFGain5Label.AutoSize = true;
-            this.IFGain5Label.Location = new System.Drawing.Point(933, 119);
+            this.IFGain5Label.Location = new System.Drawing.Point(759, 115);
             this.IFGain5Label.Name = "IFGain5Label";
             this.IFGain5Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain5Label.TabIndex = 100;
@@ -230,16 +230,16 @@
             "+9 dB",
             "+12 dB",
             "+15 dB"});
-            this.IFGain5ComboBox.Location = new System.Drawing.Point(936, 136);
+            this.IFGain5ComboBox.Location = new System.Drawing.Point(762, 132);
             this.IFGain5ComboBox.Name = "IFGain5ComboBox";
-            this.IFGain5ComboBox.Size = new System.Drawing.Size(74, 21);
+            this.IFGain5ComboBox.Size = new System.Drawing.Size(70, 21);
             this.IFGain5ComboBox.TabIndex = 10;
             this.IFGain5ComboBox.SelectedIndexChanged += new System.EventHandler(this.IFGain5ComboBox_SelectedIndexChanged);
             // 
             // LNAGainLabel
             // 
             this.LNAGainLabel.AutoSize = true;
-            this.LNAGainLabel.Location = new System.Drawing.Point(14, 119);
+            this.LNAGainLabel.Location = new System.Drawing.Point(9, 115);
             this.LNAGainLabel.Name = "LNAGainLabel";
             this.LNAGainLabel.Size = new System.Drawing.Size(51, 13);
             this.LNAGainLabel.TabIndex = 109;
@@ -248,7 +248,7 @@
             // IFFilterLabel
             // 
             this.IFFilterLabel.AutoSize = true;
-            this.IFFilterLabel.Location = new System.Drawing.Point(835, 119);
+            this.IFFilterLabel.Location = new System.Drawing.Point(654, 115);
             this.IFFilterLabel.Name = "IFFilterLabel";
             this.IFFilterLabel.Size = new System.Drawing.Size(38, 13);
             this.IFFilterLabel.TabIndex = 98;
@@ -291,9 +291,9 @@
             "5.00 MHz",
             "5.30 MHz",
             "5.50 MHz"});
-            this.IFFilterComboBox.Location = new System.Drawing.Point(838, 136);
+            this.IFFilterComboBox.Location = new System.Drawing.Point(657, 132);
             this.IFFilterComboBox.Name = "IFFilterComboBox";
-            this.IFFilterComboBox.Size = new System.Drawing.Size(92, 21);
+            this.IFFilterComboBox.Size = new System.Drawing.Size(88, 21);
             this.IFFilterComboBox.TabIndex = 9;
             this.IFFilterComboBox.SelectedIndexChanged += new System.EventHandler(this.IFFilterComboBox_SelectedIndexChanged);
             // 
@@ -304,9 +304,9 @@
             this.RFFilterComboBox.Items.AddRange(new object[] {
             "268 MHz LPF",
             "299 MHz LPF"});
-            this.RFFilterComboBox.Location = new System.Drawing.Point(97, 136);
+            this.RFFilterComboBox.Location = new System.Drawing.Point(88, 132);
             this.RFFilterComboBox.Name = "RFFilterComboBox";
-            this.RFFilterComboBox.Size = new System.Drawing.Size(117, 21);
+            this.RFFilterComboBox.Size = new System.Drawing.Size(87, 21);
             this.RFFilterComboBox.TabIndex = 1;
             this.RFFilterComboBox.SelectedIndexChanged += new System.EventHandler(this.RFFilterComboBox_SelectedIndexChanged);
             // 
@@ -329,16 +329,16 @@
             "+20.0 dB",
             "+25.0 dB",
             "+30.0 dB"});
-            this.LNAGainComboBox.Location = new System.Drawing.Point(17, 136);
+            this.LNAGainComboBox.Location = new System.Drawing.Point(12, 132);
             this.LNAGainComboBox.Name = "LNAGainComboBox";
-            this.LNAGainComboBox.Size = new System.Drawing.Size(74, 21);
+            this.LNAGainComboBox.Size = new System.Drawing.Size(70, 21);
             this.LNAGainComboBox.TabIndex = 0;
             this.LNAGainComboBox.SelectedIndexChanged += new System.EventHandler(this.LNAGainComboBox_SelectedIndexChanged);
             // 
             // IFGain4Label
             // 
             this.IFGain4Label.AutoSize = true;
-            this.IFGain4Label.Location = new System.Drawing.Point(755, 119);
+            this.IFGain4Label.Location = new System.Drawing.Point(568, 200);
             this.IFGain4Label.Name = "IFGain4Label";
             this.IFGain4Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain4Label.TabIndex = 106;
@@ -347,7 +347,7 @@
             // IFGain3Label
             // 
             this.IFGain3Label.AutoSize = true;
-            this.IFGain3Label.Location = new System.Drawing.Point(675, 119);
+            this.IFGain3Label.Location = new System.Drawing.Point(568, 157);
             this.IFGain3Label.Name = "IFGain3Label";
             this.IFGain3Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain3Label.TabIndex = 105;
@@ -374,16 +374,16 @@
             "17.6 MHz",
             "21.0 MHz",
             "21.4 MHz"});
-            this.IFRCFilterComboBox.Location = new System.Drawing.Point(494, 136);
+            this.IFRCFilterComboBox.Location = new System.Drawing.Point(467, 132);
             this.IFRCFilterComboBox.Name = "IFRCFilterComboBox";
-            this.IFRCFilterComboBox.Size = new System.Drawing.Size(98, 21);
+            this.IFRCFilterComboBox.Size = new System.Drawing.Size(84, 21);
             this.IFRCFilterComboBox.TabIndex = 5;
             this.IFRCFilterComboBox.SelectedIndexChanged += new System.EventHandler(this.IFRCFilterComboBox_SelectedIndexChanged);
             // 
             // IFRCFilterLabel
             // 
             this.IFRCFilterLabel.AutoSize = true;
-            this.IFRCFilterLabel.Location = new System.Drawing.Point(491, 119);
+            this.IFRCFilterLabel.Location = new System.Drawing.Point(464, 115);
             this.IFRCFilterLabel.Name = "IFRCFilterLabel";
             this.IFRCFilterLabel.Size = new System.Drawing.Size(56, 13);
             this.IFRCFilterLabel.TabIndex = 94;
@@ -392,7 +392,7 @@
             // IFGain2Label
             // 
             this.IFGain2Label.AutoSize = true;
-            this.IFGain2Label.Location = new System.Drawing.Point(598, 119);
+            this.IFGain2Label.Location = new System.Drawing.Point(568, 115);
             this.IFGain2Label.Name = "IFGain2Label";
             this.IFGain2Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain2Label.TabIndex = 104;
@@ -401,7 +401,7 @@
             // IFGain1Label
             // 
             this.IFGain1Label.AutoSize = true;
-            this.IFGain1Label.Location = new System.Drawing.Point(411, 119);
+            this.IFGain1Label.Location = new System.Drawing.Point(388, 115);
             this.IFGain1Label.Name = "IFGain1Label";
             this.IFGain1Label.Size = new System.Drawing.Size(48, 13);
             this.IFGain1Label.TabIndex = 93;
@@ -414,9 +414,9 @@
             this.IFGain1ComboBox.Items.AddRange(new object[] {
             "-3 dB",
             "+6 dB"});
-            this.IFGain1ComboBox.Location = new System.Drawing.Point(414, 136);
+            this.IFGain1ComboBox.Location = new System.Drawing.Point(391, 132);
             this.IFGain1ComboBox.Name = "IFGain1ComboBox";
-            this.IFGain1ComboBox.Size = new System.Drawing.Size(74, 21);
+            this.IFGain1ComboBox.Size = new System.Drawing.Size(70, 21);
             this.IFGain1ComboBox.TabIndex = 4;
             this.IFGain1ComboBox.SelectedIndexChanged += new System.EventHandler(this.IFGain1ComboBox_SelectedIndexChanged);
             // 
@@ -428,7 +428,7 @@
             "0 dB",
             "+1 dB",
             "+2 dB"});
-            this.IFGain4ComboBox.Location = new System.Drawing.Point(758, 136);
+            this.IFGain4ComboBox.Location = new System.Drawing.Point(571, 218);
             this.IFGain4ComboBox.Name = "IFGain4ComboBox";
             this.IFGain4ComboBox.Size = new System.Drawing.Size(74, 21);
             this.IFGain4ComboBox.TabIndex = 8;
@@ -437,7 +437,7 @@
             // MixerFilterLabel
             // 
             this.MixerFilterLabel.AutoSize = true;
-            this.MixerFilterLabel.Location = new System.Drawing.Point(297, 119);
+            this.MixerFilterLabel.Location = new System.Drawing.Point(282, 115);
             this.MixerFilterLabel.Name = "MixerFilterLabel";
             this.MixerFilterLabel.Size = new System.Drawing.Size(54, 13);
             this.MixerFilterLabel.TabIndex = 92;
@@ -453,7 +453,7 @@
             "+3 dB",
             "+6 dB",
             "+9 dB"});
-            this.IFGain3ComboBox.Location = new System.Drawing.Point(678, 136);
+            this.IFGain3ComboBox.Location = new System.Drawing.Point(571, 175);
             this.IFGain3ComboBox.Name = "IFGain3ComboBox";
             this.IFGain3ComboBox.Size = new System.Drawing.Size(74, 21);
             this.IFGain3ComboBox.TabIndex = 7;
@@ -473,16 +473,16 @@
             "4.2 MHz",
             "4.6 MHz",
             "27 MHz"});
-            this.mixerFilterComboBox.Location = new System.Drawing.Point(300, 136);
+            this.mixerFilterComboBox.Location = new System.Drawing.Point(285, 132);
             this.mixerFilterComboBox.Name = "mixerFilterComboBox";
-            this.mixerFilterComboBox.Size = new System.Drawing.Size(108, 21);
+            this.mixerFilterComboBox.Size = new System.Drawing.Size(87, 21);
             this.mixerFilterComboBox.TabIndex = 3;
             this.mixerFilterComboBox.SelectedIndexChanged += new System.EventHandler(this.mixerFilterComboBox_SelectedIndexChanged);
             // 
             // MixerGainLabel
             // 
             this.MixerGainLabel.AutoSize = true;
-            this.MixerGainLabel.Location = new System.Drawing.Point(217, 119);
+            this.MixerGainLabel.Location = new System.Drawing.Point(191, 115);
             this.MixerGainLabel.Name = "MixerGainLabel";
             this.MixerGainLabel.Size = new System.Drawing.Size(55, 13);
             this.MixerGainLabel.TabIndex = 91;
@@ -498,7 +498,7 @@
             "+3 dB",
             "+6 dB",
             "+9 dB"});
-            this.IFGain2ComboBox.Location = new System.Drawing.Point(598, 136);
+            this.IFGain2ComboBox.Location = new System.Drawing.Point(571, 132);
             this.IFGain2ComboBox.Name = "IFGain2ComboBox";
             this.IFGain2ComboBox.Size = new System.Drawing.Size(74, 21);
             this.IFGain2ComboBox.TabIndex = 6;
@@ -508,9 +508,9 @@
             // 
             this.pictureBox1.ErrorImage = null;
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(7, 7);
+            this.pictureBox1.Location = new System.Drawing.Point(2, 3);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(1093, 100);
+            this.pictureBox1.Size = new System.Drawing.Size(830, 100);
             this.pictureBox1.TabIndex = 86;
             this.pictureBox1.TabStop = false;
             // 
@@ -521,7 +521,7 @@
             this.mixerGainComboBox.Items.AddRange(new object[] {
             "4 dB",
             "12 dB"});
-            this.mixerGainComboBox.Location = new System.Drawing.Point(220, 136);
+            this.mixerGainComboBox.Location = new System.Drawing.Point(194, 132);
             this.mixerGainComboBox.Name = "mixerGainComboBox";
             this.mixerGainComboBox.Size = new System.Drawing.Size(74, 21);
             this.mixerGainComboBox.TabIndex = 2;
@@ -536,7 +536,7 @@
             // closeButton
             // 
             this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.closeButton.Location = new System.Drawing.Point(1025, 186);
+            this.closeButton.Location = new System.Drawing.Point(757, 218);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(75, 23);
             this.closeButton.TabIndex = 18;
@@ -546,7 +546,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(346, 170);
+            this.label1.Location = new System.Drawing.Point(341, 157);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(136, 13);
             this.label1.TabIndex = 122;
@@ -555,7 +555,12 @@
             // frequencyCorrectionNumericUpDown
             // 
             this.frequencyCorrectionNumericUpDown.DecimalPlaces = 1;
-            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(349, 189);
+            this.frequencyCorrectionNumericUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(344, 176);
             this.frequencyCorrectionNumericUpDown.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -582,7 +587,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
-            this.ClientSize = new System.Drawing.Size(1107, 216);
+            this.ClientSize = new System.Drawing.Size(844, 253);
             this.Controls.Add(this.frequencyCorrectionNumericUpDown);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.closeButton);

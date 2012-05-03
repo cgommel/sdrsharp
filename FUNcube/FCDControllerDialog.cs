@@ -520,7 +520,21 @@ namespace SDRSharp.FUNcube
 
         private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _owner.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
+            if (!updating)
+            {
+                updating = true;
+                try
+                {
+                    _owner.FrequencyCorrection = (double) frequencyCorrectionNumericUpDown.Value;
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    updating = false;
+                }
+            }
         }
 
         private void FCDControllerDialog_FormClosing(object sender, FormClosingEventArgs e)
