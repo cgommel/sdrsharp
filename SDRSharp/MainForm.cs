@@ -43,7 +43,7 @@ namespace SDRSharp
         private readonly Dictionary<string, IFrontendController> _frontendControllers = new Dictionary<string, IFrontendController>();
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
-        private readonly AudioControl _audioControl = new AudioControl();
+        private readonly StreamControl _audioControl = new StreamControl();
         private readonly ComplexFifoStream _fftStream = new ComplexFifoStream();
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];

@@ -22,7 +22,7 @@ namespace SDRSharp.Radio
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
         private readonly DsbDetector _dsbDetector = new DsbDetector();
-        private ComplexDecimator _baseBandDecimator;
+        private IQDecimator _baseBandDecimator;
         private FloatDecimator _audioDecimator;
         private FirFilter _audioFilter;
         private IQFirFilter _iqFilter;
@@ -138,25 +138,49 @@ namespace SDRSharp.Radio
         public float AgcThreshold
         {
             get { return _agc.Threshold; }
-            set { _agc.Threshold = value; }
+            set
+            {
+                lock (this)
+                {
+                    _agc.Threshold = value;
+                }
+            }
         }
 
         public float AgcDecay
         {
             get { return _agc.Decay; }
-            set { _agc.Decay = value; }
+            set
+            {
+                lock (this)
+                {
+                    _agc.Decay = value;
+                }
+            }
         }
 
         public float AgcSlope
         {
             get { return _agc.Slope; }
-            set { _agc.Slope = value; }
+            set
+            {
+                lock (this)
+                {
+                    _agc.Slope = value;
+                }
+            }
         }
 
         public bool AgcHang
         {
             get { return _agc.UseHang; }
-            set { _agc.UseHang = value; }
+            set
+            {
+                lock (this)
+                {
+                    _agc.UseHang = value;
+                }
+            }
         }
 
         public int FmSquelch
@@ -213,7 +237,15 @@ namespace SDRSharp.Radio
                 if (_needNewDecimators)
                 {
                     _needNewDecimators = false;
-                    _baseBandDecimator = new ComplexDecimator(baseBandDecimationFactor);
+                    if (_baseBandDecimator != null)
+                    {
+                        _baseBandDecimator.Dispose();
+                    }
+                    _baseBandDecimator = new IQDecimator(baseBandDecimationFactor);
+                    if (_audioDecimator != null)
+                    {
+                        _audioDecimator.Dispose();
+                    }
                     _audioDecimator = new FloatDecimator(audioDecimationFactor);
                     _needNewFilters = true;
                 }
@@ -286,7 +318,14 @@ namespace SDRSharp.Radio
             }
 
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / baseBandDecimationFactor, iqOrder, iqBW, _windowType);
-            _iqFilter = new IQFirFilter(coeffs);
+            if (_iqFilter == null)
+            {
+                _iqFilter = new IQFirFilter(coeffs);
+            }
+            else
+            {
+                _iqFilter.SetCoefficients(coeffs);
+            }
 
             var afOrder = _filterOrder;
 
@@ -327,7 +366,14 @@ namespace SDRSharp.Radio
             }
 
             coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate / baseBandDecimationFactor / audioDecimationFactor, afOrder, cutoff1, cutoff2, _windowType);
-            _audioFilter = new FirFilter(coeffs);
+            if (_audioFilter == null)
+            {
+                _audioFilter = new FirFilter(coeffs);
+            }
+            else
+            {
+                _audioFilter.SetCoefficients(coeffs);
+            }
         }
 
         public void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
@@ -342,7 +388,7 @@ namespace SDRSharp.Radio
                     length /= _baseBandDecimator.Factor;
                 }
                 
-                _iqFilter.ProcessSymmetricKernel(iqBuffer, length);
+                _iqFilter.Process(iqBuffer, length);
 
                 var audio = stackalloc float[length];
 
@@ -354,7 +400,7 @@ namespace SDRSharp.Radio
                     length /= _audioDecimator.Factor;
                 }
                 
-                _audioFilter.ProcessSymmetricKernel(audio, length);
+                _audioFilter.Process(audio, length);
                 
                 if (_useAgc && _detectorType != DetectorType.WFM)
                 {
@@ -369,8 +415,7 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                _localOscillator.Tick();
-                iq[i] *= _localOscillator;
+                iq[i] *= _localOscillator.Tick();
             }
         }
 

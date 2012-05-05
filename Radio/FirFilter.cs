@@ -4,37 +4,89 @@ namespace SDRSharp.Radio
 {
     public unsafe class FirFilter : IDisposable
     {
-        private readonly float* _coeffPtr;
-        private readonly UnsafeBuffer _coeffBuffer;
+        private const double Epsilon = 1e-6;
 
-        private readonly float* _queuePtr;
-        private readonly UnsafeBuffer _queueBuffer;
+        private float* _coeffPtr;
+        private UnsafeBuffer _coeffBuffer;
 
-        private readonly int _queueSize;
+        private float* _queuePtr;
+        private UnsafeBuffer _queueBuffer;
+
+        private int _queueSize;
+        private bool _isSymmetric;
+        private bool _isSparse;
 
         public FirFilter(float[] coefficients)
         {
-            _coeffBuffer = UnsafeBuffer.Create(coefficients);
-            _coeffPtr = (float*) _coeffBuffer;
+            SetCoefficients(coefficients);
+        }
 
-            _queueBuffer = UnsafeBuffer.Create<float>(coefficients.Length);
-            _queuePtr = (float*) _queueBuffer;
-
-            _queueSize = coefficients.Length;
+        ~FirFilter()
+        {
+            Dispose();
         }
 
         public void Dispose()
         {
             _coeffBuffer.Dispose();
             _queueBuffer.Dispose();
+            GC.SuppressFinalize(this);
         }
 
-        public float* Coefficients
+        public int Length
         {
-            get { return _coeffPtr; }
+            get { return _queueSize; }
+        }
+
+        public void SetCoefficients(float[] coefficients)
+        {
+            if (_coeffBuffer == null || coefficients.Length != _queueSize)
+            {
+                _queueSize = coefficients.Length;
+
+                if (_coeffBuffer != null)
+                {
+                    _coeffBuffer.Dispose();
+                }
+                _coeffBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
+                _coeffPtr = (float*) _coeffBuffer;
+
+
+                if (_queueBuffer != null)
+                {
+                    _queueBuffer.Dispose();
+                }
+                _queueBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
+                _queuePtr = (float*) _queueBuffer;
+            }
+
+            for (var i = 0; i < _queueSize; i++)
+            {
+                _coeffPtr[i] = coefficients[i];
+            }
+
+            _isSymmetric = true;
+            _isSparse = true;
+
+            var halfLen = _queueSize / 2;
+
+            for (var i = 0; i < halfLen; i++)
+            {
+                var j = _queueSize - 1 - i;
+                if (Math.Abs(_coeffPtr[i] - _coeffPtr[j]) > Epsilon)
+                {
+                    _isSymmetric = false;
+                    _isSparse = false;
+                    break;
+                }
+                if (i % 2 == 0)
+                {
+                    _isSparse = _coeffPtr[i] == 0f && _coeffPtr[j] == 0f;
+                }
+            }
         }
         
-        public float ProcessSparseSymmetricKernel(float sample)
+        private float ProcessSparseSymmetricKernel(float sample)
         {
             _queuePtr[0] = sample;
 
@@ -81,7 +133,7 @@ namespace SDRSharp.Radio
             return result;
         }
 
-        public float ProcessSymmetricKernel(float sample)
+        private float ProcessSymmetricKernel(float sample)
         {
             _queuePtr[0] = sample;
 
@@ -119,23 +171,7 @@ namespace SDRSharp.Radio
             return result;
         }
 
-        public void ProcessSymmetricKernel(float* buffer, int length)
-        {
-            for (var n = 0; n < length; n++)
-            {
-                buffer[n] = ProcessSymmetricKernel(buffer[n]);
-            }
-        }
-
-        public void ProcessSparseSymmetricKernel(float* buffer, int length)
-        {
-            for (var n = 0; n < length; n++)
-            {
-                buffer[n] = ProcessSparseSymmetricKernel(buffer[n]);
-            }
-        }
-
-        public float Process(float sample)
+        private float ProcessStandard(float sample)
         {
             _queuePtr[0] = sample;
 
@@ -166,11 +202,56 @@ namespace SDRSharp.Radio
             return result;
         }
 
-        public void Process(float* buffer, int length)
+        public float Process(float sample)
+        {
+            if (_isSparse)
+            {
+                return ProcessSparseSymmetricKernel(sample);
+            }
+            if (_isSymmetric)
+            {
+                return ProcessSymmetricKernel(sample);
+            }
+            return ProcessStandard(sample);
+        }
+
+        private void ProcessSymmetricKernel(float* buffer, int length)
         {
             for (var n = 0; n < length; n++)
             {
-                buffer[n] = Process(buffer[n]);
+                buffer[n] = ProcessSymmetricKernel(buffer[n]);
+            }
+        }
+
+        private void ProcessSparseSymmetricKernel(float* buffer, int length)
+        {
+            for (var n = 0; n < length; n++)
+            {
+                buffer[n] = ProcessSparseSymmetricKernel(buffer[n]);
+            }
+        }
+
+        private void ProcessStandard(float* buffer, int length)
+        {
+            for (var n = 0; n < length; n++)
+            {
+                buffer[n] = ProcessStandard(buffer[n]);
+            }
+        }
+
+        public void Process(float* buffer, int length)
+        {
+            if (_isSparse)
+            {
+                ProcessSparseSymmetricKernel(buffer, length);
+            }
+            else if (_isSymmetric)
+            {
+                ProcessSymmetricKernel(buffer, length);
+            }
+            else
+            {
+                ProcessStandard(buffer, length);
             }
         }
     }

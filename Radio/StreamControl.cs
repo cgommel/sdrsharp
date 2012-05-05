@@ -6,10 +6,10 @@ namespace SDRSharp.Radio
 {
     public unsafe delegate void BufferNeededDelegate(Complex* iqBuffer, float* audioBuffer, int length);
 
-    public unsafe class AudioControl : IDisposable
+    public unsafe class StreamControl : IDisposable
     {
         private const int WaveBufferSize = 16 * 1024;
-        private const int MaxOutputSampleRate = 32000;
+        private const int MinOutputSampleRate = 32000;
         
         private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
@@ -48,14 +48,20 @@ namespace SDRSharp.Radio
 
         public event BufferNeededDelegate BufferNeeded;
 
-        public AudioControl()
+        public StreamControl()
         {
             AudioGain = 10.0f;
+        }
+
+        ~StreamControl()
+        {
+            Dispose();
         }
 
         public void Dispose()
         {
             Stop();
+            GC.SuppressFinalize(this);
         }
 
         public float AudioGain
@@ -129,13 +135,13 @@ namespace SDRSharp.Radio
 
             if (_dspInBuffer == null || _dspInBuffer.Length != frameCount)
             {
-                _dspInBuffer = UnsafeBuffer.Create<Complex>(frameCount);
+                _dspInBuffer = UnsafeBuffer.Create(frameCount, sizeof(Complex));
                 _dspInPtr = (Complex*) _dspInBuffer;
             }
 
             if (_dspOutBuffer == null || _dspOutBuffer.Length != _dspInBuffer.Length)
             {
-                _dspOutBuffer = UnsafeBuffer.Create<float>(_dspInBuffer.Length);
+                _dspOutBuffer = UnsafeBuffer.Create(_dspInBuffer.Length, sizeof(float));
                 _dspOutPtr = (float*) _dspOutBuffer;
             }
 
@@ -154,7 +160,7 @@ namespace SDRSharp.Radio
 
             if (_audioOutBuffer == null || _audioOutBuffer.Length != frameCount)
             {
-                _audioOutBuffer = UnsafeBuffer.Create<float>(frameCount);
+                _audioOutBuffer = UnsafeBuffer.Create(frameCount, sizeof(float));
                 _audioOutPtr = (float*) _audioOutBuffer;
             }
 
@@ -176,7 +182,7 @@ namespace SDRSharp.Radio
 
             if (_iqInBuffer == null || _iqInBuffer.Length != frameCount)
             {
-                _iqInBuffer = UnsafeBuffer.Create<Complex>(frameCount);
+                _iqInBuffer = UnsafeBuffer.Create(frameCount, sizeof(Complex));
                 _iqInPtr = (Complex*) _iqInBuffer;
             }
 
@@ -194,7 +200,7 @@ namespace SDRSharp.Radio
             {
                 while (IsPlaying)
                 {
-                    if (_iqStream.Length < _inputBufferSize * 4)
+                    if (_iqStream.Length < WaveBufferSize * 4)
                     {
                         _waveFile.Read(waveInBuffer, waveInBuffer.Length);
                         _iqStream.Write(waveInPtr, waveInBuffer.Length);
@@ -213,13 +219,13 @@ namespace SDRSharp.Radio
 
             if (_dspInBuffer == null || _dspInBuffer.Length != _inputBufferSize)
             {
-                _dspInBuffer = UnsafeBuffer.Create<Complex>(_inputBufferSize);
+                _dspInBuffer = UnsafeBuffer.Create(_inputBufferSize, sizeof(Complex));
                 _dspInPtr = (Complex*) _dspInBuffer;
             }
 
             if (_dspOutBuffer == null || _dspOutBuffer.Length != _outputBufferSize)
             {
-                _dspOutBuffer = UnsafeBuffer.Create<float>(_outputBufferSize);
+                _dspOutBuffer = UnsafeBuffer.Create(_outputBufferSize, sizeof(float));
                 _dspOutPtr = (float*) _dspOutBuffer;
             }
 
@@ -422,18 +428,16 @@ namespace SDRSharp.Radio
 
         private int GetDecimationFactor()
         {
-            if (_inputSampleRate <= MaxOutputSampleRate)
+            if (_inputSampleRate <= MinOutputSampleRate)
             {
                 return 1;
             }
 
-            int result = 1;
-            int suggestedRate;
-            do
+            int result = 1024;
+            while (_inputSampleRate < MinOutputSampleRate * result && result > 0)
             {
-                result *= 2;
-                suggestedRate = MaxOutputSampleRate * result;
-            } while (_inputSampleRate > suggestedRate);
+                result /= 2;
+            }
 
             return result;
         }

@@ -85,7 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmDetector.cs" />
-    <Compile Include="AudioControl.cs" />
+    <Compile Include="StreamControl.cs" />
     <Compile Include="AutomaticGain.cs" />
     <Compile Include="DsbDetector.cs" />
     <Compile Include="DcRemover.cs" />

@@ -25,10 +25,10 @@ namespace SDRSharp.Radio
 
         public IQBalancer()
         {
-            _fftBuffer = UnsafeBuffer.Create<Complex>(FFTBins);
+            _fftBuffer = UnsafeBuffer.Create(FFTBins, sizeof(Complex));
             _fftPtr = (Complex*) _fftBuffer;
 
-            _spectrumBuffer = UnsafeBuffer.Create<float>(FFTBins);
+            _spectrumBuffer = UnsafeBuffer.Create(FFTBins, sizeof(float));
             _spectrumPtr = (float*) _spectrumBuffer;
 
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);

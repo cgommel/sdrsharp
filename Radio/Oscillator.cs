@@ -56,13 +56,17 @@ namespace SDRSharp.Radio
             }
         }
 
-        public void Tick()
+        public Complex Tick()
         {
             const double rad2Pi = 2.0 * Math.PI;
             _outI = (float) Math.Cos(_phase);
             _outQ = (float) Math.Sin(_phase);
             _phase += _anglePerSample;
-            _phase = _phase % rad2Pi;
+            if (_phase > rad2Pi || _phase < -rad2Pi)
+            {
+                _phase = _phase % rad2Pi;
+            }
+            return Out;
         }
 
         public static implicit operator Complex(Oscillator osc)

@@ -33,8 +33,10 @@ namespace SDRSharp.Radio
 
         #region Private fields
 
-        private float[] _sigDelayBuf;
-        private float[] _magBuf;
+        private UnsafeBuffer _sigDelayBuf;
+        private float* _sigDelayBufPtr;
+        private UnsafeBuffer _magBuf;
+        private float* _magBufPtr;
         private float _decayAve;
         private float _attackAve;
 
@@ -137,12 +139,23 @@ namespace SDRSharp.Radio
                     _delaySamples = (int) (_sampleRate * DelayTimeconst);
                     _windowSamples = (int) (_sampleRate * WindowTimeconst);
 
-                    _sigDelayBuf = new float[_delaySamples];
-                    _magBuf = new float[_windowSamples];
+                    if (_sigDelayBuf != null)
+                    {
+                        _sigDelayBuf.Dispose();
+                    }
+                    _sigDelayBuf = UnsafeBuffer.Create(_delaySamples, sizeof(float));
+                    _sigDelayBufPtr = (float*) _sigDelayBuf;
+
+                    if (_magBuf != null)
+                    {
+                        _magBuf.Dispose();
+                    }
+                    _magBuf = UnsafeBuffer.Create(_windowSamples, sizeof(float));
+                    _magBufPtr = (float*) _magBuf;
 
                     for (int i = 0; i < _windowSamples; i++)
                     {
-                        _magBuf[i] = -16.0f;
+                        _magBufPtr[i] = -16.0f;
                     }
 
                     //clamp Delay samples within buffer limit
@@ -183,9 +196,9 @@ namespace SDRSharp.Radio
                 sample *= 1000.0f;
 
                 //Get delayed sample of input signal
-                var delayedin = _sigDelayBuf[_sigDelayPtr];
+                var delayedin = _sigDelayBufPtr[_sigDelayPtr];
                 //put new input sample into signal delay buffer
-                _sigDelayBuf[_sigDelayPtr++] = sample;
+                _sigDelayBufPtr[_sigDelayPtr++] = sample;
                 if (_sigDelayPtr >= _delaySamples)    //deal with delay buffer wrap around
                     _sigDelayPtr = 0;
 
@@ -197,8 +210,8 @@ namespace SDRSharp.Radio
                 }
 
                 //create a sliding window of '_WindowSamples' magnitudes and output the peak value within the sliding window
-                var tmp = _magBuf[_magBufPos];    //get oldest mag sample from buffer into tmp
-                _magBuf[_magBufPos++] = mag;            //put latest mag sample in buffer;
+                var tmp = _magBufPtr[_magBufPos];    //get oldest mag sample from buffer into tmp
+                _magBufPtr[_magBufPos++] = mag;            //put latest mag sample in buffer;
                 if (_magBufPos >= _windowSamples)        //deal with magnitude buffer wrap around
                     _magBufPos = 0;
                 if (mag > _peak)
@@ -213,7 +226,7 @@ namespace SDRSharp.Radio
                         //search all buffer for maximum value and set as new peak
                         for (var j = 0; j < _windowSamples; j++)
                         {
-                            tmp = _magBuf[j];
+                            tmp = _magBufPtr[j];
                             if (tmp > _peak)
                                 _peak = tmp;
                         }
