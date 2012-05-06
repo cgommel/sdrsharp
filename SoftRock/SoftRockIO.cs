@@ -5,6 +5,7 @@ namespace SDRSharp.SoftRock
 {
     public class SoftRockIO : IFrontendController, IDisposable
     {
+        private static readonly double _frequencyMultiplier = Utils.GetDoubleSetting("softrockFrequencyMultiplier", 4);
         private IntPtr _srHandle;
 
         public void Dispose()
@@ -65,16 +66,16 @@ namespace SDRSharp.SoftRock
         {
         }
 
-        private static int GetSi570Frequency()
+        private int GetSi570Frequency()
         {
             double mhz;
             NativeUsb.srGetFreq(out mhz);
-            return (int)(mhz * 1e6 / 4);
+            return (int)(mhz * 1e6 / _frequencyMultiplier);
         }
 
-        private static void SetSi570Frequency(int frequency)
+        private void SetSi570Frequency(int frequency)
         {
-            var mhz = frequency / 1e6 * 4;
+            var mhz = frequency / 1e6 * _frequencyMultiplier;
             NativeUsb.srSetFreq(mhz, NativeUsb.I2CAddr);
         }
     }
