@@ -43,7 +43,7 @@ namespace SDRSharp
         private readonly Dictionary<string, IFrontendController> _frontendControllers = new Dictionary<string, IFrontendController>();
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
-        private readonly StreamControl _audioControl = new StreamControl();
+        private readonly StreamControl _streamControl = new StreamControl();
         private readonly ComplexFifoStream _fftStream = new ComplexFifoStream();
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
@@ -115,8 +115,8 @@ namespace SDRSharp
 
             cwShiftNumericUpDown.Value = Vfo.DefaultCwSideTone;
 
-            _audioControl.AudioGain = 25.0f;
-            _audioControl.BufferNeeded += ProcessBuffer;
+            _streamControl.AudioGain = 25.0f;
+            _streamControl.BufferNeeded += ProcessBuffer;
 
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             waterfall.Frequency = _vfo.Frequency;
@@ -163,7 +163,7 @@ namespace SDRSharp
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
-            _audioControl.Stop();
+            _streamControl.Stop();
             if (_frontendController != null)
             {
                 _frontendController.Close();
@@ -184,18 +184,18 @@ namespace SDRSharp
 
         private void ProcessFFT()
         {
-            while (_audioControl.IsPlaying)
+            while (_streamControl.IsPlaying)
             {
                 // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                 var fftGain = (float) (10.0 * Math.Log10((double) _fftBins / 2));
                 var compensation = 24.0f - fftGain;
 
-                while (_audioControl.IsPlaying)
+                while (_streamControl.IsPlaying)
                 {
                     if (_fftOverlap)
                     {
                         var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
-                        var overlapRatio = _audioControl.SampleRate / fftRate;
+                        var overlapRatio = _streamControl.SampleRate / fftRate;
 
                         var bytes = (int)(_fftBins * overlapRatio);
 
@@ -258,7 +258,7 @@ namespace SDRSharp
 
         private void fftTimer_Tick(object sender, EventArgs e)
         {
-            if (_audioControl.IsPlaying)
+            if (_streamControl.IsPlaying)
             {
                 if (_fftOverlap)
                 {
@@ -316,7 +316,7 @@ namespace SDRSharp
         {
             if (soundCardRadioButton.Checked)
             {
-                _audioControl.Stop();
+                _streamControl.Stop();
                 wavFileTextBox.Enabled = false;
                 fileSelectButton.Enabled = false;
                 playButton.Enabled = true;
@@ -336,7 +336,7 @@ namespace SDRSharp
         {
             if (wavFileRadioButton.Checked)
             {
-                _audioControl.Stop();
+                _streamControl.Stop();
                 wavFileTextBox.Enabled = true;
                 fileSelectButton.Enabled = true;
                 playButton.Enabled = true;
@@ -362,7 +362,7 @@ namespace SDRSharp
                 wavFileTextBox.Text = openDlg.FileName;
                 playButton.Enabled = true;
                 stopButton.Enabled = false;
-                _audioControl.Stop();
+                _streamControl.Stop();
             }
         }
 
@@ -384,7 +384,7 @@ namespace SDRSharp
                 {
                     sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
                 }
-                _audioControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
+                _streamControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
             }
             else
             {
@@ -392,7 +392,7 @@ namespace SDRSharp
                 {
                     return;
                 }
-                _audioControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) latencyNumericUpDown.Value);
+                _streamControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) latencyNumericUpDown.Value);
 
                 var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
                 match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
@@ -408,13 +408,13 @@ namespace SDRSharp
                 centerFreqNumericUpDown_ValueChanged(null, null);
             }
 
-            _vfo.SampleRate = _audioControl.SampleRate;
-            _vfo.DecimationFactor = _audioControl.DecimationFactor;
-            spectrumAnalyzer.SpectrumWidth = (int) _audioControl.SampleRate;
+            _vfo.SampleRate = _streamControl.SampleRate;
+            _vfo.DecimationFactor = _streamControl.DecimationFactor;
+            spectrumAnalyzer.SpectrumWidth = (int) _streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + (int) (_audioControl.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - (int) (_audioControl.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = (int) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = (int) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2);
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
@@ -431,7 +431,7 @@ namespace SDRSharp
 
         private void audioGainNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _audioControl.AudioGain = (int)audioGainNumericUpDown.Value;
+            _streamControl.AudioGain = (int)audioGainNumericUpDown.Value;
         }
 
         #endregion
@@ -443,7 +443,7 @@ namespace SDRSharp
             Open();
             try
             {
-                _audioControl.Play();
+                _streamControl.Play();
                 new Thread(ProcessFFT).Start();
                 playButton.Enabled = false;
                 stopButton.Enabled = true;
@@ -461,7 +461,7 @@ namespace SDRSharp
 
         private void stopButton_Click(object sender, EventArgs e)
         {
-            _audioControl.Stop();
+            _streamControl.Stop();
             _fftStream.Flush();
             playButton.Enabled = true;
             stopButton.Enabled = false;
@@ -788,7 +788,7 @@ namespace SDRSharp
 
         private void swapInQCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            _audioControl.SwapIQ = swapInQCheckBox.Checked;
+            _streamControl.SwapIQ = swapInQCheckBox.Checked;
         }
 
         #endregion

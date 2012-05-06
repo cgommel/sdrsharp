@@ -86,8 +86,11 @@ namespace SDRSharp.Radio
             get { return _useHang; }
             set
             {
-                _useHang = value;
-                Configure(false);
+                if (_useHang != value)
+                {
+                    _useHang = value;
+                    Configure(false);
+                }
             }
         }
 
@@ -96,8 +99,11 @@ namespace SDRSharp.Radio
             get { return _threshold; }
             set
             {
-                _threshold = value;
-                Configure(false);
+                if (_threshold != value)
+                {
+                    _threshold = value;
+                    Configure(false);
+                }
             }
         }
 
@@ -106,8 +112,11 @@ namespace SDRSharp.Radio
             get { return _slopeFactor; }
             set
             {
-                _slopeFactor = value;
-                Configure(false);
+                if (_slopeFactor != value)
+                {
+                    _slopeFactor = value;
+                    Configure(false);
+                }
             }
         }
 
@@ -116,8 +125,11 @@ namespace SDRSharp.Radio
             get { return _decay; }
             set
             {
-                _decay = value;
-                Configure(false);
+                if (_decay != value)
+                {
+                    _decay = value;
+                    Configure(false);
+                }
             }
         }
 

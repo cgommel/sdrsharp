@@ -54,12 +54,16 @@ namespace SDRSharp.Radio
         private const string Libc = "libc.so";
 #else
         private const string Libc = "msvcrt.dll";
-#endif
 
         [DllImport(Libc, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl)]
         public static extern void* Memcpy(void* dest, void* src, int len);
 
+        [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod", SetLastError = true)]
+        public static extern uint TimeBeginPeriod(uint uMilliseconds);
 
+        [DllImport("winmm.dll", EntryPoint = "timeEndPeriod", SetLastError = true)]
+        public static extern uint TimeEndPeriod(uint uMilliseconds);
+#endif
 
         public static double GetDoubleSetting(string name, double defaultValue)
         {

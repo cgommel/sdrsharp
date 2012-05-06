@@ -33,16 +33,22 @@ namespace SDRSharp.Radio
         private int _frequency;
         private int _filterOrder;
         private bool _needNewFilters;
-        private bool _useAgc;
         private int _decimationFactor = 1;
         private bool _needNewDecimators;
         private int _cwToneShift;
+        private bool _needConfigure;
+        private bool _useAgc;
+        private float _agcThreshold;
+        private float _agcDecay;
+        private float _agcSlope;
+        private bool _agcUseHang;
+        private int _fmSquelchThreshold;
 
         public Vfo()
         {
             _bandwidth = DefaultSSBBandwidth;
             _filterOrder = FilterBuilder.DefaultFilterOrder;
-            Configure();
+            _needConfigure = true;
         }
 
         public DetectorType DetectorType
@@ -56,7 +62,7 @@ namespace SDRSharp.Radio
                 _needNewDecimators = (_detectorType == DetectorType.WFM && value != DetectorType.WFM) ||
                                     (_detectorType != DetectorType.WFM && value == DetectorType.WFM);
                 _detectorType = value;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -69,7 +75,7 @@ namespace SDRSharp.Radio
             set
             {
                 _frequency = value;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -83,7 +89,7 @@ namespace SDRSharp.Radio
             {
                 _filterOrder = value;
                 _needNewFilters = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -97,7 +103,7 @@ namespace SDRSharp.Radio
             {
                 _sampleRate = value;
                 _needNewDecimators = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -111,7 +117,7 @@ namespace SDRSharp.Radio
             {
                 _windowType = value;
                 _needNewFilters = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -125,7 +131,7 @@ namespace SDRSharp.Radio
             {
                 _bandwidth = value;
                 _needNewFilters = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -140,10 +146,8 @@ namespace SDRSharp.Radio
             get { return _agc.Threshold; }
             set
             {
-                lock (this)
-                {
-                    _agc.Threshold = value;
-                }
+                _agcThreshold = value;
+                _needConfigure = true;
             }
         }
 
@@ -152,10 +156,8 @@ namespace SDRSharp.Radio
             get { return _agc.Decay; }
             set
             {
-                lock (this)
-                {
-                    _agc.Decay = value;
-                }
+                _agcDecay = value;
+                _needConfigure = true;
             }
         }
 
@@ -164,10 +166,8 @@ namespace SDRSharp.Radio
             get { return _agc.Slope; }
             set
             {
-                lock (this)
-                {
-                    _agc.Slope = value;
-                }
+                _agcSlope = value;
+                _needConfigure = true;
             }
         }
 
@@ -176,17 +176,19 @@ namespace SDRSharp.Radio
             get { return _agc.UseHang; }
             set
             {
-                lock (this)
-                {
-                    _agc.UseHang = value;
-                }
+                _agcUseHang = value;
+                _needConfigure = true;
             }
         }
 
         public int FmSquelch
         {
             get { return _fmDetector.SquelchThreshold; }
-            set { _fmDetector.SquelchThreshold = value; }
+            set
+            {
+                _fmSquelchThreshold = value;
+                _needConfigure = true;
+            }
         }
 
         public int DecimationFactor
@@ -196,7 +198,7 @@ namespace SDRSharp.Radio
             {
                 _decimationFactor = value;
                 _needNewDecimators = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
@@ -207,91 +209,94 @@ namespace SDRSharp.Radio
             {
                 _cwToneShift = value;
                 _needNewFilters = true;
-                Configure();
+                _needConfigure = true;
             }
         }
 
         private void Configure()
         {
-            lock (this)
+            _localOscillator.SampleRate = _sampleRate;
+            _localOscillator.Frequency = _frequency;
+            int baseBandDecimationFactor;
+            int audioDecimationFactor;
+            if (_detectorType == DetectorType.WFM)
             {
-                _localOscillator.SampleRate = _sampleRate;
-                _localOscillator.Frequency = _frequency;
-                int baseBandDecimationFactor;
-                int audioDecimationFactor;
-                if (_detectorType == DetectorType.WFM)
+                var afSamplerate = _sampleRate / _decimationFactor;
+                audioDecimationFactor = 1;
+                while (afSamplerate * audioDecimationFactor < DefaultWFMBandwidth && audioDecimationFactor < _decimationFactor)
                 {
-                    var afSamplerate = _sampleRate / _decimationFactor;
-                    audioDecimationFactor = 1;
-                    while (afSamplerate * audioDecimationFactor < DefaultWFMBandwidth && audioDecimationFactor < _decimationFactor)
-                    {
-                        audioDecimationFactor *= 2;
-                    }
-                    baseBandDecimationFactor = _decimationFactor / audioDecimationFactor;
+                    audioDecimationFactor *= 2;
                 }
-                else
-                {
-                    baseBandDecimationFactor = _decimationFactor;
-                    audioDecimationFactor = 1;
-                }
-                if (_needNewDecimators)
-                {
-                    _needNewDecimators = false;
-                    if (_baseBandDecimator != null)
-                    {
-                        _baseBandDecimator.Dispose();
-                    }
-                    _baseBandDecimator = new IQDecimator(baseBandDecimationFactor);
-                    if (_audioDecimator != null)
-                    {
-                        _audioDecimator.Dispose();
-                    }
-                    _audioDecimator = new FloatDecimator(audioDecimationFactor);
-                    _needNewFilters = true;
-                }
-                if (_needNewFilters)
-                {
-                    _needNewFilters = false;
-                    InitFilters(baseBandDecimationFactor, audioDecimationFactor);
-                }
-                switch (_detectorType)
-                {
-                    case DetectorType.USB:
-                        _usbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        _usbDetector.BfoFrequency = -_bandwidth / 2;
-                        _localOscillator.Frequency -= _usbDetector.BfoFrequency;
-                        break;
-
-                    case DetectorType.LSB:
-                        _lsbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        _lsbDetector.BfoFrequency = -_bandwidth / 2;
-                        _localOscillator.Frequency += _lsbDetector.BfoFrequency;
-                        break;
-
-                    case DetectorType.CWU:
-                        _usbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        _usbDetector.BfoFrequency = -_cwToneShift;
-                        _localOscillator.Frequency -= _usbDetector.BfoFrequency;
-                        break;
-
-                    case DetectorType.CWL:
-                        _lsbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        _lsbDetector.BfoFrequency = -_cwToneShift;
-                        _localOscillator.Frequency += _lsbDetector.BfoFrequency;
-                        break;
-
-                    case DetectorType.NFM:
-                        _fmDetector.Mode = FmMode.Narrow;
-                        _fmDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        break;
-
-                    case DetectorType.WFM:
-                        _fmDetector.Mode = FmMode.Wide;
-                        _fmDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
-                        break;
-                }
-                _agc.SampleRate = _sampleRate / _decimationFactor;
+                baseBandDecimationFactor = _decimationFactor / audioDecimationFactor;
             }
+            else
+            {
+                baseBandDecimationFactor = _decimationFactor;
+                audioDecimationFactor = 1;
+            }
+            if (_needNewDecimators)
+            {
+                _needNewDecimators = false;
+                if (_baseBandDecimator != null)
+                {
+                    _baseBandDecimator.Dispose();
+                }
+                _baseBandDecimator = new IQDecimator(baseBandDecimationFactor);
+                if (_audioDecimator != null)
+                {
+                    _audioDecimator.Dispose();
+                }
+                _audioDecimator = new FloatDecimator(audioDecimationFactor);
+                _needNewFilters = true;
+            }
+            if (_needNewFilters)
+            {
+                _needNewFilters = false;
+                InitFilters(baseBandDecimationFactor, audioDecimationFactor);
+            }
+            switch (_detectorType)
+            {
+                case DetectorType.USB:
+                    _usbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    _usbDetector.BfoFrequency = -_bandwidth / 2;
+                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.LSB:
+                    _lsbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    _lsbDetector.BfoFrequency = -_bandwidth / 2;
+                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.CWU:
+                    _usbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    _usbDetector.BfoFrequency = -_cwToneShift;
+                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.CWL:
+                    _lsbDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    _lsbDetector.BfoFrequency = -_cwToneShift;
+                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    break;
+
+                case DetectorType.NFM:
+                    _fmDetector.Mode = FmMode.Narrow;
+                    _fmDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    _fmDetector.SquelchThreshold = _fmSquelchThreshold;
+                    break;
+
+                case DetectorType.WFM:
+                    _fmDetector.Mode = FmMode.Wide;
+                    _fmDetector.SampleRate = _sampleRate / baseBandDecimationFactor;
+                    break;
+            }
+
+            _agc.SampleRate = _sampleRate / _decimationFactor;
+            _agc.Decay = _agcDecay;
+            _agc.Slope = _agcSlope;
+            _agc.Threshold = _agcThreshold;
+            _agc.UseHang = _agcUseHang;
         }
 
         private void InitFilters(int baseBandDecimationFactor, int audioDecimationFactor)
@@ -378,37 +383,40 @@ namespace SDRSharp.Radio
 
         public void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
         {
-            lock (this)
+            if (_needConfigure)
             {
-                DownConvert(iqBuffer, length);
-
-                if (_baseBandDecimator.Factor >= 2)
-                {
-                    _baseBandDecimator.Process(iqBuffer, length);
-                    length /= _baseBandDecimator.Factor;
-                }
-                
-                _iqFilter.Process(iqBuffer, length);
-
-                var audio = stackalloc float[length];
-
-                Demodulate(iqBuffer, audio, length);
-                
-                if (_audioDecimator.Factor >= 2)
-                {
-                    _audioDecimator.Process(audio, length);
-                    length /= _audioDecimator.Factor;
-                }
-                
-                _audioFilter.Process(audio, length);
-                
-                if (_useAgc && _detectorType != DetectorType.WFM)
-                {
-                    _agc.Process(audio, length);
-                }
-
-                Utils.Memcpy(audioBuffer, audio, length * sizeof(float));
+                Configure();
+                _needConfigure = false;
             }
+
+            DownConvert(iqBuffer, length);
+
+            if (_baseBandDecimator.Factor >= 2)
+            {
+                _baseBandDecimator.Process(iqBuffer, length);
+                length /= _baseBandDecimator.Factor;
+            }
+                
+            _iqFilter.Process(iqBuffer, length);
+
+            var audio = stackalloc float[length];
+
+            Demodulate(iqBuffer, audio, length);
+                
+            if (_audioDecimator.Factor >= 2)
+            {
+                _audioDecimator.Process(audio, length);
+                length /= _audioDecimator.Factor;
+            }
+                
+            _audioFilter.Process(audio, length);
+                
+            if (_useAgc && _detectorType != DetectorType.WFM)
+            {
+                _agc.Process(audio, length);
+            }
+
+            Utils.Memcpy(audioBuffer, audio, length * sizeof(float));
         }
 
         private void DownConvert(Complex* iq, int length)

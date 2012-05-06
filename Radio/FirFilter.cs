@@ -30,6 +30,8 @@ namespace SDRSharp.Radio
         {
             _coeffBuffer.Dispose();
             _queueBuffer.Dispose();
+            _coeffPtr = null;
+            _queuePtr = null;
             GC.SuppressFinalize(this);
         }
 

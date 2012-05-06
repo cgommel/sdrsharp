@@ -9,7 +9,7 @@ namespace SDRSharp.Radio.PortAudio
 	    private const float InputGain = 0.01f;
 
 		private readonly Stream _stream;
-	    private readonly bool _isPCM;
+	    private bool _isPCM;
 		private long _dataPos;
 	    private short _formatTag;
 	    private int _sampleRate;
@@ -19,11 +19,15 @@ namespace SDRSharp.Radio.PortAudio
         private short _bitsPerSample;
         private byte[] _tempBuffer;
 
+        ~WaveFile()
+        {
+            Dispose();
+        }
+
         public WaveFile(string fileName)
         {
             _stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             ReadHeader();
-            _isPCM = _formatTag == 1;
         }
 
         public void Dispose()
@@ -63,7 +67,8 @@ namespace SDRSharp.Radio.PortAudio
 			if (len < 16) // bad format chunk length
 				throw new Exception("Invalid file format");
 
-			_formatTag = reader.ReadInt16();
+            _formatTag = reader.ReadInt16();
+            _isPCM = _formatTag == 1;
 			var nChannels = reader.ReadInt16();
             if (nChannels != 2)
                 throw new Exception("Invalid file format");
@@ -95,7 +100,7 @@ namespace SDRSharp.Radio.PortAudio
 				throw new Exception("Invalid file format");
 
 			_length = reader.ReadInt32();
-			_dataPos = _stream.Position;
+            _dataPos = _stream.Position;
 		}
 
         public void Read(Complex[] iqBuffer, int length)
