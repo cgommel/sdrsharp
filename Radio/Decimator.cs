@@ -60,6 +60,9 @@ namespace SDRSharp.Radio
                0.03877621242815903f
             };
 
+        /// <summary>
+        /// Contributed by N4IP
+        /// </summary>
         public static readonly float[] Kernel27 = 
         {
            0.0001091015490441f,
@@ -191,7 +194,7 @@ namespace SDRSharp.Radio
             {
                 Kernel51,
                 Kernel31,
-                Kernel21,
+                Kernel27,
                 Kernel9,
                 Kernel5
             };

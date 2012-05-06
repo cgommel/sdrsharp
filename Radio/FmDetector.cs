@@ -155,8 +155,11 @@ namespace SDRSharp.Radio
             get { return _squelchThreshold; }
             set
             {
-                _squelchThreshold = value;
-                _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold / 100.0) * HissFactor;
+                if (_squelchThreshold != value)
+                {
+                    _squelchThreshold = value;
+                    _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold/100.0)*HissFactor;
+                }
             }
         }
 
