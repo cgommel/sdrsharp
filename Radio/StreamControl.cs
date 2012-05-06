@@ -9,7 +9,7 @@ namespace SDRSharp.Radio
     public unsafe class StreamControl : IDisposable
     {
         private const int WaveBufferSize = 16 * 1024;
-        private const int MinOutputSampleRate = 32000;
+        private const int MinOutputSampleRate = 24000;
         
         private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
@@ -200,7 +200,7 @@ namespace SDRSharp.Radio
             {
                 while (IsPlaying)
                 {
-                    if (_iqStream.Length < WaveBufferSize * 4)
+                    if (_iqStream.Length < _inputBufferSize * 4)
                     {
                         _waveFile.Read(waveInBuffer, waveInBuffer.Length);
                         _iqStream.Write(waveInPtr, waveInBuffer.Length);

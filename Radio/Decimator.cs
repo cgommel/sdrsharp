@@ -190,15 +190,20 @@ namespace SDRSharp.Radio
         public static readonly float[][] Kernels =
             {
                 Kernel51,
-                Kernel27,
+                Kernel31,
                 Kernel21,
                 Kernel9,
                 Kernel5
             };
 
-        public static float[] GetKenrel(int stage)
+        public static float[] GetKenrel(int stage, int totalStages)
         {
-            return stage < Kernels.Length ? Kernels[stage] : Kernels[Kernels.Length - 1];
+            stage = totalStages - 1 - stage;
+            if (stage >= Kernels.Length)
+            {
+                return Kernels[Kernels.Length - 1];
+            }
+            return Kernels[stage];
         }
     }
 
@@ -212,9 +217,9 @@ namespace SDRSharp.Radio
             _decimationFactor = decimationFactor;
             var stages = (int) (Math.Log(decimationFactor) / Math.Log(2));
             _filters = new IQFirFilter[stages];
-            for (var i = stages - 1; i >= 0; i--)
+            for (var i = 0; i < stages; i++)
             {
-                var kernel = DecimationKernels.GetKenrel(i);
+                var kernel = DecimationKernels.GetKenrel(i, stages);
                 _filters[i] = new IQFirFilter(kernel);
             }
         }
@@ -226,9 +231,9 @@ namespace SDRSharp.Radio
 
         public void Dispose()
         {
-            for (var n = 0; n < _filters.Length; n++)
+            for (var i = 0; i < _filters.Length; i++)
             {
-                _filters[n].Dispose();
+                _filters[i].Dispose();
             }
             GC.SuppressFinalize(this);
         }
@@ -263,9 +268,9 @@ namespace SDRSharp.Radio
             _decimationFactor = decimationFactor;
             var stages = (int)(Math.Log(decimationFactor) / Math.Log(2));
             _filters = new FirFilter[stages];
-            for (var i = stages - 1; i >= 0; i--)
+            for (var i = 0; i < stages; i++)
             {
-                var kernel = DecimationKernels.GetKenrel(i);
+                var kernel = DecimationKernels.GetKenrel(i, stages);
                 _filters[i] = new FirFilter(kernel);
             }
         }

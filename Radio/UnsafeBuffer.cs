@@ -5,8 +5,8 @@ namespace SDRSharp.Radio
 {
     public unsafe class UnsafeBuffer : IDisposable
     {
-        private readonly void* _ptr;
         private readonly GCHandle _handle;
+        private void* _ptr;
         private int _length;
         private Array _buffer;
 
@@ -30,6 +30,7 @@ namespace SDRSharp.Radio
                 _handle.Free();
             }
             _buffer = null;
+            _ptr = null;
             _length = 0;
             GC.SuppressFinalize(this);
         }
