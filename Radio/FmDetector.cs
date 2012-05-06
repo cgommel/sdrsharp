@@ -84,6 +84,10 @@ namespace SDRSharp.Radio
             {
                 if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
+                    if (_hissBuffer != null)
+                    {
+                        _hissBuffer.Dispose();
+                    }
                     _hissBuffer = UnsafeBuffer.Create(length, sizeof(float));
                     _hissPtr = (float*) _hissBuffer;
                 }
@@ -130,12 +134,15 @@ namespace SDRSharp.Radio
             }
             set
             {
-                _sampleRate = value;
-                _noiseAveragingRatio = (float) (30.0 / _sampleRate);
-                var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
-                _hissFilter = new FirFilter(bpk);
+                if (value != _sampleRate)
+                {
+                    _sampleRate = value;
+                    _noiseAveragingRatio = (float)(30.0 / _sampleRate);
+                    var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
+                    _hissFilter = new FirFilter(bpk);
 
-                _deemphasisAlpha = (float) (1.0 - Math.Exp(-1.0 / (_sampleRate * DeemphasisTime)));
+                    _deemphasisAlpha = (float)(1.0 - Math.Exp(-1.0 / (_sampleRate * DeemphasisTime)));
+                }
             }
         }
 
