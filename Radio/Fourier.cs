@@ -90,7 +90,8 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                buffer[i] *= window[i];
+                buffer[i].Real *= window[i];
+                buffer[i].Imag *= window[i];
             }
         }
 

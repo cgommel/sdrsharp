@@ -4,13 +4,11 @@ namespace SDRSharp.Radio
 {
     public unsafe class IQFirFilter : IDisposable
     {
-        private readonly int _filterLength;
-        private FirFilter _rFilter;
-        private FirFilter _iFilter;
+        private readonly FirFilter _rFilter;
+        private readonly FirFilter _iFilter;
 
         public IQFirFilter(float[] coefficients)
         {
-            _filterLength = coefficients.Length;
             _rFilter = new FirFilter(coefficients);
             _iFilter = new FirFilter(coefficients);
         }
@@ -29,11 +27,9 @@ namespace SDRSharp.Radio
 
         public void Process(Complex* iq, int length)
         {
-            for (var i = 0; i < length; i++)
-            {
-                iq[i].Real = _rFilter.Process(iq[i].Real);
-                iq[i].Imag = _iFilter.Process(iq[i].Imag);
-            }
+            var ptr = (float*) iq;
+            _rFilter.ProcessInterleaved(ptr, length);
+            _iFilter.ProcessInterleaved(ptr + 1, length);
         }
 
         public void SetCoefficients(float[] coefficients)

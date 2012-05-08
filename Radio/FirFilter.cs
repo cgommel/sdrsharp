@@ -70,166 +70,209 @@ namespace SDRSharp.Radio
             _isSymmetric = true;
             _isSparse = true;
 
-            var halfLen = _queueSize / 2;
-
-            for (var i = 0; i < halfLen; i++)
+            if (_queueSize % 2 != 0)
             {
-                var j = _queueSize - 1 - i;
-                if (Math.Abs(_coeffPtr[i] - _coeffPtr[j]) > Epsilon)
+                var halfLen = _queueSize / 2;
+
+                for (var i = 0; i < halfLen; i++)
                 {
-                    _isSymmetric = false;
-                    _isSparse = false;
-                    break;
+                    var j = _queueSize - 1 - i;
+                    if (Math.Abs(_coeffPtr[i] - _coeffPtr[j]) > Epsilon)
+                    {
+                        _isSymmetric = false;
+                        _isSparse = false;
+                        break;
+                    }
+                    if (i % 2 != 0)
+                    {
+                        _isSparse = _coeffPtr[i] == 0f && _coeffPtr[j] == 0f;
+                    }
                 }
-                if (i % 2 == 0)
-                {
-                    _isSparse = _coeffPtr[i] == 0f && _coeffPtr[j] == 0f;
-                }
             }
-        }
-        
-        private float ProcessSparseSymmetricKernel(float sample)
-        {
-            _queuePtr[0] = sample;
-
-            var result = 0.0f;
-
-            var halfLen = _queueSize / 2;
-            var len = halfLen;
-
-            var ptr1 = _coeffPtr;
-            var ptr2 = _queuePtr;
-            var ptr3 = _queuePtr + _queueSize - 1;
-
-            if (len >= 8)
-            {
-                do
-                {
-                    result += ptr1[0] * (ptr2[0] + ptr3[0])
-                            + ptr1[2] * (ptr2[2] + ptr3[-2])
-                            + ptr1[4] * (ptr2[4] + ptr3[-4])
-                            + ptr1[6] * (ptr2[6] + ptr3[-6]);
-
-                    ptr1 += 8;
-                    ptr2 += 8;
-                    ptr3 -= 8;
-                } while ((len -= 8) >= 8);
-            }
-            if (len >= 4)
-            {
-                result += ptr1[0] * (ptr2[0] + ptr3[0])
-                        + ptr1[2] * (ptr2[2] + ptr3[-2]);
-                ptr1 += 4;
-                ptr2 += 4;
-                ptr3 -= 4;
-                len -= 4;
-            }
-            while (len-- > 0)
-            {
-                result += *ptr1++ * (*ptr2++ + *ptr3--);
-            }
-            result += _queuePtr[halfLen] * _coeffPtr[halfLen];
-
-            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
-
-            return result;
-        }
-
-        private float ProcessSymmetricKernel(float sample)
-        {
-            _queuePtr[0] = sample;
-
-            var result = 0.0f;
-
-            var halfLen = _queueSize / 2;
-            var len = halfLen;
-
-            var ptr1 = _coeffPtr;
-            var ptr2 = _queuePtr;
-            var ptr3 = _queuePtr + _queueSize - 1;
-
-            if (len >= 4)
-            {
-                do
-                {
-                    result += ptr1[0] * (ptr2[0] + ptr3[0])
-                            + ptr1[1] * (ptr2[1] + ptr3[-1])
-                            + ptr1[2] * (ptr2[2] + ptr3[-2])
-                            + ptr1[3] * (ptr2[3] + ptr3[-3]);
-
-                    ptr1 += 4;
-                    ptr2 += 4;
-                    ptr3 -= 4;
-                } while ((len -= 4) >= 4);
-            }
-            while (len-- > 0)
-            {
-                result += *ptr1++ * (*ptr2++ + *ptr3--);
-            }
-            result += _queuePtr[halfLen] * _coeffPtr[halfLen];
-
-            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
-
-            return result;
-        }
-
-        private float ProcessStandard(float sample)
-        {
-            _queuePtr[0] = sample;
-
-            var result = 0.0f;
-
-            var len = _queueSize;
-            var ptr1 = _queuePtr;
-            var ptr2 = _coeffPtr;
-            if (len >= 4)
-            {
-                do
-                {
-                    result += ptr1[0] * ptr2[0]
-                            + ptr1[1] * ptr2[1]
-                            + ptr1[2] * ptr2[2]
-                            + ptr1[3] * ptr2[3];
-                    ptr1 += 4;
-                    ptr2 += 4;
-                } while ((len -= 4) >= 4);
-            }
-            while (len-- > 0)
-            {
-                result += *ptr1++ * *ptr2++;
-            }
-
-            Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
-
-            return result;
-        }
-
-        public float Process(float sample)
-        {
-            if (_isSparse)
-            {
-                return ProcessSparseSymmetricKernel(sample);
-            }
-            if (_isSymmetric)
-            {
-                return ProcessSymmetricKernel(sample);
-            }
-            return ProcessStandard(sample);
         }
 
         private void ProcessSymmetricKernel(float* buffer, int length)
         {
             for (var n = 0; n < length; n++)
             {
-                buffer[n] = ProcessSymmetricKernel(buffer[n]);
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var halfLen = _queueSize / 2;
+                var len = halfLen;
+
+                var ptr1 = _coeffPtr;
+                var ptr2 = _queuePtr;
+                var ptr3 = _queuePtr + _queueSize - 1;
+
+                if (len >= 4)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                             + ptr1[1] * (ptr2[1] + ptr3[-1])
+                             + ptr1[2] * (ptr2[2] + ptr3[-2])
+                             + ptr1[3] * (ptr2[3] + ptr3[-3]);
+
+                        ptr1 += 4;
+                        ptr2 += 4;
+                        ptr3 -= 4;
+                    } while ((len -= 4) >= 4);
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * (*ptr2++ + *ptr3--);
+                }
+                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
+            }
+        }
+
+        private void ProcessSymmetricKernelInterleaved(float* buffer, int length)
+        {
+            length <<= 1;
+            for (var n = 0; n < length; n += 2)
+            {
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var halfLen = _queueSize / 2;
+                var len = halfLen;
+
+                var ptr1 = _coeffPtr;
+                var ptr2 = _queuePtr;
+                var ptr3 = _queuePtr + _queueSize - 1;
+
+                if (len >= 4)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                             + ptr1[1] * (ptr2[1] + ptr3[-1])
+                             + ptr1[2] * (ptr2[2] + ptr3[-2])
+                             + ptr1[3] * (ptr2[3] + ptr3[-3]);
+
+                        ptr1 += 4;
+                        ptr2 += 4;
+                        ptr3 -= 4;
+                    } while ((len -= 4) >= 4);
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * (*ptr2++ + *ptr3--);
+                }
+                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
             }
         }
 
         private void ProcessSparseSymmetricKernel(float* buffer, int length)
         {
-            for (var n = 0; n < length; n++)
+            length <<= 1;
+            for (var n = 0; n < length; n += 2)
             {
-                buffer[n] = ProcessSparseSymmetricKernel(buffer[n]);
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var halfLen = _queueSize / 2;
+                var len = halfLen;
+
+                var ptr1 = _coeffPtr;
+                var ptr2 = _queuePtr;
+                var ptr3 = _queuePtr + _queueSize - 1;
+
+                if (len >= 8)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                             + ptr1[2] * (ptr2[2] + ptr3[-2])
+                             + ptr1[4] * (ptr2[4] + ptr3[-4])
+                             + ptr1[6] * (ptr2[6] + ptr3[-6]);
+
+                        ptr1 += 8;
+                        ptr2 += 8;
+                        ptr3 -= 8;
+                    } while ((len -= 8) >= 8);
+                }
+                if (len >= 4)
+                {
+                    acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                            + ptr1[2] * (ptr2[2] + ptr3[-2]);
+                    ptr1 += 4;
+                    ptr2 += 4;
+                    ptr3 -= 4;
+                    len -= 4;
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * (*ptr2++ + *ptr3--);
+                }
+                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
+            }
+        }
+
+        private void ProcessSparseSymmetricKernelInterleaved(float* buffer, int length)
+        {
+            length <<= 1;
+            for (var n = 0; n < length; n += 2)
+            {
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var halfLen = _queueSize / 2;
+                var len = halfLen;
+
+                var ptr1 = _coeffPtr;
+                var ptr2 = _queuePtr;
+                var ptr3 = _queuePtr + _queueSize - 1;
+
+                if (len >= 8)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                             + ptr1[2] * (ptr2[2] + ptr3[-2])
+                             + ptr1[4] * (ptr2[4] + ptr3[-4])
+                             + ptr1[6] * (ptr2[6] + ptr3[-6]);
+
+                        ptr1 += 8;
+                        ptr2 += 8;
+                        ptr3 -= 8;
+                    } while ((len -= 8) >= 8);
+                }
+                if (len >= 4)
+                {
+                    acc += ptr1[0] * (ptr2[0] + ptr3[0])
+                            + ptr1[2] * (ptr2[2] + ptr3[-2]);
+                    ptr1 += 4;
+                    ptr2 += 4;
+                    ptr3 -= 4;
+                    len -= 4;
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * (*ptr2++ + *ptr3--);
+                }
+                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
             }
         }
 
@@ -237,7 +280,67 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < length; n++)
             {
-                buffer[n] = ProcessStandard(buffer[n]);
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var len = _queueSize;
+                var ptr1 = _queuePtr;
+                var ptr2 = _coeffPtr;
+                if (len >= 4)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * ptr2[0]
+                             + ptr1[1] * ptr2[1]
+                             + ptr1[2] * ptr2[2]
+                             + ptr1[3] * ptr2[3];
+                        ptr1 += 4;
+                        ptr2 += 4;
+                    } while ((len -= 4) >= 4);
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * *ptr2++;
+                }
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
+            }
+        }
+
+        private void ProcessStandardInterleaved(float* buffer, int length)
+        {
+            for (var n = 0; n < length; n++)
+            {
+                _queuePtr[0] = buffer[n];
+
+                var acc = 0.0f;
+
+                var len = _queueSize;
+                var ptr1 = _queuePtr;
+                var ptr2 = _coeffPtr;
+                if (len >= 4)
+                {
+                    do
+                    {
+                        acc += ptr1[0] * ptr2[0]
+                             + ptr1[1] * ptr2[1]
+                             + ptr1[2] * ptr2[2]
+                             + ptr1[3] * ptr2[3];
+                        ptr1 += 4;
+                        ptr2 += 4;
+                    } while ((len -= 4) >= 4);
+                }
+                while (len-- > 0)
+                {
+                    acc += *ptr1++ * *ptr2++;
+                }
+
+                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+
+                buffer[n] = acc;
             }
         }
 
@@ -254,6 +357,22 @@ namespace SDRSharp.Radio
             else
             {
                 ProcessStandard(buffer, length);
+            }
+        }
+
+        public void ProcessInterleaved(float* buffer, int length)
+        {
+            if (_isSparse)
+            {
+                ProcessSparseSymmetricKernelInterleaved(buffer, length);
+            }
+            else if (_isSymmetric)
+            {
+                ProcessSymmetricKernelInterleaved(buffer, length);
+            }
+            else
+            {
+                ProcessStandardInterleaved(buffer, length);
             }
         }
     }
