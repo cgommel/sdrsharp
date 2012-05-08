@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 
 namespace SDRSharp.Radio
 {
@@ -7,40 +6,35 @@ namespace SDRSharp.Radio
     {
         private const int FFTBins = 1024;
         private const float DcTimeConst = 0.001f;
-        private const float Increment = 0.001f;
+        private const float BaseIncrement = 0.001f;
 
-        private int _maxAutomaticPasses = GetDefaultAutomaticBalancePasses();
+        private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
         private bool _autoBalanceIQ = true;
-        private float _meanI;
-        private float _meanQ;
+        private float _averageI;
+        private float _averageQ;
         private float _gain = 1.0f;
         private float _phase;
-        private readonly Random _rng = new Random();
-        private readonly Complex* _fftPtr;
-        private readonly UnsafeBuffer _fftBuffer;
-        private readonly float* _spectrumPtr;
-        private readonly UnsafeBuffer _spectrumBuffer;
+        private Complex* _iqPtr;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
+        private readonly Random _rng = new Random();
 
         public IQBalancer()
         {
-            _fftBuffer = UnsafeBuffer.Create(FFTBins, sizeof(Complex));
-            _fftPtr = (Complex*) _fftBuffer;
-
-            _spectrumBuffer = UnsafeBuffer.Create(FFTBins, sizeof(float));
-            _spectrumPtr = (float*) _spectrumBuffer;
-
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
             _windowPtr = (float*) _windowBuffer;
         }
 
+        ~IQBalancer()
+        {
+            Dispose();
+        }
+
         public void Dispose()
         {
-            _fftBuffer.Dispose();
-            _spectrumBuffer.Dispose();
             _windowBuffer.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public float Phase
@@ -65,23 +59,13 @@ namespace SDRSharp.Radio
             set { _autoBalanceIQ = value; }
         }
 
-        private static int GetDefaultAutomaticBalancePasses()
-        {
-            var passesString = ConfigurationManager.AppSettings["automaticIQBalancePasses"];
-            int result;
-            if (int.TryParse(passesString, out result))
-            {
-                return result;
-            }
-            return 50;
-        }
-
         public void Process(Complex* iq, int length)
         {
-            if (_autoBalanceIQ)
+            if (_autoBalanceIQ && length >= FFTBins)
             {
+                _iqPtr = iq;
                 RemoveDC(iq, length);
-                EstimateImbalance(iq, length);
+                EstimateImbalance();
                 Adjust(iq, length, _phase, _gain);
             }
         }
@@ -91,53 +75,38 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 // I branch
-                var temp = _meanI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                var temp = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
                 if (!float.IsNaN(temp))
                 {
-                    _meanI = temp;
+                    _averageI = temp;
                 }
-                iq[i].Real = iq[i].Real - _meanI;
+                iq[i].Real = iq[i].Real - _averageI;
 
                 // Q branch
-                temp = _meanQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
+                temp = _averageQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
                 if (!float.IsNaN(temp))
                 {
-                    _meanQ = temp;
+                    _averageQ = temp;
                 }
-                iq[i].Imag = iq[i].Imag - _meanQ;
+                iq[i].Imag = iq[i].Imag - _averageQ;
             }
         }
 
-        private void EstimateImbalance(Complex* iq, int length)
+        private void EstimateImbalance()
         {
-            if (length < FFTBins)
-            {
-                return;
-            }
-
-            Utils.Memcpy(_fftPtr, iq, FFTBins * sizeof(Complex));
-            Adjust(_fftPtr, FFTBins, _phase, _gain);
-            Fourier.ApplyFFTWindow(_fftPtr, _windowPtr, FFTBins);
-            Fourier.ForwardTransform(_fftPtr, FFTBins);
-            Fourier.SpectrumPower(_fftPtr, _spectrumPtr, FFTBins);
-
-            var utility = Utility(_spectrumPtr, FFTBins);
+            var current = Utility(_phase, _gain);
 
             for (var count = 0; count < _maxAutomaticPasses; count++)
             {
-                var gainIncrement = Increment * GetRandomDirection();
-                var phaseIncrement = Increment * GetRandomDirection();
+                var gainIncrement = BaseIncrement * GetRandomDirection();
+                var phaseIncrement = BaseIncrement * GetRandomDirection();
 
-                Utils.Memcpy(_fftPtr, iq, FFTBins * sizeof(Complex));
-                Adjust(_fftPtr, FFTBins, _phase + phaseIncrement, _gain + gainIncrement);
-                Fourier.ApplyFFTWindow(_fftPtr, _windowPtr, FFTBins);
-                Fourier.ForwardTransform(_fftPtr, FFTBins);
-                Fourier.SpectrumPower(_fftPtr, _spectrumPtr, FFTBins);
+                var candidate = Utility(_phase + phaseIncrement, _gain + gainIncrement);
 
-                var u = Utility(_spectrumPtr, FFTBins);
-                if (u > utility)
+                if (candidate > current)
                 {
-                    utility = u;
+                    current = candidate;
+
                     _gain += gainIncrement;
                     _phase += phaseIncrement;
                 }
@@ -149,17 +118,24 @@ namespace SDRSharp.Radio
             return (float) (_rng.NextDouble() - 0.5) * 2.0f;
         }
 
-        private static float Utility(float* spectrum, int length)
+        private float Utility(float phase, float gain)
         {
-            var result = 0.0f;
-            var halfLength = length / 2;
-            for (var i = 0; i < halfLength; i++)
-            {
-                var distanceFromCenter = halfLength - i;
+            var fftPtr = stackalloc Complex[FFTBins];
+            var spectrumPtr = stackalloc float[FFTBins];
+            Utils.Memcpy(fftPtr, _iqPtr, FFTBins * sizeof(Complex));
+            Adjust(fftPtr, FFTBins, phase, gain);
+            Fourier.ApplyFFTWindow(fftPtr, _windowPtr, FFTBins);
+            Fourier.ForwardTransform(fftPtr, FFTBins);
+            Fourier.SpectrumPower(fftPtr, spectrumPtr, FFTBins);
 
-                if (distanceFromCenter > 0.05f * halfLength)
+            var result = 0.0f;
+            for (var i = 0; i < FFTBins / 2; i++)
+            {
+                var distanceFromCenter = FFTBins / 2 - i;
+
+                if (distanceFromCenter > 0.05f * FFTBins / 2)
                 {
-                    result += Math.Abs(spectrum[i] - spectrum[length - 2 - i]);
+                    result += Math.Abs(spectrumPtr[i] - spectrumPtr[FFTBins - 2 - i]);
                 }
             }
 
