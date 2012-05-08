@@ -12,7 +12,7 @@ namespace SDRSharp.Radio
         private bool _autoBalanceIQ = true;
         private float _averageI;
         private float _averageQ;
-        private float _gain = 1.0f;
+        private float _gain;
         private float _phase;
         private Complex* _iqPtr;
         private readonly float* _windowPtr;
@@ -39,12 +39,12 @@ namespace SDRSharp.Radio
 
         public float Phase
         {
-            get { return (float) Math.Asin(_phase); }
+            get { return _phase; }
         }
 
         public float Gain
         {
-            get { return _gain; }
+            get { return 1f + _gain; }
         }
 
         public int MaxAutomaticPasses
@@ -130,6 +130,7 @@ namespace SDRSharp.Radio
             Fourier.SpectrumPower(fftPtr, spectrumPtr, FFTBins);
 
             var result = 0.0f;
+
             for (var i = 0; i < FFTBins / 2; i++)
             {
                 var distanceFromCenter = FFTBins / 2 - i;
@@ -147,8 +148,8 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                buffer[i].Real += phase * buffer[i].Imag;
-                buffer[i].Imag *= gain;
+                buffer[i].Imag = (float)(buffer[i].Imag * (1.0 + gain) * Math.Cos(phase));
+                buffer[i].Real = (float)(buffer[i].Real - buffer[i].Imag * Math.Tan(phase));
             }
         }
     }
