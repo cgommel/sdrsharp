@@ -94,21 +94,22 @@ namespace SDRSharp.Radio
 
         private void EstimateImbalance()
         {
-            var current = Utility(_phase, _gain);
+            var currentUtility = Utility(_phase, _gain);
 
             for (var count = 0; count < _maxAutomaticPasses; count++)
             {
-                var gainIncrement = BaseIncrement * GetRandomDirection();
                 var phaseIncrement = BaseIncrement * GetRandomDirection();
+                var gainIncrement = BaseIncrement * GetRandomDirection();
 
-                var candidate = Utility(_phase + phaseIncrement, _gain + gainIncrement);
+                var candidatePhase = _phase + phaseIncrement;
+                var candidateGain = _gain + gainIncrement;
+                var candidateUtility = Utility(candidatePhase, candidateGain);
 
-                if (candidate > current)
+                if (candidateUtility > currentUtility)
                 {
-                    current = candidate;
-
-                    _gain += gainIncrement;
-                    _phase += phaseIncrement;
+                    currentUtility = candidateUtility;
+                    _gain = candidateGain;
+                    _phase = candidatePhase;
                 }
             }
         }
