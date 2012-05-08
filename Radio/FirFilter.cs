@@ -176,8 +176,7 @@ namespace SDRSharp.Radio
 
         private void ProcessSparseSymmetricKernel(float* buffer, int length)
         {
-            length <<= 1;
-            for (var n = 0; n < length; n += 2)
+            for (var n = 0; n < length; n++)
             {
                 _queuePtr[0] = buffer[n];
 
@@ -312,7 +311,8 @@ namespace SDRSharp.Radio
 
         private void ProcessStandardInterleaved(float* buffer, int length)
         {
-            for (var n = 0; n < length; n++)
+            length <<= 1;
+            for (var n = 0; n < length; n += 2)
             {
                 _queuePtr[0] = buffer[n];
 
