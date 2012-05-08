@@ -39,7 +39,7 @@ namespace SDRSharp.Radio
 
         public float Phase
         {
-            get { return _phase; }
+            get { return -_phase; }
         }
 
         public float Gain
