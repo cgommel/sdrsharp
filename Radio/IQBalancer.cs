@@ -4,7 +4,7 @@ namespace SDRSharp.Radio
 {
     public unsafe class IQBalancer : IDisposable
     {
-        private const int FFTBins = 1024;
+        private const int FFTBins = 512;
         private const float DcTimeConst = 0.001f;
         private const float BaseIncrement = 0.001f;
 
@@ -12,7 +12,7 @@ namespace SDRSharp.Radio
         private bool _autoBalanceIQ = true;
         private float _averageI;
         private float _averageQ;
-        private float _gain;
+        private float _gain = 1.0f;
         private float _phase;
         private Complex* _iqPtr;
         private readonly float* _windowPtr;
@@ -23,7 +23,7 @@ namespace SDRSharp.Radio
         {
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
-            _windowPtr = (float*) _windowBuffer;
+            _windowPtr = (float*)_windowBuffer;
         }
 
         ~IQBalancer()
@@ -39,12 +39,12 @@ namespace SDRSharp.Radio
 
         public float Phase
         {
-            get { return -_phase; }
+            get { return (float)Math.Asin(_phase); }
         }
 
         public float Gain
         {
-            get { return 1f + _gain; }
+            get { return _gain; }
         }
 
         public int MaxAutomaticPasses
@@ -116,7 +116,7 @@ namespace SDRSharp.Radio
 
         private float GetRandomDirection()
         {
-            return (float) (_rng.NextDouble() - 0.5) * 2.0f;
+            return (float)(_rng.NextDouble() - 0.5) * 2.0f;
         }
 
         private float Utility(float phase, float gain)
@@ -130,7 +130,6 @@ namespace SDRSharp.Radio
             Fourier.SpectrumPower(fftPtr, spectrumPtr, FFTBins);
 
             var result = 0.0f;
-
             for (var i = 0; i < FFTBins / 2; i++)
             {
                 var distanceFromCenter = FFTBins / 2 - i;
@@ -144,6 +143,8 @@ namespace SDRSharp.Radio
             return result;
         }
 
+#if ACCURACY_PRIVILEGED
+
         private static void Adjust(Complex* buffer, int length, float phase, float gain)
         {
             for (var i = 0; i < length; i++)
@@ -152,5 +153,18 @@ namespace SDRSharp.Radio
                 buffer[i].Real = (float)(buffer[i].Real - buffer[i].Imag * Math.Tan(phase));
             }
         }
+
+#else
+
+        private static void Adjust(Complex* buffer, int length, float phase, float gain)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                buffer[i].Real += phase * buffer[i].Imag;
+                buffer[i].Imag *= gain;
+            }
+        }
+
+#endif
     }
 }

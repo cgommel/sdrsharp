@@ -6,10 +6,11 @@ namespace SDRSharp.Radio
 {
     public unsafe delegate void BufferNeededDelegate(Complex* iqBuffer, float* audioBuffer, int length);
 
-    public unsafe class StreamControl : IDisposable
+    public unsafe sealed class StreamControl : IDisposable
     {
         private const int WaveBufferSize = 16 * 1024;
         private const int MinOutputSampleRate = 24000;
+        private const int MaxDecimationFactor = 1024;
         
         private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
@@ -43,7 +44,7 @@ namespace SDRSharp.Radio
         private int _outputDevice;
         private double _outputSampleRate;
         private int _outputBufferSize;
-        private int _decimationFactor;
+        private int _decimationStageCount;
         private bool _swapIQ;
 
         public event BufferNeededDelegate BufferNeeded;
@@ -121,11 +122,11 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int DecimationFactor
+        public int DecimationStageCount
         {
             get
             {
-                return _decimationFactor;
+                return _decimationStageCount;
             }
         }
 
@@ -381,16 +382,17 @@ namespace SDRSharp.Radio
 
             if (_inputDevice == _outputDevice)
             {
-                _decimationFactor = 1;
+                _decimationStageCount = 0;
                 _outputSampleRate = _inputSampleRate;
                 _outputBufferSize = _inputBufferSize;
             }
             else
             {
-                _decimationFactor = GetDecimationFactor();
-                _inputBufferSize = _inputBufferSize / _decimationFactor * _decimationFactor;
-                _outputSampleRate = _inputSampleRate / _decimationFactor;
-                _outputBufferSize = _inputBufferSize / _decimationFactor;
+                _decimationStageCount = GetDecimationStageCount();
+                var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
+                _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _outputSampleRate = _inputSampleRate / decimationFactor;
+                _outputBufferSize = _inputBufferSize / decimationFactor;
             }
         }
 
@@ -406,18 +408,19 @@ namespace SDRSharp.Radio
                 _inputSampleRate = _waveFile.SampleRate;
                 _inputBufferSize = (int)(_bufferSizeInMs * _inputSampleRate / 1000);
 
-                _decimationFactor = GetDecimationFactor();
+                _decimationStageCount = GetDecimationStageCount();
 
-                if (_decimationFactor < 2)
+                //if (_decimationStageCount == 0)
+                //{
+                //    _outputSampleRate = _inputSampleRate;
+                //    _outputBufferSize = _inputBufferSize;
+                //}
+                //else
                 {
-                    _outputSampleRate = _inputSampleRate;
-                    _outputBufferSize = _inputBufferSize;
-                }
-                else
-                {
-                    _inputBufferSize = _inputBufferSize / _decimationFactor * _decimationFactor;
-                    _outputSampleRate = _inputSampleRate / _decimationFactor;
-                    _outputBufferSize = _inputBufferSize / _decimationFactor;
+                    var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
+                    _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                    _outputSampleRate = _inputSampleRate / decimationFactor;
+                    _outputBufferSize = _inputBufferSize / decimationFactor;
                 }
             }
             catch
@@ -426,20 +429,20 @@ namespace SDRSharp.Radio
             }
         }
 
-        private int GetDecimationFactor()
+        private int GetDecimationStageCount()
         {
             if (_inputSampleRate <= MinOutputSampleRate)
             {
-                return 1;
+                return 0;
             }
 
-            int result = 1024;
+            int result = MaxDecimationFactor;
             while (_inputSampleRate < MinOutputSampleRate * result && result > 0)
             {
                 result /= 2;
             }
 
-            return result;
+            return (int) Math.Log(result, 2.0);
         }
     }
 }

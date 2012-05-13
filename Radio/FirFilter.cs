@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe class FirFilter : IDisposable
+    public unsafe sealed class FirFilter : IDisposable
     {
         private const double Epsilon = 1e-6;
 
@@ -257,7 +257,7 @@ namespace SDRSharp.Radio
                 if (len >= 4)
                 {
                     acc += ptr1[0] * (ptr2[0] + ptr3[0])
-                            + ptr1[2] * (ptr2[2] + ptr3[-2]);
+                         + ptr1[2] * (ptr2[2] + ptr3[-2]);
                     ptr1 += 4;
                     ptr2 += 4;
                     ptr3 -= 4;

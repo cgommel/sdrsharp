@@ -1,6 +1,6 @@
 ﻿namespace SDRSharp.Radio
 {
-    public unsafe class LsbDetector
+    public unsafe sealed class LsbDetector
     {
         private readonly Oscillator _bfo = new Oscillator();
 

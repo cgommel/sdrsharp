@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class UnsafeBuffer : IDisposable
+    public unsafe sealed class UnsafeBuffer : IDisposable
     {
         private readonly GCHandle _handle;
         private void* _ptr;

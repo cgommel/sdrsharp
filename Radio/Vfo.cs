@@ -2,7 +2,7 @@ using System;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class Vfo
+    public unsafe sealed class Vfo
     {
         public const int DefaultCwSideTone = 600;
         public const int DefaultSSBBandwidth = 2400;
@@ -33,9 +33,9 @@ namespace SDRSharp.Radio
         private int _frequency;
         private int _filterOrder;
         private bool _needNewFilters;
-        private int _decimationFactor = 1;
-        private int _baseBandDecimationFactor = 1;
-        private int _audioDecimationFactor = 1;
+        private int _decimationStageCount;
+        private int _baseBandDecimationStageCount;
+        private int _audioDecimationStageCount;
         private bool _needNewDecimators;
         private int _cwToneShift;
         private bool _needConfigure;
@@ -226,14 +226,14 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int DecimationFactor
+        public int DecimationStageCount
         {
-            get { return _decimationFactor; }
+            get { return _decimationStageCount; }
             set
             {
-                if (_decimationFactor != value)
+                if (_decimationStageCount != value)
                 {
-                    _decimationFactor = value;
+                    _decimationStageCount = value;
                     _needNewDecimators = true;
                     _needConfigure = true;
                 }
@@ -263,29 +263,29 @@ namespace SDRSharp.Radio
                 _needNewDecimators = false;
                 if (_detectorType == DetectorType.WFM)
                 {
-                    var afSamplerate = _sampleRate / _decimationFactor;
-                    _audioDecimationFactor = 1;
-                    while (afSamplerate * _audioDecimationFactor < DefaultWFMBandwidth && _audioDecimationFactor < _decimationFactor)
+                    var afSamplerate = _sampleRate / Math.Pow(2.0, _decimationStageCount);
+                    _audioDecimationStageCount = 0;
+                    while (afSamplerate * Math.Pow(2.0, _audioDecimationStageCount) < DefaultWFMBandwidth && _audioDecimationStageCount < _decimationStageCount)
                     {
-                        _audioDecimationFactor *= 2;
+                        _audioDecimationStageCount++;
                     }
-                    _baseBandDecimationFactor = _decimationFactor / _audioDecimationFactor;
+                    _baseBandDecimationStageCount = _decimationStageCount - _audioDecimationStageCount;
                 }
                 else
                 {
-                    _baseBandDecimationFactor = _decimationFactor;
-                    _audioDecimationFactor = 1;
+                    _baseBandDecimationStageCount = _decimationStageCount;
+                    _audioDecimationStageCount = 0;
                 }
                 if (_baseBandDecimator != null)
                 {
                     _baseBandDecimator.Dispose();
                 }
-                _baseBandDecimator = new IQDecimator(_baseBandDecimationFactor);
+                _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate);
                 if (_audioDecimator != null)
                 {
                     _audioDecimator.Dispose();
                 }
-                _audioDecimator = new FloatDecimator(_audioDecimationFactor);
+                _audioDecimator = new FloatDecimator(_audioDecimationStageCount, _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount));
                 _needNewFilters = true;
             }
             if (_needNewFilters)
@@ -296,42 +296,42 @@ namespace SDRSharp.Radio
             switch (_detectorType)
             {
                 case DetectorType.USB:
-                    _usbDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _usbDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     _usbDetector.BfoFrequency = -_bandwidth / 2;
                     _localOscillator.Frequency -= _usbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.LSB:
-                    _lsbDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _lsbDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     _lsbDetector.BfoFrequency = -_bandwidth / 2;
                     _localOscillator.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.CWU:
-                    _usbDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _usbDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     _usbDetector.BfoFrequency = -_cwToneShift;
                     _localOscillator.Frequency -= _usbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.CWL:
-                    _lsbDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _lsbDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     _lsbDetector.BfoFrequency = -_cwToneShift;
                     _localOscillator.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.NFM:
                     _fmDetector.Mode = FmMode.Narrow;
-                    _fmDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _fmDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     _fmDetector.SquelchThreshold = _fmSquelchThreshold;
                     break;
 
                 case DetectorType.WFM:
                     _fmDetector.Mode = FmMode.Wide;
-                    _fmDetector.SampleRate = _sampleRate / _baseBandDecimationFactor;
+                    _fmDetector.SampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
                     break;
             }
 
-            _agc.SampleRate = _sampleRate / _decimationFactor;
+            _agc.SampleRate = _sampleRate / Math.Pow(2.0, _decimationStageCount);
             _agc.Decay = _agcDecay;
             _agc.Slope = _agcSlope;
             _agc.Threshold = _agcThreshold;
@@ -361,7 +361,7 @@ namespace SDRSharp.Radio
                     break;
             }
 
-            var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / _baseBandDecimationFactor, iqOrder, iqBW, _windowType);
+            var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
             if (_iqFilter == null)
             {
                 _iqFilter = new IQFirFilter(coeffs);
@@ -409,7 +409,7 @@ namespace SDRSharp.Radio
                     break;
             }
 
-            coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate / _baseBandDecimationFactor / _audioDecimationFactor, afOrder, cutoff1, cutoff2, _windowType);
+            coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount + _audioDecimationStageCount), afOrder, cutoff1, cutoff2, _windowType);
             if (_audioFilter == null)
             {
                 _audioFilter = new FirFilter(coeffs);
@@ -430,10 +430,10 @@ namespace SDRSharp.Radio
 
             DownConvert(iqBuffer, length);
 
-            if (_baseBandDecimator.Factor >= 2)
+            if (_baseBandDecimator.StageCount > 0)
             {
                 _baseBandDecimator.Process(iqBuffer, length);
-                length /= _baseBandDecimator.Factor;
+                length /= (int) Math.Pow(2.0, _baseBandDecimator.StageCount);
             }
                 
             _iqFilter.Process(iqBuffer, length);
@@ -442,10 +442,10 @@ namespace SDRSharp.Radio
 
             Demodulate(iqBuffer, audio, length);
                 
-            if (_audioDecimator.Factor >= 2)
+            if (_audioDecimator.StageCount > 0)
             {
                 _audioDecimator.Process(audio, length);
-                length /= _audioDecimator.Factor;
+                length /= (int) Math.Pow(2.0, _audioDecimator.StageCount);
             }
                 
             _audioFilter.Process(audio, length);

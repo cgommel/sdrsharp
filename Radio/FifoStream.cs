@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class ComplexFifoStream : IDisposable
+    public unsafe sealed class ComplexFifoStream : IDisposable
     {
         private const int BlockSize = 65536;
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
@@ -260,7 +260,7 @@ namespace SDRSharp.Radio
         }
     }
 
-    public unsafe class FloatFifoStream : IDisposable
+    public unsafe sealed class FloatFifoStream : IDisposable
     {
         private const int BlockSize = 65536;
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;

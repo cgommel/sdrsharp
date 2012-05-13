@@ -437,7 +437,7 @@ namespace SDRSharp.PanView
         {
             var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
             var relativeOffset = _filterOffset * _xIncrement;
-            var xCarrier = ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
+            var xCarrier = (float) ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
             {
@@ -464,7 +464,7 @@ namespace SDRSharp.PanView
             float bandpassOffset;
             var bandpassWidth = 0f;
             var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
-            var xCarrier = ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
+            var xCarrier = (float) ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
             {

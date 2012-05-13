@@ -409,7 +409,7 @@ namespace SDRSharp
             }
 
             _vfo.SampleRate = _streamControl.SampleRate;
-            _vfo.DecimationFactor = _streamControl.DecimationFactor;
+            _vfo.DecimationStageCount = _streamControl.DecimationStageCount;
             spectrumAnalyzer.SpectrumWidth = (int) _streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 

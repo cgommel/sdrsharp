@@ -12,7 +12,7 @@ namespace SDRSharp.Radio
     /// The theory behind this code is in section 4.2.1
     /// of http://www.digitalsignallabs.com/Digradio.pdf
     /// </summary>
-    public unsafe class FmDetector
+    public unsafe sealed class FmDetector
     {
         private const float NarrowAFGain = 0.00001f;
         private const float WideAFGain = 0.00001f;

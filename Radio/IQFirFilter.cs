@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe class IQFirFilter : IDisposable
+    public unsafe sealed class IQFirFilter : IFilter, IDisposable
     {
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;

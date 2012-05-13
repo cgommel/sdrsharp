@@ -1,6 +1,6 @@
 ﻿namespace SDRSharp.Radio
 {
-    public unsafe class DsbDetector
+    public unsafe sealed class DsbDetector
     {
         public void Demodulate(Complex* iq, float* audio, int length)
         {

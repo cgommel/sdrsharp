@@ -4,7 +4,7 @@ using System;
 
 namespace SDRSharp.Radio
 {
-    public unsafe class AutomaticGainControl
+    public unsafe sealed class AutomaticGainControl
     {
         #region Constants
 

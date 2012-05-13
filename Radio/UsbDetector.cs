@@ -1,6 +1,6 @@
 ﻿namespace SDRSharp.Radio
 {
-    public unsafe class UsbDetector
+    public unsafe sealed class UsbDetector
     {
         private readonly Oscillator _bfo = new Oscillator();
 

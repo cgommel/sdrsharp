@@ -31,7 +31,12 @@ namespace SDRSharp.Radio
 
         public float Modulus()
         {
-            return (float) Math.Sqrt(Real * Real + Imag * Imag);
+            return (float) Math.Sqrt(ModulusSquared());
+        }
+
+        public float ModulusSquared()
+        {
+            return Real * Real + Imag * Imag;
         }
 
         public float Argument()

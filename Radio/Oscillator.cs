@@ -2,16 +2,17 @@
 
 namespace SDRSharp.Radio
 {
-    public class Oscillator
+    public sealed class Oscillator
     {
-        private const double Epsilon = 1e-10;
-
         private double _sampleRate;
         private int _frequency;
-        private double _phase;
         private double _anglePerSample;
-        private float _outI;
-        private float _outQ;
+        private double _sinOfAnglePerSample;
+        private double _cosOfAnglePerSample;
+        private double _vectR;
+        private double _vectI;
+        private double _outR;
+        private double _outI;
 
         public double SampleRate
         {
@@ -19,6 +20,8 @@ namespace SDRSharp.Radio
             set
             {
                 _sampleRate = value;
+                _vectR = 1;
+                _vectI = 0;
                 Configure();
             }
         }
@@ -36,36 +39,35 @@ namespace SDRSharp.Radio
         private void Configure()
         {
             _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
-        }
-
-        public float OutI
-        {
-            get { return _outI; }
-        }
-
-        public float OutQ
-        {
-            get { return _outQ; }
+            _sinOfAnglePerSample = Math.Sin(_anglePerSample);
+            _cosOfAnglePerSample = Math.Cos(_anglePerSample);
         }
 
         public Complex Out
         {
             get
             {
-                return new Complex(_outI, _outQ);
+                return new Complex((float) _outR, (float) _outI);
             }
+        }
+
+        public float OutI
+        {
+            get { return (float) _outR; }
+        }
+
+        public float OutQ
+        {
+            get { return (float) _outI; }
         }
 
         public Complex Tick()
         {
-            const double rad2Pi = 2.0 * Math.PI;
-            _outI = (float) Math.Cos(_phase);
-            _outQ = (float) Math.Sin(_phase);
-            _phase += _anglePerSample;
-            if (_phase > rad2Pi || _phase < -rad2Pi)
-            {
-                _phase = _phase % rad2Pi;
-            }
+            _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
+            _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
+            double oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+            _vectR = oscGn * _outR;
+            _vectI = oscGn * _outI;
             return Out;
         }
 
