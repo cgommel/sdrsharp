@@ -285,7 +285,7 @@ namespace SDRSharp.Radio
                 {
                     _audioDecimator.Dispose();
                 }
-                _audioDecimator = new FloatDecimator(_audioDecimationStageCount, _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount));
+                _audioDecimator = new FloatDecimator(_audioDecimationStageCount);
                 _needNewFilters = true;
             }
             if (_needNewFilters)

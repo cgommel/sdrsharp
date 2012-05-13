@@ -453,14 +453,13 @@ namespace SDRSharp.Radio
             return filters;
         }
 
-        public static FirFilter[] GetFloatFilters(int stageCount, double samplerate)
+        public static FirFilter[] GetFloatFilters(int stageCount)
         {
             var filters = new FirFilter[stageCount];
 
             for (var i = 0; i < stageCount; i++)
             {
-                filters[i++] = new FirFilter(_kernel23);
-                samplerate /= 2;
+                filters[i] = new FirFilter(_kernel23);
             }
 
             return filters;
@@ -518,9 +517,9 @@ namespace SDRSharp.Radio
     {
         private readonly FirFilter[] _filters;
 
-        public FloatDecimator(int stageCount, double samplerate)
+        public FloatDecimator(int stageCount)
         {
-            _filters = DecimationKernels.GetFloatFilters(stageCount, samplerate);
+            _filters = DecimationKernels.GetFloatFilters(stageCount);
         }
 
         ~FloatDecimator()
