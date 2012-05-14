@@ -347,9 +347,9 @@ namespace SDRSharp.Radio
 
             switch (_detectorType)
             {
-                case DetectorType.NFM:
-                    iqBW = Math.Max(_bandwidth, MaxNFMBandwidth) / 2;
-                    break;
+                //case DetectorType.NFM:
+                //    iqBW = Math.Max(_bandwidth, MaxNFMBandwidth) / 2;
+                //    break;
 
                 case DetectorType.WFM:
                     iqBW = 90000;

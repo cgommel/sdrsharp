@@ -18,7 +18,7 @@ namespace SDRSharp.Radio
         private const float WideAFGain = 0.00001f;
         private const float TimeConst = 0.000001f;
 
-        private const float DeemphasisTime = 75e-6f; //50e-6f
+        private const float DeemphasisTime = 50e-6f; //75e-6f
 
         private const int MinHissFrequency = 4000;
         private const int MaxHissFrequency = 6000;
