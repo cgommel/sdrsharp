@@ -576,7 +576,7 @@ namespace SDRSharp
             0});
             this.filterBandwidthNumericUpDown.Location = new System.Drawing.Point(133, 187);
             this.filterBandwidthNumericUpDown.Maximum = new decimal(new int[] {
-            180000,
+            250000,
             0,
             0,
             0});

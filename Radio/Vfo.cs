@@ -352,15 +352,15 @@ namespace SDRSharp.Radio
                 //    break;
 
                 case DetectorType.WFM:
-                    iqBW = 90000;
-                    iqOrder = 20;
+                    iqBW = _bandwidth / 2;
+                    iqOrder = 30;
                     break;
 
                 default:
                     iqBW = _bandwidth / 2;
                     break;
             }
-
+            
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
             if (_iqFilter == null)
             {

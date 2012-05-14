@@ -602,7 +602,7 @@ namespace SDRSharp
 
         private void modeRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
+            //filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
             filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
 
             agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked;
@@ -737,7 +737,7 @@ namespace SDRSharp
 
         private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
         {
-            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum && !wfmRadioButton.Checked)
+            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum /*&& !wfmRadioButton.Checked*/)
             {
                 filterBandwidthNumericUpDown.Value = e.Bandwidth;
             }
