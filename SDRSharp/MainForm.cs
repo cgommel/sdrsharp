@@ -741,6 +741,14 @@ namespace SDRSharp
             {
                 filterBandwidthNumericUpDown.Value = e.Bandwidth;
             }
+            else if (e.Bandwidth < filterBandwidthNumericUpDown.Minimum)
+            {
+                filterBandwidthNumericUpDown.Value = filterBandwidthNumericUpDown.Minimum;
+            }
+            else if (e.Bandwidth > filterBandwidthNumericUpDown.Maximum)
+            {
+                filterBandwidthNumericUpDown.Value = filterBandwidthNumericUpDown.Maximum;
+            }
         }
 
         private void frontendGuiButton_Click(object sender, EventArgs e)
