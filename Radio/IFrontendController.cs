@@ -8,7 +8,10 @@ namespace SDRSharp.Radio
         void Close();
         bool IsOpen { get; }
         bool IsSoundCardBased { get; }
-        int Frequency { get; set; }
-        void ShowSettingsDialog(IntPtr parentHandle);
+        string SoundCardHint { get; }
+        double Samplerate { get; }
+        long Frequency { get; set; }
+        void ShowSettingGUI(IntPtr parentHandle);
+        void HideSettingGUI();
     }
 }

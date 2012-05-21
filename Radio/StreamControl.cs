@@ -8,6 +8,13 @@ namespace SDRSharp.Radio
 
     public unsafe sealed class StreamControl : IDisposable
     {
+        private enum InputType
+        {
+            SoundCard,
+            ExtIO,
+            WaveFile
+        }
+
         private const int WaveBufferSize = 16 * 1024;
         private const int MinOutputSampleRate = 24000;
         private const int MaxDecimationFactor = 1024;
@@ -46,12 +53,15 @@ namespace SDRSharp.Radio
         private int _outputBufferSize;
         private int _decimationStageCount;
         private bool _swapIQ;
+        private InputType _inputType;
 
         public event BufferNeededDelegate BufferNeeded;
-
+    
         public StreamControl()
         {
             AudioGain = 10.0f;
+
+            ExtIO.SamplesAvailable += ExtIOFiller;
         }
 
         ~StreamControl()
@@ -62,6 +72,7 @@ namespace SDRSharp.Radio
         public void Dispose()
         {
             Stop();
+            ExtIO.SamplesAvailable -= ExtIOFiller;
             GC.SuppressFinalize(this);
         }
 
@@ -168,7 +179,6 @@ namespace SDRSharp.Radio
             #endregion
 
             _audioStream.Read(_audioOutPtr, 0, _audioOutBuffer.Length);
-
             FillAudio(_audioOutPtr, buffer, _audioOutBuffer.Length);
         }
 
@@ -194,7 +204,19 @@ namespace SDRSharp.Radio
             _iqStream.Write(_iqInPtr, frameCount);
         }
 
-        private void WaveFileProc()
+        private void ExtIOFiller(Complex* samples, int len)
+        {
+            if (_iqStream.Length < _inputBufferSize * 8)
+            {
+                _iqStream.Write(samples, len);
+            }
+            else
+            {
+                System.Diagnostics.Trace.WriteLine("ExtIO Overrun");
+            }
+        }
+
+        private void WaveFileFiller()
         {
             var waveInBuffer = new Complex[WaveBufferSize];
             fixed (Complex* waveInPtr = waveInBuffer)
@@ -234,8 +256,16 @@ namespace SDRSharp.Radio
 
             while (IsPlaying)
             {
-                _iqStream.Read(_dspInPtr, _dspInBuffer.Length);
+                var total = 0;
+                while (IsPlaying && total < _dspInBuffer.Length)
+                {
+                    var len = Math.Max(1000, _iqStream.Length);
+                    len = Math.Min(len, _dspInBuffer.Length - total);
+                    total += _iqStream.Read(_dspInPtr + total, len); // Blocking read
+                }
+
                 ProcessIQ();
+
                 _audioStream.Write(_dspOutPtr, _dspOutBuffer.Length);
             }
         }
@@ -283,6 +313,8 @@ namespace SDRSharp.Radio
 
         public void Stop()
         {
+            ExtIO.StopHW();
+
             if (_wavePlayer != null)
             {
                 _wavePlayer.Dispose();
@@ -339,10 +371,13 @@ namespace SDRSharp.Radio
 
         public void Play()
         {
-            if (_wavePlayer == null && _waveDuplex == null)
+            if (_wavePlayer != null || _waveDuplex != null)
             {
-                if (_waveFile == null)
-                {
+                return;
+            }
+            switch (_inputType)
+            {
+                case InputType.SoundCard:
                     if (_inputDevice == _outputDevice)
                     {
                         _waveDuplex = new WaveDuplex(_inputDevice, _inputSampleRate, _inputBufferSize, DuplexFiller);
@@ -356,24 +391,34 @@ namespace SDRSharp.Radio
                         _dspThread = new Thread(DSPProc);
                         _dspThread.Start();
                     }
-                }
-                else
-                {
+                    break;
+
+                case InputType.WaveFile:
                     _iqStream = new ComplexFifoStream(true);
                     _audioStream = new FloatFifoStream(_outputBufferSize);
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
-                    _waveReadThread = new Thread(WaveFileProc);
+                    _waveReadThread = new Thread(WaveFileFiller);
                     _waveReadThread.Start();
                     _dspThread = new Thread(DSPProc);
                     _dspThread.Start();
-                }
+                    break;
+
+                case InputType.ExtIO:
+                    _iqStream = new ComplexFifoStream(true);
+                    _audioStream = new FloatFifoStream(_outputBufferSize);
+                    _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
+                    ExtIO.StartHW(0);
+                    _dspThread = new Thread(DSPProc);
+                    _dspThread.Start();
+                    break;
             }
         }
 
-        public void OpenDevice(int inputDevice, int outputDevice, int inputSampleRate, int bufferSizeInMs)
+        public void OpenSoundDevice(int inputDevice, int outputDevice, double inputSampleRate, int bufferSizeInMs)
         {
             Stop();
 
+            _inputType = InputType.SoundCard;
             _inputDevice = inputDevice;
             _outputDevice = outputDevice;
             _inputSampleRate = inputSampleRate;
@@ -402,6 +447,7 @@ namespace SDRSharp.Radio
 
             try
             {
+                _inputType = InputType.WaveFile;
                 _waveFile = new WaveFile(filename);
                 _outputDevice = outputDevice;
                 _bufferSizeInMs = bufferSizeInMs;
@@ -410,18 +456,41 @@ namespace SDRSharp.Radio
 
                 _decimationStageCount = GetDecimationStageCount();
 
-                //if (_decimationStageCount == 0)
-                //{
-                //    _outputSampleRate = _inputSampleRate;
-                //    _outputBufferSize = _inputBufferSize;
-                //}
-                //else
+                var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
+                _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _outputSampleRate = _inputSampleRate / decimationFactor;
+                _outputBufferSize = _inputBufferSize / decimationFactor;
+            }
+            catch
+            {
+                Stop();
+            }
+        }
+
+        public void OpenExtIODevice(string filename, int outputDevice, int bufferSizeInMs)
+        {
+            Stop();
+            try
+            {
+                _inputType = InputType.ExtIO;
+                if (!ExtIO.IsHardwareOpen && ExtIO.DllName != filename)
                 {
-                    var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
-                    _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
-                    _outputSampleRate = _inputSampleRate / decimationFactor;
-                    _outputBufferSize = _inputBufferSize / decimationFactor;
+                    ExtIO.UseLibrary(filename);
+                    ExtIO.OpenHW();
                 }
+
+                _inputSampleRate = ExtIO.GetHWSR();
+
+                _outputDevice = outputDevice;
+                _bufferSizeInMs = bufferSizeInMs;
+                _inputBufferSize = (int) (_bufferSizeInMs * _inputSampleRate / 1000);
+
+                _decimationStageCount = GetDecimationStageCount();
+                
+                var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
+                _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _outputSampleRate = _inputSampleRate / decimationFactor;
+                _outputBufferSize = _inputBufferSize / decimationFactor;
             }
             catch
             {
@@ -444,5 +513,6 @@ namespace SDRSharp.Radio
 
             return (int) Math.Log(result, 2.0);
         }
+        
     }
 }

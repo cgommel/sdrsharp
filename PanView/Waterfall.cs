@@ -40,20 +40,20 @@ namespace SDRSharp.PanView
         private float _xIncrement;
         private byte[] _temp;
         private byte[] _spectrum;
-        private int _centerFrequency;
+        private long _centerFrequency;
         private int _spectrumWidth;
-        private int _frequency;
+        private long _frequency;
         private float _lower;
         private float _upper;
         private float _scale = 1.01f;
-        private int _displayCenterFrequency;
+        private long _displayCenterFrequency;
         private bool _changingBandwidth;
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _mouseIn;
         private int _oldX;
-        private int _oldFrequency;
-        private int _oldCenterFrequency;
+        private long _oldFrequency;
+        private long _oldCenterFrequency;
         private int _oldFilterBandwidth;
         private int[] _gradientPixels;
         private int _contrast;
@@ -133,7 +133,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        public int CenterFrequency
+        public long CenterFrequency
         {
             get
             {
@@ -169,7 +169,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        public int Frequency
+        public long Frequency
         {
             get
             {
@@ -279,7 +279,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private int GetDisplayCenterFrequency()
+        private long GetDisplayCenterFrequency()
         {
             var f = _frequency;
             switch (_bandType)
@@ -292,13 +292,13 @@ namespace SDRSharp.PanView
                     f += _filterBandwidth / 2 + _filterOffset;
                     break;
             }
-            var lowerLeadingSpectrum = (int) ((_centerFrequency - _spectrumWidth / 2) - (f - _spectrumWidth / _scale / 2));
+            var lowerLeadingSpectrum = (long) ((_centerFrequency - _spectrumWidth / 2) - (f - _spectrumWidth / _scale / 2));
             if (lowerLeadingSpectrum > 0)
             {
                 f += lowerLeadingSpectrum + 10;
             }
 
-            var upperLeadingSpectrum = (int) ((f + _spectrumWidth / _scale / 2) - (_centerFrequency + _spectrumWidth / 2));
+            var upperLeadingSpectrum = (long) ((f + _spectrumWidth / _scale / 2) - (_centerFrequency + _spectrumWidth / 2));
             if (upperLeadingSpectrum > 0)
             {
                 f -= upperLeadingSpectrum + 10;
@@ -601,14 +601,14 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void UpdateFrequency(int f)
+        private void UpdateFrequency(long f)
         {
-            var min = (int)(_displayCenterFrequency - _spectrumWidth / _scale / 2);
+            var min = (long)(_displayCenterFrequency - _spectrumWidth / _scale / 2);
             if (f < min)
             {
                 f = min;
             }
-            var max = (int)(_displayCenterFrequency + _spectrumWidth / _scale / 2);
+            var max = (long)(_displayCenterFrequency + _spectrumWidth / _scale / 2);
             if (f > max)
             {
                 f = max;
@@ -622,7 +622,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void UpdateCenterFrequency(int f)
+        private void UpdateCenterFrequency(long f)
         {
             if (f < 0)
             {
@@ -772,9 +772,9 @@ namespace SDRSharp.PanView
 
     public class FrequencyEventArgs : EventArgs
     {
-        public int Frequency { get; set; }
+        public long Frequency { get; set; }
 
-        public FrequencyEventArgs(int frequency)
+        public FrequencyEventArgs(long frequency)
         {
             Frequency = frequency;
         }

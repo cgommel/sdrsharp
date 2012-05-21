@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 
@@ -9,6 +10,9 @@ namespace SDRSharp
         [STAThread]
         static void Main()
         {
+            var process = Process.GetCurrentProcess();
+            process.PriorityBoostEnabled = true;
+            process.PriorityClass = ProcessPriorityClass.RealTime;
 #if !LINUX
             Utils.TimeBeginPeriod(1);
 #endif
@@ -16,10 +20,11 @@ namespace SDRSharp
             Control.CheckForIllegalCrossThreadCalls = false;
             Application.EnableVisualStyles();
             Application.Run(new MainForm());
-
+            
 #if !LINUX
             Utils.TimeEndPeriod(1);
 #endif
+            process.Kill(); // ExtIO may have some thread still running preventing the program from terminating
         }
     }
 }

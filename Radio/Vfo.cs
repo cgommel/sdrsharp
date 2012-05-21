@@ -405,7 +405,7 @@ namespace SDRSharp.Radio
                 case DetectorType.WFM:
                     cutoff1 = MinBCAudioFrequency;
                     cutoff2 = MaxBCAudioFrequency;
-                    afOrder = 50;
+                    afOrder = 200;
                     break;
             }
 

@@ -266,7 +266,26 @@ namespace SDRSharp.FUNcube
         #endregion
 
         private double _freqCorrection = Utils.GetDoubleSetting("funcubeFrequencyCorrection", -120.0);
-        private int _frequency = 0;
+        private long _frequency;
+        private readonly FCDControllerDialog _dialog;
+
+        public FunCubeIO()
+        {
+             _dialog = new FCDControllerDialog(this);
+        }
+
+        ~FunCubeIO()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            Close();
+            _dialog.Close();
+            _dialog.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
         #region Properties
 
@@ -283,25 +302,28 @@ namespace SDRSharp.FUNcube
             get { return true; }
         }
 
-        public int Frequency
+        public long Frequency
         {
             get
             {
-                return (int) (GetFrequency() / (1 + _freqCorrection * 0.000001));
+                return (long) (GetFrequency() / (1 + _freqCorrection * 0.000001));
             }
             set
             {
-                SetFrequency((int) (value * (1 + _freqCorrection * 0.000001)));
+                SetFrequency((uint) (value * (1 + _freqCorrection * 0.000001)));
                 _frequency = value;
             }
         }
 
-        public void ShowSettingsDialog(IntPtr parentHandle)
+        public void ShowSettingGUI(IntPtr parentHandle)
         {
-            using (var dialog = new FCDControllerDialog(this))
-            {
-                dialog.ShowDialog();
-            }
+            _dialog.Show();
+            _dialog.Activate();
+        }
+
+        public void HideSettingGUI()
+        {
+            _dialog.Hide();
         }
 
         public TunerLNAGain LNAGain
@@ -505,11 +527,7 @@ namespace SDRSharp.FUNcube
 
         public void Close()
         {
-        }
-
-        public void Dispose()
-        {
-            Close();
+            _dialog.Hide();
         }
 
         private static bool WriteCommand(byte command, byte value)
@@ -552,7 +570,7 @@ namespace SDRSharp.FUNcube
             }
         }
 
-        private static int GetFrequency()
+        private static long GetFrequency()
         {
             using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
             {
@@ -570,16 +588,16 @@ namespace SDRSharp.FUNcube
                     return 0;
                 }
 
-                var result = au8BufIn[3] |
+                var result = (uint) (au8BufIn[3] |
                     au8BufIn[4] << 8 |
                     au8BufIn[5] << 16 |
-                    au8BufIn[6] << 24;
+                    au8BufIn[6] << 24);
 
                 return result;
             }
         }
 
-        private static bool SetFrequency(int frequency)
+        private static bool SetFrequency(uint frequency)
         {
             using (var usb = UsbDevice.Open("Vid_04d8&Pid_fb56"))
             {
@@ -769,6 +787,17 @@ namespace SDRSharp.FUNcube
                 _freqCorrection = value;
                 Frequency = _frequency;
             }
+        }
+
+
+        public string SoundCardHint
+        {
+            get { return ".*DirectSound.*funcube.*"; }
+        }
+
+        public double Samplerate
+        {
+            get { return 96000.0; }
         }
     }
 }

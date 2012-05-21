@@ -19,12 +19,10 @@ namespace SDRSharp
             this.playButton = new System.Windows.Forms.Button();
             this.stopButton = new System.Windows.Forms.Button();
             this.wavFileTextBox = new System.Windows.Forms.TextBox();
-            this.soundCardRadioButton = new System.Windows.Forms.RadioButton();
-            this.wavFileRadioButton = new System.Windows.Forms.RadioButton();
+            this.iqStreamRadioButton = new System.Windows.Forms.RadioButton();
+            this.waveFileRadioButton = new System.Windows.Forms.RadioButton();
             this.fileSelectButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.contrastTrackBar = new System.Windows.Forms.TrackBar();
             this.zoomTrackBar = new System.Windows.Forms.TrackBar();
@@ -89,6 +87,8 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -141,34 +141,34 @@ namespace SDRSharp
             this.wavFileTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.wavFileTextBox.Enabled = false;
-            this.wavFileTextBox.Location = new System.Drawing.Point(280, 15);
+            this.wavFileTextBox.Location = new System.Drawing.Point(278, 15);
             this.wavFileTextBox.Name = "wavFileTextBox";
-            this.wavFileTextBox.Size = new System.Drawing.Size(637, 20);
+            this.wavFileTextBox.Size = new System.Drawing.Size(639, 20);
             this.wavFileTextBox.TabIndex = 4;
             // 
-            // soundCardRadioButton
+            // iqStreamRadioButton
             // 
-            this.soundCardRadioButton.AutoSize = true;
-            this.soundCardRadioButton.Checked = true;
-            this.soundCardRadioButton.Location = new System.Drawing.Point(124, 16);
-            this.soundCardRadioButton.Name = "soundCardRadioButton";
-            this.soundCardRadioButton.Size = new System.Drawing.Size(80, 17);
-            this.soundCardRadioButton.TabIndex = 2;
-            this.soundCardRadioButton.TabStop = true;
-            this.soundCardRadioButton.Text = "Sound card";
-            this.soundCardRadioButton.UseVisualStyleBackColor = true;
-            this.soundCardRadioButton.CheckedChanged += new System.EventHandler(this.soundCardRadioButton_CheckedChanged);
+            this.iqStreamRadioButton.AutoSize = true;
+            this.iqStreamRadioButton.Checked = true;
+            this.iqStreamRadioButton.Location = new System.Drawing.Point(124, 16);
+            this.iqStreamRadioButton.Name = "iqStreamRadioButton";
+            this.iqStreamRadioButton.Size = new System.Drawing.Size(72, 17);
+            this.iqStreamRadioButton.TabIndex = 2;
+            this.iqStreamRadioButton.TabStop = true;
+            this.iqStreamRadioButton.Text = "IQ Stream";
+            this.iqStreamRadioButton.UseVisualStyleBackColor = true;
+            this.iqStreamRadioButton.CheckedChanged += new System.EventHandler(this.iqStreamRadioButton_CheckedChanged);
             // 
-            // wavFileRadioButton
+            // waveFileRadioButton
             // 
-            this.wavFileRadioButton.AutoSize = true;
-            this.wavFileRadioButton.Location = new System.Drawing.Point(210, 17);
-            this.wavFileRadioButton.Name = "wavFileRadioButton";
-            this.wavFileRadioButton.Size = new System.Drawing.Size(64, 17);
-            this.wavFileRadioButton.TabIndex = 3;
-            this.wavFileRadioButton.Text = "Wav file";
-            this.wavFileRadioButton.UseVisualStyleBackColor = true;
-            this.wavFileRadioButton.CheckedChanged += new System.EventHandler(this.waveFileRadioButton_CheckedChanged);
+            this.waveFileRadioButton.AutoSize = true;
+            this.waveFileRadioButton.Location = new System.Drawing.Point(202, 16);
+            this.waveFileRadioButton.Name = "waveFileRadioButton";
+            this.waveFileRadioButton.Size = new System.Drawing.Size(70, 17);
+            this.waveFileRadioButton.TabIndex = 3;
+            this.waveFileRadioButton.Text = "Wave file";
+            this.waveFileRadioButton.UseVisualStyleBackColor = true;
+            this.waveFileRadioButton.CheckedChanged += new System.EventHandler(this.waveFileRadioButton_CheckedChanged);
             // 
             // fileSelectButton
             // 
@@ -203,46 +203,6 @@ namespace SDRSharp
             this.panSplitContainer.Size = new System.Drawing.Size(651, 599);
             this.panSplitContainer.SplitterDistance = 193;
             this.panSplitContainer.TabIndex = 13;
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
-            this.spectrumAnalyzer.CenterFrequency = 0;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 10000;
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Frequency = 0;
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
-            this.spectrumAnalyzer.SpectrumWidth = 48000;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = false;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
-            this.waterfall.CenterFrequency = 0;
-            this.waterfall.Contrast = 0;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 10000;
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Frequency = 0;
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(651, 402);
-            this.waterfall.SpectrumWidth = 48000;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.UseSmoothing = false;
-            this.waterfall.Zoom = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
             // 
             // iqTimer
             // 
@@ -740,8 +700,8 @@ namespace SDRSharp
             0});
             this.centerFreqNumericUpDown.Location = new System.Drawing.Point(70, 103);
             this.centerFreqNumericUpDown.Maximum = new decimal(new int[] {
-            -1794967296,
-            0,
+            -727379968,
+            232,
             0,
             0});
             this.centerFreqNumericUpDown.Name = "centerFreqNumericUpDown";
@@ -808,23 +768,28 @@ namespace SDRSharp
             this.label13.AutoSize = true;
             this.label13.Location = new System.Drawing.Point(7, 59);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(30, 13);
+            this.label13.Size = new System.Drawing.Size(60, 13);
             this.label13.TabIndex = 28;
-            this.label13.Text = "Rate";
+            this.label13.Text = "Samplerate";
             // 
             // sampleRateComboBox
             // 
-            this.sampleRateComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.sampleRateComboBox.FormattingEnabled = true;
             this.sampleRateComboBox.Items.AddRange(new object[] {
-            "22k Sample/s",
-            "24k Sample/s",
-            "32k Sample/s",
-            "44.1k Sample/s",
-            "48k Sample/s",
-            "80k Sample/s",
-            "96k Sample/s",
-            "192k Sample/s"});
+            "8000 sample/sec",
+            "11025 sample/sec",
+            "16000 sample/sec",
+            "22050 sample/sec",
+            "24000 sample/sec",
+            "32000 sample/sec",
+            "44100 sample/sec",
+            "48000 sample/sec",
+            "80000 sample/sec",
+            "96000 sample/sec",
+            "120000 sample/sec",
+            "125000 sample/sec",
+            "150000 sample/sec",
+            "192000 sample/sec"});
             this.sampleRateComboBox.Location = new System.Drawing.Point(70, 56);
             this.sampleRateComboBox.Name = "sampleRateComboBox";
             this.sampleRateComboBox.Size = new System.Drawing.Size(135, 21);
@@ -1147,6 +1112,46 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
+            this.spectrumAnalyzer.Frequency = ((long)(0));
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = false;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
+            this.waterfall.CenterFrequency = ((long)(0));
+            this.waterfall.Contrast = 0;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
+            this.waterfall.Frequency = ((long)(0));
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Size = new System.Drawing.Size(651, 402);
+            this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.UseSmoothing = false;
+            this.waterfall.Zoom = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1158,8 +1163,8 @@ namespace SDRSharp
             this.Controls.Add(this.contrastTrackBar);
             this.Controls.Add(this.panSplitContainer);
             this.Controls.Add(this.fileSelectButton);
-            this.Controls.Add(this.wavFileRadioButton);
-            this.Controls.Add(this.soundCardRadioButton);
+            this.Controls.Add(this.waveFileRadioButton);
+            this.Controls.Add(this.iqStreamRadioButton);
             this.Controls.Add(this.wavFileTextBox);
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.playButton);
@@ -1215,8 +1220,8 @@ namespace SDRSharp
         private SpectrumAnalyzer spectrumAnalyzer;
         private Waterfall waterfall;
         private TextBox wavFileTextBox;
-        private RadioButton soundCardRadioButton;
-        private RadioButton wavFileRadioButton;
+        private RadioButton iqStreamRadioButton;
+        private RadioButton waveFileRadioButton;
         private Button fileSelectButton;
         private Label label10;
         private NumericUpDown agcDecayNumericUpDown;

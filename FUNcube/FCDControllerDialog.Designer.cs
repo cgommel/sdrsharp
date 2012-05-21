@@ -64,7 +64,7 @@
             this.IFGain2ComboBox = new System.Windows.Forms.ComboBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.mixerGainComboBox = new System.Windows.Forms.ComboBox();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.refreshTimer = new System.Windows.Forms.Timer(this.components);
             this.closeButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -527,11 +527,10 @@
             this.mixerGainComboBox.TabIndex = 2;
             this.mixerGainComboBox.SelectedIndexChanged += new System.EventHandler(this.mixerGainComboBox_SelectedIndexChanged);
             // 
-            // timer1
+            // refreshTimer
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.refreshTimer.Interval = 1000;
+            this.refreshTimer.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // closeButton
             // 
@@ -542,6 +541,7 @@
             this.closeButton.TabIndex = 18;
             this.closeButton.Text = "Close";
             this.closeButton.UseVisualStyleBackColor = true;
+            this.closeButton.Click += new System.EventHandler(this.closeButton_Click);
             // 
             // label1
             // 
@@ -633,8 +633,10 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "FUNCube Dongle Controller";
+            this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FCDControllerDialog_FormClosing);
             this.Load += new System.EventHandler(this.FCDControllerDialog_Load);
+            this.VisibleChanged += new System.EventHandler(this.FCDControllerDialog_VisibleChanged);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).EndInit();
             this.ResumeLayout(false);
@@ -678,7 +680,7 @@
         private System.Windows.Forms.ComboBox IFGain2ComboBox;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ComboBox mixerGainComboBox;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer refreshTimer;
         private System.Windows.Forms.Button closeButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;

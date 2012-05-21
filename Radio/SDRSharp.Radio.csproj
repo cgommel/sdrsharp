@@ -85,6 +85,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmDetector.cs" />
+    <Compile Include="ExtIO.cs" />
+    <Compile Include="ExtIOController.cs" />
     <Compile Include="StreamControl.cs" />
     <Compile Include="AutomaticGain.cs" />
     <Compile Include="DsbDetector.cs" />

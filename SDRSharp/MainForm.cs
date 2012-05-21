@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -12,7 +13,6 @@ using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
-using System.Collections;
 using Timer = System.Windows.Forms.Timer;
 
 namespace SDRSharp
@@ -37,6 +37,8 @@ namespace SDRSharp
         private int _fftFillPosition;
         private bool _fftOverlap;
         private bool _fftSpectrumAvailable;
+        private bool _extioChangingFrequency;
+        private bool _extioChangingSamplerate;
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -153,12 +155,69 @@ namespace SDRSharp
                 }
             }
 
+            var extIOs = Directory.GetFiles(".", "ExtIO_*.dll");
+
+            foreach (var extIO in extIOs)
+            {
+                try
+                {
+                    var controller = new ExtIOController(extIO);
+                    controller.HideSettingGUI();
+                    var displayName = string.IsNullOrEmpty(ExtIO.HWName) ? "" + Path.GetFileName(extIO) : ExtIO.HWName;
+                    if (!string.IsNullOrEmpty(ExtIO.HWModel))
+                    {
+                        displayName += " (" + ExtIO.HWModel + ")";
+                    }
+                    _frontendControllers.Add(displayName, controller);
+                    frontEndComboBox.Items.Add(displayName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading '" + Path.GetFileName(extIO) + "'\r\n" + ex.Message, "Information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            ExtIO.SampleRateChanged += ExtIO_SampleRateChanged;
+            ExtIO.LOFreqChanged += ExtIO_LOFreqChanged;
+
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
             _fftTimer.Tick += fftTimer_Tick;
             _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
             _fftTimer.Enabled = true;
+        }
+
+        private void ExtIO_LOFreqChanged(int frequency)
+        {
+            BeginInvoke(new Action(() =>
+                            {
+
+                                _extioChangingFrequency = true;
+                                centerFreqNumericUpDown.Value = frequency;
+                                _extioChangingFrequency = false;
+                            }));
+        }
+
+        private void ExtIO_SampleRateChanged(int newSamplerate)
+        {
+            BeginInvoke(new Action(() =>
+                            {
+                                if (_streamControl.IsPlaying)
+                                {
+                                    _extioChangingSamplerate = true;
+                                    try
+                                    {
+                                        _streamControl.Stop();
+                                        Open();
+                                        _streamControl.Play();
+                                    }
+                                    finally
+                                    {
+                                        _extioChangingSamplerate = false;
+                                    }
+                                }
+                            }));
         }
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
@@ -184,7 +243,7 @@ namespace SDRSharp
 
         private void ProcessFFT()
         {
-            while (_streamControl.IsPlaying)
+            while (_streamControl.IsPlaying || _extioChangingSamplerate)
             {
                 // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                 var fftGain = (float) (10.0 * Math.Log10((double) _fftBins / 2));
@@ -211,7 +270,15 @@ namespace SDRSharp
 
                         var toRead = Math.Min(bytes, _fftBins);
                         Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
-                        _fftStream.Read(_iqBuffer, _fftBins - toRead, toRead);
+
+                        var total = 0;
+                        while (_streamControl.IsPlaying && total < toRead)
+                        {
+                            var len = Math.Max(1000, _fftStream.Length);
+                            len = Math.Min(len, toRead - total);
+                            total += _fftStream.Read(_iqBuffer, _fftBins - toRead + total, len);
+                        }
+
                         Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
                         Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
                         Fourier.ForwardTransform(_fftBuffer, _fftBins);
@@ -312,9 +379,9 @@ namespace SDRSharp
 
         #region IQ source selection
 
-        private void soundCardRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void iqStreamRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (soundCardRadioButton.Checked)
+            if (iqStreamRadioButton.Checked)
             {
                 _streamControl.Stop();
                 wavFileTextBox.Enabled = false;
@@ -327,6 +394,7 @@ namespace SDRSharp
                 latencyNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = true;
                 frontEndComboBox.Enabled = true;
+                frontendGuiButton.Enabled = true;
 
                 frontEndComboBox_SelectedIndexChanged(null, null);
             }
@@ -334,7 +402,7 @@ namespace SDRSharp
 
         private void waveFileRadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (wavFileRadioButton.Checked)
+            if (waveFileRadioButton.Checked)
             {
                 _streamControl.Stop();
                 wavFileTextBox.Enabled = true;
@@ -347,12 +415,77 @@ namespace SDRSharp
                 latencyNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
+                frontendGuiButton.Enabled = false;
 
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = 0;
                 frequencyNumericUpDown_ValueChanged(null, null);
             }
+        }
+
+        private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var frontendName = (string) frontEndComboBox.SelectedItem;
+            if (frontendName == "Other")
+            {
+                if (_frontendController != null)
+                {
+                    _frontendController.Close();
+                    _frontendController = null;
+                }
+                centerFreqNumericUpDown.Value = 0;
+                centerFreqNumericUpDown_ValueChanged(null, null);
+                frequencyNumericUpDown.Value = 0;
+                frequencyNumericUpDown_ValueChanged(null, null);
+                frontendGuiButton.Enabled = false;
+                return;
+            }
+            try
+            {
+                if (_frontendController != null)
+                {
+                    _frontendController.HideSettingGUI();
+                    _frontendController.Close();
+                }
+                _frontendController = _frontendControllers[frontendName];
+                _frontendController.Open();
+                inputDeviceComboBox.Enabled = _frontendController.IsSoundCardBased;
+                sampleRateComboBox.Enabled = _frontendController.IsSoundCardBased;
+                if (_frontendController.IsSoundCardBased)
+                {
+                    var regex = new Regex(_frontendController.SoundCardHint, RegexOptions.IgnoreCase);
+                    for (var i = 0; i < inputDeviceComboBox.Items.Count; i++)
+                    {
+                        var item = inputDeviceComboBox.Items[i].ToString();
+                        if (regex.IsMatch(item))
+                        {
+                            inputDeviceComboBox.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                    sampleRateComboBox.Text = _frontendController.Samplerate.ToString();
+                }
+                centerFreqNumericUpDown.Value = _frontendController.Frequency;
+                centerFreqNumericUpDown_ValueChanged(null, null);
+                frequencyNumericUpDown.Value = _frontendController.Frequency;
+                frequencyNumericUpDown_ValueChanged(null, null);
+            }
+            catch
+            {
+                frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+                if (_frontendController != null)
+                {
+                    _frontendController.Close();
+                }
+                _frontendController = null;
+                MessageBox.Show(
+                    frontendName + " is either not connected or its driver is not working properly.",
+                    "Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            frontendGuiButton.Enabled = frontEndComboBox.SelectedIndex < frontEndComboBox.Items.Count - 1;
         }
 
         private void fileSelectButton_Click(object sender, EventArgs e)
@@ -376,15 +509,22 @@ namespace SDRSharp
             var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
             var oldCenterFrequency = centerFreqNumericUpDown.Value;
             Match match;
-            if (soundCardRadioButton.Checked)
+            if (iqStreamRadioButton.Checked)
             {
-                var sampleRate = 0;
-                match = Regex.Match(sampleRateComboBox.Text, "([0-9\\.]+)k", RegexOptions.IgnoreCase);
-                if (match.Success)
+                if (_frontendController == null || _frontendController.IsSoundCardBased)
                 {
-                    sampleRate = (int)(double.Parse(match.Groups[1].Value) * 1000);
+                    var sampleRate = 0.0;
+                    match = Regex.Match(sampleRateComboBox.Text, "([0-9\\.]+)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        sampleRate = double.Parse(match.Groups[1].Value);
+                    }
+                    _streamControl.OpenSoundDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
                 }
-                _streamControl.OpenDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
+                else
+                {
+                    _streamControl.OpenExtIODevice("ExtIO_USRP.dll", outputDevice.Index, (int)latencyNumericUpDown.Value);
+                }
             }
             else
             {
@@ -465,7 +605,7 @@ namespace SDRSharp
             _fftStream.Flush();
             playButton.Enabled = true;
             stopButton.Enabled = false;
-            if (soundCardRadioButton.Checked)
+            if (iqStreamRadioButton.Checked)
             {
                 sampleRateComboBox.Enabled = true;
                 inputDeviceComboBox.Enabled = true;
@@ -483,14 +623,14 @@ namespace SDRSharp
 
         private void frequencyNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            waterfall.Frequency = (int) frequencyNumericUpDown.Value;
-            spectrumAnalyzer.Frequency = (int) frequencyNumericUpDown.Value;
-            _vfo.Frequency = waterfall.Frequency - (int) centerFreqNumericUpDown.Value;
+            waterfall.Frequency = (long) frequencyNumericUpDown.Value;
+            spectrumAnalyzer.Frequency = (long) frequencyNumericUpDown.Value;
+            _vfo.Frequency = (int) (waterfall.Frequency - (long) centerFreqNumericUpDown.Value);
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            var newCenterFreq = (int) centerFreqNumericUpDown.Value;
+            var newCenterFreq = (long) centerFreqNumericUpDown.Value;
             waterfall.CenterFrequency = newCenterFreq;
             spectrumAnalyzer.CenterFrequency = newCenterFreq;
 
@@ -498,57 +638,10 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (_frontendController != null && soundCardRadioButton.Checked)
+            if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
                 _frontendController.Frequency = newCenterFreq;
             }
-        }
-
-        private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var frontendName = (string)frontEndComboBox.SelectedItem;
-            if (frontendName == "Other")
-            {
-                if (_frontendController != null)
-                {
-                    _frontendController.Close();
-                    _frontendController = null;
-                }
-                centerFreqNumericUpDown.Value = 0;
-                centerFreqNumericUpDown_ValueChanged(null, null);
-                frequencyNumericUpDown.Value = 0;
-                frequencyNumericUpDown_ValueChanged(null, null);
-                frontendGuiButton.Enabled = false;
-                return;
-            }
-            try
-            {
-                if (_frontendController != null)
-                {
-                    _frontendController.Close();
-                }
-                _frontendController = _frontendControllers[frontendName];
-                _frontendController.Open();
-                centerFreqNumericUpDown.Value = _frontendController.Frequency;
-                centerFreqNumericUpDown_ValueChanged(null, null);
-                frequencyNumericUpDown.Value = _frontendController.Frequency;
-                frequencyNumericUpDown_ValueChanged(null, null);
-            }
-            catch
-            {
-                frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
-                if (_frontendController != null)
-                {
-                    _frontendController.Close();
-                }
-                _frontendController = null;
-                MessageBox.Show(
-                    frontendName + " is either not connected or its driver is not working properly.",
-                    "Information",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            frontendGuiButton.Enabled = frontEndComboBox.SelectedIndex < frontEndComboBox.Items.Count - 1;
         }
 
         private void panview_FrequencyChanged(object sender, FrequencyEventArgs e)
@@ -562,7 +655,7 @@ namespace SDRSharp
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            if (soundCardRadioButton.Checked)
+            if (iqStreamRadioButton.Checked)
             {
                 centerFreqNumericUpDown.Value = e.Frequency;
             }
@@ -755,7 +848,7 @@ namespace SDRSharp
         {
             if (_frontendController != null)
             {
-                _frontendController.ShowSettingsDialog(Handle);
+                _frontendController.ShowSettingGUI(Handle);
             }
         }
 

@@ -539,6 +539,25 @@ namespace SDRSharp.FUNcube
         private void FCDControllerDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
             Utils.SaveSetting("funcubeFrequencyCorrection", _owner.FrequencyCorrection.ToString(CultureInfo.InvariantCulture));
+            e.Cancel = true;
+            Hide();
+        }
+
+        private void closeButton_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void FCDControllerDialog_VisibleChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                refreshTimer.Enabled = true;
+            }
+            else
+            {
+                refreshTimer.Enabled = false;
+            }
         }
     }
 }
