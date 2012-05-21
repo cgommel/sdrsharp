@@ -236,8 +236,7 @@ namespace SDRSharp.Radio
                 _hideGUI = (HideGUIDelegate) Marshal.GetDelegateForFunctionPointer(pAddressOfFunctionToCall, typeof(HideGUIDelegate));
             
             if (_initHW == null || _openHW == null || _startHW == null || _setHWLO == null ||
-               _getHWSR == null || _getStatus == null || _getHWLO == null || _setCallback == null ||
-               _showGUI == null || _hideGUI == null || _stopHW == null || _closeHW == null)
+               _getStatus == null || _setCallback == null || _stopHW == null || _closeHW == null)
             {
                 FreeLibrary(_dllHandle);
                 _dllHandle = IntPtr.Zero;
@@ -321,14 +320,14 @@ namespace SDRSharp.Radio
 
         public static int GetHWSR()
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero && _getHWSR != null)
                 return _getHWSR();
             return 0;
         }
 
         public static int GetHWLO()
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero && _getHWLO != null)
                 return _getHWLO();
             return 0;
         }
@@ -341,13 +340,13 @@ namespace SDRSharp.Radio
 
         public static void ShowGUI()
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero && _showGUI != null)
                 _showGUI();
         }
 
         public static void HideGUI()
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero && _hideGUI != null)
                 _hideGUI();
         }
 

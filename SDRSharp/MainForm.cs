@@ -157,6 +157,9 @@ namespace SDRSharp
 
             var extIOs = Directory.GetFiles(".", "ExtIO_*.dll");
 
+            var dropDownWidth = frontEndComboBox.Width;
+            var graphics = frontEndComboBox.CreateGraphics();
+
             foreach (var extIO in extIOs)
             {
                 try
@@ -168,6 +171,12 @@ namespace SDRSharp
                     {
                         displayName += " (" + ExtIO.HWModel + ")";
                     }
+                    displayName += " - " + Path.GetFileName(extIO);
+                    var size = graphics.MeasureString(displayName, frontEndComboBox.Font);
+                    if (size.Width > dropDownWidth)
+                    {
+                        dropDownWidth = (int) size.Width;
+                    }
                     _frontendControllers.Add(displayName, controller);
                     frontEndComboBox.Items.Add(displayName);
                 }
@@ -176,6 +185,8 @@ namespace SDRSharp
                     MessageBox.Show("Error loading '" + Path.GetFileName(extIO) + "'\r\n" + ex.Message, "Information", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
+
+            frontEndComboBox.DropDownWidth = dropDownWidth;
 
             ExtIO.SampleRateChanged += ExtIO_SampleRateChanged;
             ExtIO.LOFreqChanged += ExtIO_LOFreqChanged;

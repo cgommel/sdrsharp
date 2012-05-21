@@ -621,6 +621,7 @@ namespace SDRSharp
             // frontEndComboBox
             // 
             this.frontEndComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.frontEndComboBox.DropDownWidth = 135;
             this.frontEndComboBox.FormattingEnabled = true;
             this.frontEndComboBox.Location = new System.Drawing.Point(70, 133);
             this.frontEndComboBox.Name = "frontEndComboBox";
