@@ -206,7 +206,7 @@ namespace SDRSharp.Radio
 
         private void ExtIOFiller(Complex* samples, int len)
         {
-            if (_iqStream.Length < _inputBufferSize * 8)
+            if (_iqStream.Length < _inputBufferSize * 16)
             {
                 _iqStream.Write(samples, len);
             }
