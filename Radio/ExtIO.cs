@@ -238,7 +238,7 @@ namespace SDRSharp.Radio
             if (_initHW == null || _openHW == null || _startHW == null || _setHWLO == null ||
                _getStatus == null || _setCallback == null || _stopHW == null || _closeHW == null)
             {
-                FreeLibrary(_dllHandle);
+                //FreeLibrary(_dllHandle);
                 _dllHandle = IntPtr.Zero;
                 throw new ApplicationException("ExtIO DLL is not valid");
             }
@@ -254,7 +254,7 @@ namespace SDRSharp.Radio
 
             if (result < 1)
             {
-                FreeLibrary(_dllHandle);
+                //FreeLibrary(_dllHandle);
                 _dllHandle = IntPtr.Zero;
                 throw new ApplicationException("InitHW() returned " + result);
             }
