@@ -24,7 +24,7 @@ namespace SDRSharp
 #if !LINUX
             Utils.TimeEndPeriod(1);
 #endif
-            process.Kill(); // ExtIO may have some thread still running preventing the program from terminating
+            Application.Exit(); // ExtIO may have some thread still running preventing the program from terminating
         }
     }
 }
