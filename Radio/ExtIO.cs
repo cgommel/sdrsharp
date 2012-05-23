@@ -38,6 +38,7 @@ namespace SDRSharp.Radio
 
         public enum HWTypes
         {
+            Sdr14 = 1,      /* Special case by WinRad ? */
             Aud16BInt = 3, /* 16 Bit integer audio samples */
             Soundcard = 4, /* Soundcard based device */
             Aud24BInt = 5, /* 24 Bit integer audio samples */
@@ -258,7 +259,7 @@ namespace SDRSharp.Radio
                 _dllHandle = IntPtr.Zero;
                 throw new ApplicationException("InitHW() returned " + result);
             }
-
+            
             _hwType = (HWTypes) type;
 
             /* Give the library the managed callback address */
@@ -417,7 +418,7 @@ namespace SDRSharp.Radio
                 /* Convert samples to double */
 
                 /* 16 bit integer samples */
-                if (_hwType == HWTypes.Aud16BInt)
+                if (_hwType == HWTypes.Aud16BInt || _hwType == HWTypes.Sdr14)
                 {
                     for (var i = 0; i < _iqBuffer.Length; i++)
                     {
