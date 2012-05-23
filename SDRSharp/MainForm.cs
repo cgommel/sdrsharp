@@ -477,6 +477,13 @@ namespace SDRSharp
                     }
                     sampleRateComboBox.Text = _frontendController.Samplerate.ToString();
                 }
+                if (_frontendController.Samplerate > 0)
+                {
+                    waterfall.SpectrumWidth = (int) _frontendController.Samplerate;
+                    spectrumAnalyzer.SpectrumWidth = (int) _frontendController.Samplerate;
+                }
+                _vfo.SampleRate = _frontendController.Samplerate;
+                _vfo.Frequency = 0;
                 centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = _frontendController.Frequency;
