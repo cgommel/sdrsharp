@@ -141,7 +141,7 @@ namespace SDRSharp.Radio.PortAudio
                             iqPtr[i].Imag = *(Int24*)(rawPtr + i * 6 + 3) / 8388608.0f * InputGain;
                         }
                     }
-                    else if (_blockAlign == 6)
+                    else if (_blockAlign == 4)
                     {
                         for (int i = 0; i < numReads; i++)
                         {
