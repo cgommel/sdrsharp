@@ -30,6 +30,11 @@ namespace SDRSharp.Radio
             get { return ExtIO.IsHardwareOpen; }
         }
 
+        public string Filename
+        {
+            get { return _filename; }
+        }
+
         public bool IsSoundCardBased
         {
             get { return ExtIO.HWType == ExtIO.HWTypes.Soundcard; }

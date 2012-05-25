@@ -541,7 +541,8 @@ namespace SDRSharp
                 }
                 else
                 {
-                    _streamControl.OpenExtIODevice("ExtIO_USRP.dll", outputDevice.Index, (int)latencyNumericUpDown.Value);
+                    var extioController = (ExtIOController) _frontendController;
+                    _streamControl.OpenExtIODevice(extioController.Filename, outputDevice.Index, (int)latencyNumericUpDown.Value, (int) extioController.Frequency);
                 }
             }
             else

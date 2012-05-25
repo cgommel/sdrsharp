@@ -54,6 +54,7 @@ namespace SDRSharp.Radio
         private int _decimationStageCount;
         private bool _swapIQ;
         private InputType _inputType;
+        private int _deviceStartFrequency;
 
         public event BufferNeededDelegate BufferNeeded;
     
@@ -407,7 +408,7 @@ namespace SDRSharp.Radio
                     _iqStream = new ComplexFifoStream(true);
                     _audioStream = new FloatFifoStream(_outputBufferSize);
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
-                    ExtIO.StartHW(0);
+                    ExtIO.StartHW(_deviceStartFrequency);
                     _dspThread = new Thread(DSPProc);
                     _dspThread.Start();
                     break;
@@ -467,7 +468,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public void OpenExtIODevice(string filename, int outputDevice, int bufferSizeInMs)
+        public void OpenExtIODevice(string filename, int outputDevice, int bufferSizeInMs, int deviceStartFrequency)
         {
             Stop();
             try
@@ -478,6 +479,8 @@ namespace SDRSharp.Radio
                     ExtIO.UseLibrary(filename);
                     ExtIO.OpenHW();
                 }
+
+                _deviceStartFrequency = deviceStartFrequency;
 
                 _inputSampleRate = ExtIO.GetHWSR();
 

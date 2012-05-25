@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Runtime.InteropServices;
 using SDRSharp.Radio.PortAudio;
@@ -188,6 +189,19 @@ namespace SDRSharp.Radio
             if (_dllHandle == IntPtr.Zero)
                 throw new Exception("Unable to load ExtIO library");
 
+            _initHW = null;
+            _openHW = null;
+            _startHW = null;
+            _stopHW = null;
+            _closeHW = null;
+            _setHWLO = null;
+            _getHWLO = null;
+            _getHWSR = null;
+            _getStatus = null;
+            _showGUI = null;
+            _hideGUI = null;
+            _setCallback = null;
+
             IntPtr pAddressOfFunctionToCall = GetProcAddress(_dllHandle, "InitHW");
             if (pAddressOfFunctionToCall != IntPtr.Zero)
                 _initHW = (InitHWDelegate) Marshal.GetDelegateForFunctionPointer(pAddressOfFunctionToCall, typeof(InitHWDelegate));
@@ -335,7 +349,7 @@ namespace SDRSharp.Radio
 
         public static void SetHWLO(int freq)
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero & _setHWLO != null)
                 _setHWLO(freq);
         }
 
@@ -353,7 +367,7 @@ namespace SDRSharp.Radio
 
         public static void StartHW(int freq)
         {
-            if (_dllHandle == IntPtr.Zero)
+            if (_dllHandle == IntPtr.Zero || _startHW == null)
                 return;
 
             int result = _startHW(freq);
@@ -387,10 +401,9 @@ namespace SDRSharp.Radio
 
         public static void CloseHW()
         {
-            if (_dllHandle != IntPtr.Zero)
+            if (_dllHandle != IntPtr.Zero && _closeHW != null)
             {
                 _closeHW();
-                _setCallback(null);
                 _isHWStarted = false;
                 _dllHandle = IntPtr.Zero;
             }
@@ -400,11 +413,12 @@ namespace SDRSharp.Radio
 
         #region ExtIO Callback
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private static void ExtIOCallback(int count, int status, float iqOffs, byte* dataPtr)
         {
             /* Non-negative count means samples are ready. */           
             /* Negative count means status change */
-            if (count >= 0)
+            if (count >= 0 && _isHWStarted)
             {
                 /* Buffers cannot be allocated until AFTER the hardware is started because size is unknown
                  * Therefore the callback could be called before buffers are allocated
