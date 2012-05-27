@@ -46,6 +46,7 @@ namespace SDRSharp.PanView
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _useSmoothing;
+        private bool _hotTrackNeeded;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
@@ -308,8 +309,9 @@ namespace SDRSharp.PanView
 
             if (cursorWidth < ClientRectangle.Width)
             {
-                using (var transparentBrush = new SolidBrush(Color.FromArgb(100, Color.White)))
+                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.DodgerBlue)))
                 using (var carrierPen = new Pen(Color.Red))
+                using (var hotTrackPen = new Pen(Color.Red))
                 using (var graphics = Graphics.FromImage(_buffer))
                 {
                     carrierPen.Width = CarrierPenWidth;
@@ -317,6 +319,11 @@ namespace SDRSharp.PanView
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
+                    }
+
+                    if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin)
+                    {
+                        graphics.DrawLine(hotTrackPen, _oldX, 0f, _oldX, ClientRectangle.Height);
                     }
                 }
             }
@@ -605,7 +612,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void UpdateCenterFrequency(int f)
+        private void UpdateCenterFrequency(long f)
         {
             if (f < 0)
             {
@@ -666,6 +673,15 @@ namespace SDRSharp.PanView
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
+
+            if (_changingCenterFrequency && e.X == _oldX)
+            {
+                _hotTrackNeeded = false;
+                _drawBackgroundNeeded = true;
+                _performNeeded = true;
+                var f = (long)((_oldX - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
+                UpdateFrequency(f);
+            }
             _changingBandwidth = false;
             _changingFrequency = false;
             _changingCenterFrequency = false;
@@ -674,14 +690,15 @@ namespace SDRSharp.PanView
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            _hotTrackNeeded = false;
             if (_changingFrequency)
             {
-                var f = (int)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
+                var f = (long)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
                 UpdateFrequency(f);
             }
             else if (_changingCenterFrequency)
             {
-                var f = (int)((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
+                var f = (long)((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
                 UpdateCenterFrequency(f);
             }
             else if (_changingBandwidth)
@@ -711,10 +728,23 @@ namespace SDRSharp.PanView
                 (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 Cursor = Cursors.SizeWE;
+                _drawBackgroundNeeded = true;
+                _performNeeded = true;
             }
             else
             {
                 Cursor = Cursors.Default;
+                if (e.X < _lower - Waterfall.CursorSnapDistance || e.X > _upper + Waterfall.CursorSnapDistance)
+                {
+                    _oldX = e.X;
+                    _hotTrackNeeded = true;
+                }
+                else
+                {
+                    _hotTrackNeeded = false;
+                }
+                _drawBackgroundNeeded = true;
+                _performNeeded = true;
             }
         }
 
@@ -722,6 +752,14 @@ namespace SDRSharp.PanView
         {
             base.OnMouseWheel(e);
             UpdateFrequency(_frequency + e.Delta / 10);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            _hotTrackNeeded = false;
+            _drawBackgroundNeeded = true;
+            _performNeeded = true;
         }
     }
 }
