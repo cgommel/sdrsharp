@@ -13,7 +13,6 @@ using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
-using Timer = System.Windows.Forms.Timer;
 
 namespace SDRSharp
 {
@@ -53,7 +52,10 @@ namespace SDRSharp
         private readonly float[] _fftSpectrum = new float[MaxFFTBins];
         private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
         private readonly Pipe<byte[]> _fftQueue = new Pipe<byte[]>(MaxFFTQueue);
-        private readonly Timer _fftTimer;
+        private readonly System.Windows.Forms.Timer _fftTimer;
+        private readonly System.Threading.Timer _tuneTimer;
+        private long _frequencyToSet;
+        private long _frequencySet;
 
         #endregion
 
@@ -62,7 +64,8 @@ namespace SDRSharp
         public MainForm()
         {
             InitializeComponent();
-            _fftTimer = new Timer(components);
+            _fftTimer = new System.Windows.Forms.Timer(components);
+            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 10);
 
             for (var i = 0; i < MaxFFTQueue; i++)
             {
@@ -233,6 +236,7 @@ namespace SDRSharp
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
+            _tuneTimer.Dispose();
             _streamControl.Stop();
             if (_frontendController != null)
             {
@@ -657,9 +661,26 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
+            if (iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
-                _frontendController.Frequency = newCenterFreq;
+                lock (_tuneTimer)
+                {
+                    _frequencyToSet = newCenterFreq;
+                }
+            }
+        }
+
+        private void tuneTimer_Callback(object state)
+        {
+            long copyOfFrequencyToSet;
+            lock (_tuneTimer)
+            {
+                copyOfFrequencyToSet = _frequencyToSet;
+            }
+            if (_frontendController != null  && _frequencySet != copyOfFrequencyToSet)
+            {
+                _frequencySet = _frequencyToSet;
+                _frontendController.Frequency = copyOfFrequencyToSet;
             }
         }
 
