@@ -455,8 +455,11 @@ namespace SDRSharp.Radio
             {
                 _agc.Process(audio, length);
             }
-            
-            _dcRemover.Process(audio, length);
+
+            if (_detectorType == DetectorType.AM)
+            {
+                _dcRemover.Process(audio, length);
+            }
 
             Utils.Memcpy(audioBuffer, audio, length * sizeof(float));
         }
