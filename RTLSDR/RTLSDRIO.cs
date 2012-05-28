@@ -155,8 +155,8 @@ namespace SDRSharp.RTLSDR
 
             for (int i = 0; i < instance._iqBuffer.Length; i++)
             {
-                instance._iqPtr[i].Real = (*(buf + i * 2) - 128) / 128.0f * InputGain;
-                instance._iqPtr[i].Imag = (*(buf + i * 2 + 1) - 128) / 128.0f * InputGain;
+                instance._iqPtr[i].Real = (*(buf + i * 2 + 1) - 128) / 128.0f * InputGain;
+                instance._iqPtr[i].Imag = (*(buf + i * 2) - 128) / 128.0f * InputGain;
             }
 
             instance.ComplexSamplesAvailable(instance._iqPtr, instance._iqBuffer.Length);
