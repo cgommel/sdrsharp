@@ -313,7 +313,7 @@ namespace SDRSharp.PanView
 
             if (cursorWidth < ClientRectangle.Width)
             {
-                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.DodgerBlue)))
+                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
                 using (var carrierPen = new Pen(Color.Red))
                 using (var hotTrackPen = new Pen(Color.Red))
                 using (var graphics = Graphics.FromImage(_buffer))
