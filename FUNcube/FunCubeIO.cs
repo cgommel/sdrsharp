@@ -525,6 +525,14 @@ namespace SDRSharp.FUNcube
             SetLNAGain(TunerLNAGain.P10_0DB);
         }
 
+        public void Start(SamplesAvailableDelegate callback)
+        {
+        }
+
+        public void Stop()
+        {
+        }
+
         public void Close()
         {
             _dialog.Hide();

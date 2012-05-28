@@ -35,6 +35,14 @@ namespace SDRSharp.SoftRock
                 string.Empty);
         }
 
+        public void Start(SamplesAvailableDelegate callback)
+        {
+        }
+
+        public void Stop()
+        {
+        }
+
         public void Close()
         {
             if (IsOpen)

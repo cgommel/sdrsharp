@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
+using System.Runtime.CompilerServices;
 
 namespace SDRSharp
 {
@@ -65,7 +66,7 @@ namespace SDRSharp
         {
             InitializeComponent();
             _fftTimer = new System.Windows.Forms.Timer(components);
-            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 10);
+            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 20);
 
             for (var i = 0; i < MaxFFTQueue; i++)
             {
@@ -545,8 +546,7 @@ namespace SDRSharp
                 }
                 else
                 {
-                    var extioController = (ExtIOController) _frontendController;
-                    _streamControl.OpenExtIODevice(extioController.Filename, outputDevice.Index, (int)latencyNumericUpDown.Value, (int) extioController.Frequency);
+                    _streamControl.OpenPlugin(_frontendController, outputDevice.Index, (int) latencyNumericUpDown.Value);
                 }
             }
             else
@@ -661,7 +661,7 @@ namespace SDRSharp
             frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
-            if (iqStreamRadioButton.Checked && !_extioChangingFrequency)
+            if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
                 lock (_tuneTimer)
                 {
@@ -670,6 +670,7 @@ namespace SDRSharp
             }
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private void tuneTimer_Callback(object state)
         {
             long copyOfFrequencyToSet;

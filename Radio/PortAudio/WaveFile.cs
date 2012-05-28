@@ -153,8 +153,8 @@ namespace SDRSharp.Radio.PortAudio
                     {
                         for (int i = 0; i < numReads; i++)
                         {
-                            iqPtr[i].Real = *(sbyte*)(rawPtr + i * 2) / 256.0f * InputGain;
-                            iqPtr[i].Imag = *(sbyte*)(rawPtr + i * 2 + 1) / 256.0f * InputGain;
+                            iqPtr[i].Real = *(sbyte*)(rawPtr + i * 2) / 128.0f * InputGain;
+                            iqPtr[i].Imag = *(sbyte*)(rawPtr + i * 2 + 1) / 128.0f * InputGain;
                         }
                     }
                 }

@@ -11,7 +11,7 @@ namespace SDRSharp.Radio
         private enum InputType
         {
             SoundCard,
-            ExtIO,
+            Plugin,
             WaveFile
         }
 
@@ -54,15 +54,13 @@ namespace SDRSharp.Radio
         private int _decimationStageCount;
         private bool _swapIQ;
         private InputType _inputType;
-        private int _deviceStartFrequency;
+        private IFrontendController _frontend;
 
         public event BufferNeededDelegate BufferNeeded;
     
         public StreamControl()
         {
             AudioGain = 10.0f;
-
-            ExtIO.SamplesAvailable += ExtIOFiller;
         }
 
         ~StreamControl()
@@ -73,7 +71,6 @@ namespace SDRSharp.Radio
         public void Dispose()
         {
             Stop();
-            ExtIO.SamplesAvailable -= ExtIOFiller;
             GC.SuppressFinalize(this);
         }
 
@@ -205,15 +202,11 @@ namespace SDRSharp.Radio
             _iqStream.Write(_iqInPtr, frameCount);
         }
 
-        private void ExtIOFiller(Complex* samples, int len)
+        private void FrontendFiller(IFrontendController sender, Complex* samples, int len)
         {
-            if (_iqStream.Length < _inputBufferSize * 16)
+            if (_iqStream.Length < _inputBufferSize * 4)
             {
                 _iqStream.Write(samples, len);
-            }
-            else
-            {
-                System.Diagnostics.Trace.WriteLine("ExtIO Overrun");
             }
         }
 
@@ -314,8 +307,11 @@ namespace SDRSharp.Radio
 
         public void Stop()
         {
-            ExtIO.StopHW();
-
+            if (_inputType == InputType.Plugin && _frontend != null)
+            {
+                _frontend.Stop();
+                _frontend = null;
+            }
             if (_wavePlayer != null)
             {
                 _wavePlayer.Dispose();
@@ -404,11 +400,11 @@ namespace SDRSharp.Radio
                     _dspThread.Start();
                     break;
 
-                case InputType.ExtIO:
+                case InputType.Plugin:
                     _iqStream = new ComplexFifoStream(true);
                     _audioStream = new FloatFifoStream(_outputBufferSize);
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize, PlayerFiller);
-                    ExtIO.StartHW(_deviceStartFrequency);
+                    _frontend.Start(FrontendFiller);
                     _dspThread = new Thread(DSPProc);
                     _dspThread.Start();
                     break;
@@ -468,21 +464,15 @@ namespace SDRSharp.Radio
             }
         }
 
-        public void OpenExtIODevice(string filename, int outputDevice, int bufferSizeInMs, int deviceStartFrequency)
+        public void OpenPlugin(IFrontendController frontend, int outputDevice, int bufferSizeInMs)
         {
             Stop();
             try
             {
-                _inputType = InputType.ExtIO;
-                if (!ExtIO.IsHardwareOpen && ExtIO.DllName != filename)
-                {
-                    ExtIO.UseLibrary(filename);
-                    ExtIO.OpenHW();
-                }
+                _inputType = InputType.Plugin;
 
-                _deviceStartFrequency = deviceStartFrequency;
-
-                _inputSampleRate = ExtIO.GetHWSR();
+                _frontend = frontend;
+                _inputSampleRate = _frontend.Samplerate;
 
                 _outputDevice = outputDevice;
                 _bufferSizeInMs = bufferSizeInMs;
@@ -516,6 +506,5 @@ namespace SDRSharp.Radio
 
             return (int) Math.Log(result, 2.0);
         }
-        
     }
 }

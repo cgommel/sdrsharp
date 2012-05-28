@@ -2,11 +2,14 @@
 
 namespace SDRSharp.Radio
 {
+    public unsafe delegate void SamplesAvailableDelegate(IFrontendController sender, Complex* data, int len);
+
     public interface IFrontendController
     {
         void Open();
+        void Start(SamplesAvailableDelegate callback);
+        void Stop();
         void Close();
-        bool IsOpen { get; }
         bool IsSoundCardBased { get; }
         string SoundCardHint { get; }
         double Samplerate { get; }

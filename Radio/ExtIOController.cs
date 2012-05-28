@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public class ExtIOController : IFrontendController
+    public unsafe class ExtIOController : IFrontendController
     {
         private readonly string _filename;
 
@@ -18,9 +18,19 @@ namespace SDRSharp.Radio
             ExtIO.UseLibrary(_filename);
         }
 
-        public void Close()
+        public void Start(SamplesAvailableDelegate callback)
+        {
+            ExtIO.SamplesAvailable = callback;
+        }
+
+        public void Stop()
         {
             ExtIO.StopHW();
+            ExtIO.SamplesAvailable = null;
+        }
+
+        public void Close()
+        {
             ExtIO.HideGUI();
             //ExtIO.CloseHW();
         }
@@ -42,7 +52,7 @@ namespace SDRSharp.Radio
 
         public string SoundCardHint
         {
-            get { return "DirectSound"; }
+            get { return string.Empty; }
         }
 
         public double Samplerate

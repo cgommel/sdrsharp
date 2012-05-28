@@ -25,7 +25,6 @@ using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp.Radio
 {
-    public unsafe delegate void SamplesAvailableDelegate(Complex* data, int len);
     public delegate void SampleRateChangedDelegate(int newSamplerate);
     public delegate void LOFrequencyChangedDelegate(int frequency);
     public delegate void LOFrequencyChangeAcceptedDelegate();
@@ -80,7 +79,7 @@ namespace SDRSharp.Radio
         /* This delegate is called when samples arrive from the DLL */
         /* Place your own hook here */
 
-        public static event SamplesAvailableDelegate SamplesAvailable;
+        public static SamplesAvailableDelegate SamplesAvailable;
         public static event SampleRateChangedDelegate SampleRateChanged;
         public static event LOFrequencyChangedDelegate LOFreqChanged;
         public static event LOFrequencyChangeAcceptedDelegate LOFreqChangedAccepted;
@@ -473,7 +472,7 @@ namespace SDRSharp.Radio
 
                 if (SamplesAvailable != null)
                 {
-                    SamplesAvailable(_iqPtr, _iqBuffer.Length);
+                    SamplesAvailable(null, _iqPtr, _iqBuffer.Length);
                 }
             }
             else
