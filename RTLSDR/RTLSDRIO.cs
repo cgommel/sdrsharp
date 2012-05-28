@@ -46,12 +46,13 @@ namespace SDRSharp.RTLSDR
 
         public void Open()
         {
-            if (NativeMethods.rtlsdr_get_device_count() > 0)
+            if (NativeMethods.rtlsdr_get_device_count() <= 0)
             {
-                NativeMethods.rtlsdr_open(ref _dev, _deviceIndex);
-                NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
-                NativeMethods.rtlsdr_set_center_freq(_dev, DefaultFrequency);
+                throw new ApplicationException("No compatible device detected");
             }
+            NativeMethods.rtlsdr_open(ref _dev, _deviceIndex);
+            NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
+            NativeMethods.rtlsdr_set_center_freq(_dev, DefaultFrequency);
         }
 
         public void Start(SamplesAvailableDelegate callback)
