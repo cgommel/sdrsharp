@@ -4,6 +4,7 @@ namespace SDRSharp.Radio
 {
     public unsafe sealed class Vfo
     {
+        private const float TimeConst = 0.01f;
         public const int DefaultCwSideTone = 600;
         public const int DefaultSSBBandwidth = 2400;
         public const int DefaultWFMBandwidth = 180000;
@@ -22,6 +23,7 @@ namespace SDRSharp.Radio
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
         private readonly DsbDetector _dsbDetector = new DsbDetector();
+        private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private IQDecimator _baseBandDecimator;
         private FloatDecimator _audioDecimator;
         private FirFilter _audioFilter;
@@ -435,7 +437,7 @@ namespace SDRSharp.Radio
                 _baseBandDecimator.Process(iqBuffer, length);
                 length /= (int) Math.Pow(2.0, _baseBandDecimator.StageCount);
             }
-                
+
             _iqFilter.Process(iqBuffer, length);
 
             var audio = stackalloc float[length];
@@ -447,13 +449,14 @@ namespace SDRSharp.Radio
                 _audioDecimator.Process(audio, length);
                 length /= (int) Math.Pow(2.0, _audioDecimator.StageCount);
             }
-                
             _audioFilter.Process(audio, length);
                 
             if (_useAgc && _detectorType != DetectorType.WFM)
             {
                 _agc.Process(audio, length);
             }
+            
+            _dcRemover.Process(audio, length);
 
             Utils.Memcpy(audioBuffer, audio, length * sizeof(float));
         }
