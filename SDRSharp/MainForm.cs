@@ -66,7 +66,7 @@ namespace SDRSharp
         {
             InitializeComponent();
             _fftTimer = new System.Windows.Forms.Timer(components);
-            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 20);
+            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 10);
 
             for (var i = 0; i < MaxFFTQueue; i++)
             {
