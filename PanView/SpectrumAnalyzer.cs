@@ -521,7 +521,7 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.DrawImageUnscaled(_buffer, e.ClipRectangle);
+            e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
         }
 
         protected override void OnResize(EventArgs e)

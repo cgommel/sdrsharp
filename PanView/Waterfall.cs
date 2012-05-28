@@ -429,11 +429,11 @@ namespace SDRSharp.PanView
             {
                 _graphics2.DrawImageUnscaled(_buffer, 0, 0);
                 DrawCursor(_graphics2);
-                e.Graphics.DrawImageUnscaled(_buffer2, e.ClipRectangle);
+                e.Graphics.DrawImageUnscaled(_buffer2, 0, 0);
             }
             else
             {
-                e.Graphics.DrawImageUnscaled(_buffer, e.ClipRectangle);
+                e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
             }
         }
 
