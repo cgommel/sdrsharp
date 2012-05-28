@@ -91,6 +91,25 @@ namespace SDRSharp.Radio
             return "YyTt".IndexOf(resultString[0]) >= 0;
         }
 
+        public static Color GetColorSetting(string name, Color defaultColor)
+        {
+            Color result;
+            try
+            {
+                var colorPattern = ConfigurationManager.AppSettings[name];
+
+                var r = int.Parse(colorPattern.Substring(0, 2), NumberStyles.HexNumber);
+                var g = int.Parse(colorPattern.Substring(2, 2), NumberStyles.HexNumber);
+                var b = int.Parse(colorPattern.Substring(4, 2), NumberStyles.HexNumber);
+                result = Color.FromArgb(r, g, b);
+            }
+            catch
+            {
+                return defaultColor;
+            }
+            return result;
+        }
+
         public static ColorBlend GetGradientBlend(int alpha, string settingName)
         {
             var colorBlend = new ColorBlend();

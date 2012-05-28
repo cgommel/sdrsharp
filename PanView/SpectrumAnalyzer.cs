@@ -16,6 +16,7 @@ namespace SDRSharp.PanView
 
         private readonly static double _attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
         private readonly static double _decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+        private readonly static Color _spectrumColor = Utils.GetColorSetting("spectrumAnalyzerColor", Color.DarkGray);
         private readonly static bool _fillSpectrumAnalyzer = Utils.GetBooleanSetting("fillSpectrumAnalyzer");
 
         private bool _performNeeded;
@@ -492,7 +493,7 @@ namespace SDRSharp.PanView
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrum.Length;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) byte.MaxValue;
 
-            using (var spectrumPen = new Pen(Color.DarkGray))
+            using (var spectrumPen = new Pen(_spectrumColor))
             {
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
