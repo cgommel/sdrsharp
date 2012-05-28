@@ -369,6 +369,9 @@ namespace SDRSharp.Radio
             if (_dllHandle == IntPtr.Zero || _startHW == null)
                 return;
 
+            _iqBuffer = null;
+            _iqPtr = null;
+
             int result = _startHW(freq);
             if (result < 0)
                 throw new Exception("ExtIO StartHW() returned " + result);
@@ -422,11 +425,10 @@ namespace SDRSharp.Radio
                 /* Buffers cannot be allocated until AFTER the hardware is started because size is unknown
                  * Therefore the callback could be called before buffers are allocated
                  */
-                //if (_iqBuffer == null || _iqBuffer.Length != _sampleCount)
-                //{
-                //    _iqBuffer = UnsafeBuffer.Create(_sampleCount, sizeof(Complex));
-                //    _iqPtr = (Complex*) _iqBuffer;
-                //}
+                if (_iqPtr == null)
+                {
+                    return;
+                }
                 
                 /* Convert samples to double */
 
