@@ -21,6 +21,7 @@ namespace SDRSharp.Radio
         public void Start(SamplesAvailableDelegate callback)
         {
             ExtIO.SamplesAvailable = callback;
+            ExtIO.StartHW(ExtIO.GetHWLO());
         }
 
         public void Stop()
@@ -70,7 +71,7 @@ namespace SDRSharp.Radio
             {
                 unchecked
                 {
-                    ExtIO.SetHWLO((int) value);
+                    ExtIO.SetHWLO(unchecked ((int) value));
                 }
             }
         }
