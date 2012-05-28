@@ -52,12 +52,16 @@ namespace SDRSharp.PanView
 
         public SpectrumAnalyzer()
         {
-            _bkgBuffer = new Bitmap(Width, Height);
-            _buffer = new Bitmap(Width, Height);
+            _bkgBuffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
+            _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
-            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
+            _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
-            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, false);
+
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, false);
+            SetStyle(ControlStyles.DoubleBuffer, false);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
         }
 
@@ -217,7 +221,7 @@ namespace SDRSharp.PanView
                     _gradientColorBlend.Positions[i] = value.Positions[i];
                 }
                 _gradientBrush.Dispose();
-                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
                 _gradientBrush.InterpolationColors = _gradientColorBlend;
 
                 _drawBackgroundNeeded = true;
@@ -471,8 +475,8 @@ namespace SDRSharp.PanView
 
         private unsafe void CopyBackground()
         {
-            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppPArgb);
+            var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, PixelFormat.Format32bppPArgb);
             Utils.Memcpy((void*) data1.Scan0, (void*) data2.Scan0, data1.Width * data1.Height * 4);
             _buffer.UnlockBits(data1);
             _bkgBuffer.UnlockBits(data2);
@@ -516,22 +520,22 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
+            e.Graphics.DrawImageUnscaled(_buffer, e.ClipRectangle);
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            if (Width > 0 && Height > 0)
+            if (ClientRectangle.Width > 0 && ClientRectangle.Height > 0)
             {
                 _buffer.Dispose();
                 _graphics.Dispose();
                 _bkgBuffer.Dispose();
-                _buffer = new Bitmap(Width, Height);
+                _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
                 _graphics = Graphics.FromImage(_buffer);
                 _graphics.SmoothingMode = SmoothingMode.HighSpeed;
-                _bkgBuffer = new Bitmap(Width, Height);
-                var length = Width - 2 * AxisMargin;
+                _bkgBuffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
+                var length = ClientRectangle.Width - 2 * AxisMargin;
                 var oldSpectrum = _spectrum;
                 _spectrum = new byte[length];
                 if (oldSpectrum != null)
@@ -549,11 +553,11 @@ namespace SDRSharp.PanView
                 _points = new Point[length + 2];
                 if (_spectrumWidth > 0)
                 {
-                    _xIncrement = _scale * (Width - 2 * AxisMargin) / _spectrumWidth;
+                    _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
                 }
 
                 _gradientBrush.Dispose();
-                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, Width - AxisMargin, Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
+                _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
                 _gradientBrush.InterpolationColors = _gradientColorBlend;
 
                 _drawBackgroundNeeded = true;
