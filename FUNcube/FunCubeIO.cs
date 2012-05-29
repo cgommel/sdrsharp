@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Globalization;
+using System.Windows.Forms;
 using SDRSharp.Radio;
 
 namespace SDRSharp.FUNcube
@@ -315,7 +316,7 @@ namespace SDRSharp.FUNcube
             }
         }
 
-        public void ShowSettingGUI(IntPtr parentHandle)
+        public void ShowSettingGUI(IWin32Window parent)
         {
             _dialog.Show();
             _dialog.Activate();

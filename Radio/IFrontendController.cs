@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 
 namespace SDRSharp.Radio
 {
@@ -14,7 +15,7 @@ namespace SDRSharp.Radio
         string SoundCardHint { get; }
         double Samplerate { get; }
         long Frequency { get; set; }
-        void ShowSettingGUI(IntPtr parentHandle);
+        void ShowSettingGUI(IWin32Window parent);
         void HideSettingGUI();
     }
 }

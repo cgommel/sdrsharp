@@ -77,9 +77,9 @@ namespace SDRSharp.SoftRock
             }
         }
 
-        public void ShowSettingGUI(IntPtr parentHandle)
+        public void ShowSettingGUI(IWin32Window parent)
         {
-            MessageBox.Show("Will be implemented later", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(parent, "Will be implemented later", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static long GetSi570Frequency()

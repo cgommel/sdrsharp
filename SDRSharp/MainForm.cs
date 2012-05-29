@@ -889,7 +889,7 @@ namespace SDRSharp
         {
             if (_frontendController != null)
             {
-                _frontendController.ShowSettingGUI(Handle);
+                _frontendController.ShowSettingGUI(this);
             }
         }
 

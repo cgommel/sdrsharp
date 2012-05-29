@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 using SDRSharp.Radio;
 
 namespace SDRSharp.RTLSDR
@@ -14,18 +15,22 @@ namespace SDRSharp.RTLSDR
         private const int DefaultSamplerate = 2048000;
 
         private IntPtr _dev;
-        private uint _deviceIndex; // To be set from the GUI
+        private uint _deviceIndex;
+        private string _deviceName;
+        private bool _useAutomaticGain;
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
         private Complex* _iqPtr;
         private Thread _worker;
         private SamplesAvailableDelegate _managedCallback;
+        private readonly RtlSdrControllerDialog _gui;
         private static readonly RtlSdrReadAsyncDelegate _rtlCallback = RtlSdrSamplesAvailable;
+
 
         public RtlSdrIO()
         {
             _gcHandle = GCHandle.Alloc(this);
-            _deviceIndex = 0;
+            _gui = new RtlSdrControllerDialog(this);
         }
 
         ~RtlSdrIO()
@@ -41,7 +46,34 @@ namespace SDRSharp.RTLSDR
             {
                 _gcHandle.Free();
             }
+            _gui.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        public string DeviceName
+        {
+            get { return _deviceName; }
+        }
+
+        public uint DeviceIndex
+        {
+            get
+            {
+                return _deviceIndex;
+            }
+            set
+            {
+                if (_deviceIndex != value)
+                {
+                    _deviceIndex = value;
+                    _deviceName = NativeMethods.rtlsdr_get_device_name(_deviceIndex);
+                    if (_dev != IntPtr.Zero)
+                    {
+                        Close();
+                        Open();
+                    }
+                }
+            }
         }
 
         public void Open()
@@ -63,7 +95,6 @@ namespace SDRSharp.RTLSDR
             }
                 
             NativeMethods.rtlsdr_reset_buffer(_dev);
-            NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
 
             _managedCallback = callback;
             _worker = new Thread(StreamProc);
@@ -85,8 +116,16 @@ namespace SDRSharp.RTLSDR
 
         public void Close()
         {
-            NativeMethods.rtlsdr_close(_dev);
-            _dev = IntPtr.Zero;
+            if (_dev != IntPtr.Zero)
+            {
+                NativeMethods.rtlsdr_close(_dev);
+                _dev = IntPtr.Zero;
+            }
+        }
+
+        public bool IsStreaming
+        {
+            get { return _worker != null; }
         }
 
         public bool IsSoundCardBased
@@ -101,7 +140,14 @@ namespace SDRSharp.RTLSDR
 
         public double Samplerate
         {
-            get { return NativeMethods.rtlsdr_get_sample_rate(_dev); }
+            get
+            {
+                return NativeMethods.rtlsdr_get_sample_rate(_dev);
+            }
+            set
+            {
+                NativeMethods.rtlsdr_set_sample_rate(_dev, (uint) value);
+            }
         }
 
         public long Frequency
@@ -116,12 +162,30 @@ namespace SDRSharp.RTLSDR
             }
         }
 
-        public void ShowSettingGUI(IntPtr parentHandle)
+        public bool UseAutomaticGain
         {
+            get { return _useAutomaticGain; }
+            set
+            {
+                _useAutomaticGain = value;
+                NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useAutomaticGain ? 0 : 1);
+            }
+        }
+
+        public int Gain
+        {
+            get { return NativeMethods.rtlsdr_get_tuner_gain(_dev); }
+            set { NativeMethods.rtlsdr_set_tuner_gain(_dev, value); }
+        }
+
+        public void ShowSettingGUI(IWin32Window parent)
+        {
+            _gui.Show();
         }
 
         public void HideSettingGUI()
         {
+            _gui.Hide();
         }
 
         #region Streaming methods

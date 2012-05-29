@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 
 namespace SDRSharp.Radio
 {
@@ -76,7 +77,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public void ShowSettingGUI(IntPtr parentHandle)
+        public void ShowSettingGUI(IWin32Window parent)
         {
             ExtIO.ShowGUI();
         }
