@@ -113,7 +113,7 @@
             "3.2 MSPS",
             "2.8 MSPS",
             "2.4 MSPS",
-            "2.024 MSPS",
+            "2.048 MSPS",
             "1.8 MSPS",
             "1.4 MSPS",
             "1.024 MSPS",
