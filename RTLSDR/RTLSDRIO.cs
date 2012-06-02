@@ -172,6 +172,17 @@ namespace SDRSharp.RTLSDR
             }
         }
 
+        public int[] SupportedGains
+        {
+            get
+            {
+                var count = NativeMethods.rtlsdr_get_tuner_gains(_dev, null);
+                var supportedGains = new int[count];
+                NativeMethods.rtlsdr_get_tuner_gains(_dev, supportedGains);
+                return supportedGains;
+            }
+        }
+
         public int Gain
         {
             get { return NativeMethods.rtlsdr_get_tuner_gain(_dev); }
@@ -182,6 +193,11 @@ namespace SDRSharp.RTLSDR
         {
             get { return NativeMethods.rtlsdr_get_freq_correction(_dev); }
             set { NativeMethods.rtlsdr_set_freq_correction(_dev, value); }
+        }
+
+        public RtlSdrTunerType TunerType
+        {
+            get { return NativeMethods.rtlsdr_get_tuner_type(_dev); }
         }
 
         public void ShowSettingGUI(IWin32Window parent)

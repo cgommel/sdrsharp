@@ -41,6 +41,7 @@
             this.gainLabel = new System.Windows.Forms.Label();
             this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
+            this.tunerTypeLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
@@ -178,12 +179,22 @@
             this.label4.TabIndex = 28;
             this.label4.Text = "Frequency correction (ppm)";
             // 
+            // tunerTypeLabel
+            // 
+            this.tunerTypeLabel.Location = new System.Drawing.Point(166, 9);
+            this.tunerTypeLabel.Name = "tunerTypeLabel";
+            this.tunerTypeLabel.Size = new System.Drawing.Size(93, 13);
+            this.tunerTypeLabel.TabIndex = 29;
+            this.tunerTypeLabel.Text = "E4000";
+            this.tunerTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // RtlSdrControllerDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
             this.ClientSize = new System.Drawing.Size(271, 243);
+            this.Controls.Add(this.tunerTypeLabel);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.frequencyCorrectionNumericUpDown);
             this.Controls.Add(this.gainLabel);
@@ -228,6 +239,7 @@
         private System.Windows.Forms.Label gainLabel;
         private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label tunerTypeLabel;
     }
 }
 
