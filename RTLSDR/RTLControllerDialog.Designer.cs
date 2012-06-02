@@ -39,7 +39,10 @@
             this.samplerateComboBox = new System.Windows.Forms.ComboBox();
             this.gainModeCheckBox = new System.Windows.Forms.CheckBox();
             this.gainLabel = new System.Windows.Forms.Label();
+            this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // refreshTimer
@@ -50,10 +53,10 @@
             // closeButton
             // 
             this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.closeButton.Location = new System.Drawing.Point(184, 178);
+            this.closeButton.Location = new System.Drawing.Point(184, 208);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(75, 23);
-            this.closeButton.TabIndex = 3;
+            this.closeButton.TabIndex = 5;
             this.closeButton.Text = "Close";
             this.closeButton.UseVisualStyleBackColor = true;
             this.closeButton.Click += new System.EventHandler(this.closeButton_Click);
@@ -80,11 +83,11 @@
             // rfGainTrackBar
             // 
             this.rfGainTrackBar.Enabled = false;
-            this.rfGainTrackBar.Location = new System.Drawing.Point(2, 127);
+            this.rfGainTrackBar.Location = new System.Drawing.Point(2, 129);
             this.rfGainTrackBar.Maximum = 17;
             this.rfGainTrackBar.Name = "rfGainTrackBar";
             this.rfGainTrackBar.Size = new System.Drawing.Size(267, 45);
-            this.rfGainTrackBar.TabIndex = 2;
+            this.rfGainTrackBar.TabIndex = 3;
             this.rfGainTrackBar.Scroll += new System.EventHandler(this.rfGainTrackBar_Scroll);
             // 
             // label2
@@ -133,7 +136,7 @@
             this.gainModeCheckBox.Location = new System.Drawing.Point(64, 110);
             this.gainModeCheckBox.Name = "gainModeCheckBox";
             this.gainModeCheckBox.Size = new System.Drawing.Size(73, 17);
-            this.gainModeCheckBox.TabIndex = 25;
+            this.gainModeCheckBox.TabIndex = 2;
             this.gainModeCheckBox.Text = "Automatic";
             this.gainModeCheckBox.UseVisualStyleBackColor = true;
             this.gainModeCheckBox.CheckedChanged += new System.EventHandler(this.gainModeCheckBox_CheckedChanged);
@@ -147,12 +150,42 @@
             this.gainLabel.Text = "1000dB";
             this.gainLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // frequencyCorrectionNumericUpDown
+            // 
+            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(165, 175);
+            this.frequencyCorrectionNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.frequencyCorrectionNumericUpDown.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.frequencyCorrectionNumericUpDown.Name = "frequencyCorrectionNumericUpDown";
+            this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(94, 20);
+            this.frequencyCorrectionNumericUpDown.TabIndex = 4;
+            this.frequencyCorrectionNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.frequencyCorrectionNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyCorrectionNumericUpDown_ValueChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(12, 177);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(136, 13);
+            this.label4.TabIndex = 28;
+            this.label4.Text = "Frequency correction (ppm)";
+            // 
             // RtlSdrControllerDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
-            this.ClientSize = new System.Drawing.Size(271, 213);
+            this.ClientSize = new System.Drawing.Size(271, 243);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.frequencyCorrectionNumericUpDown);
             this.Controls.Add(this.gainLabel);
             this.Controls.Add(this.gainModeCheckBox);
             this.Controls.Add(this.label3);
@@ -175,6 +208,7 @@
             this.Load += new System.EventHandler(this.FCDControllerDialog_Load);
             this.VisibleChanged += new System.EventHandler(this.RtlSdrControllerDialog_VisibleChanged);
             ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -192,6 +226,8 @@
         private System.Windows.Forms.ComboBox samplerateComboBox;
         private System.Windows.Forms.CheckBox gainModeCheckBox;
         private System.Windows.Forms.Label gainLabel;
+        private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;
+        private System.Windows.Forms.Label label4;
     }
 }
 

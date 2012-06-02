@@ -450,6 +450,9 @@ namespace SDRSharp
                     _frontendController.Close();
                     _frontendController = null;
                 }
+
+                inputDeviceComboBox.Enabled = true;
+                sampleRateComboBox.Enabled = true;
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = 0;
@@ -630,8 +633,8 @@ namespace SDRSharp
             stopButton.Enabled = false;
             if (iqStreamRadioButton.Checked)
             {
-                sampleRateComboBox.Enabled = true;
-                inputDeviceComboBox.Enabled = true;
+                inputDeviceComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
+                sampleRateComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
                 frontEndComboBox.Enabled = true;
             }
             outputDeviceComboBox.Enabled = true;
@@ -680,7 +683,7 @@ namespace SDRSharp
             }
             if (_frontendController != null  && _frequencySet != copyOfFrequencyToSet)
             {
-                _frequencySet = _frequencyToSet;
+                _frequencySet = copyOfFrequencyToSet;
                 _frontendController.Frequency = copyOfFrequencyToSet;
             }
         }
@@ -739,11 +742,11 @@ namespace SDRSharp
             //filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
             filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
 
-            agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked;
-            agcSlopeNumericUpDown.Enabled = !wfmRadioButton.Checked;
-            agcThresholdNumericUpDown.Enabled = !wfmRadioButton.Checked;
-            agcUseHangCheckBox.Enabled = !wfmRadioButton.Checked;
-            agcCheckBox.Enabled = !wfmRadioButton.Checked;
+            agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
+            agcSlopeNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
+            agcThresholdNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
+            agcUseHangCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
+            agcCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
 
             fmSquelchNumericUpDown.Enabled = nfmRadioButton.Checked;
             cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
@@ -755,6 +758,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultWFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                stepSizeComboBox.SelectedIndex = 13;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -766,6 +770,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultNFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                stepSizeComboBox.SelectedIndex = 10;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -777,6 +782,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultAMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                stepSizeComboBox.SelectedIndex = 3;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -788,6 +794,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
+                stepSizeComboBox.SelectedIndex = 3;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
@@ -799,6 +806,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
+                stepSizeComboBox.SelectedIndex = 3;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
@@ -810,6 +818,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultDSBBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
+                stepSizeComboBox.SelectedIndex = 3;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -821,6 +830,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
+                stepSizeComboBox.SelectedIndex = 2;
 
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
@@ -832,6 +842,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
+                stepSizeComboBox.SelectedIndex = 2;
 
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;

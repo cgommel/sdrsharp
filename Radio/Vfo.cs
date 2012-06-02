@@ -450,8 +450,8 @@ namespace SDRSharp.Radio
                 length /= (int) Math.Pow(2.0, _audioDecimator.StageCount);
             }
             _audioFilter.Process(audio, length);
-                
-            if (_useAgc && _detectorType != DetectorType.WFM)
+
+            if (_useAgc && _detectorType != DetectorType.WFM && _detectorType != DetectorType.NFM)
             {
                 _agc.Process(audio, length);
             }

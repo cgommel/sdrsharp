@@ -82,7 +82,7 @@ namespace SDRSharp.RTLSDR
             {
                 throw new ApplicationException("No compatible device detected");
             }
-            NativeMethods.rtlsdr_open(ref _dev, _deviceIndex);
+            NativeMethods.rtlsdr_open(out _dev, _deviceIndex);
             NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
             NativeMethods.rtlsdr_set_center_freq(_dev, DefaultFrequency);
         }
@@ -176,6 +176,12 @@ namespace SDRSharp.RTLSDR
         {
             get { return NativeMethods.rtlsdr_get_tuner_gain(_dev); }
             set { NativeMethods.rtlsdr_set_tuner_gain(_dev, value); }
+        }
+
+        public int FrequencyCorrection
+        {
+            get { return NativeMethods.rtlsdr_get_freq_correction(_dev); }
+            set { NativeMethods.rtlsdr_set_freq_correction(_dev, value); }
         }
 
         public void ShowSettingGUI(IWin32Window parent)

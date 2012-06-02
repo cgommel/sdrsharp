@@ -36,7 +36,7 @@ namespace SDRSharp.RTLSDR
         ///dev: void**
         ///index: unsigned int
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_open", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rtlsdr_open(ref IntPtr dev, uint index);
+        public static extern int rtlsdr_open(out IntPtr dev, uint index);
 
         /// Return Type: int
         ///dev: void*
@@ -55,7 +55,7 @@ namespace SDRSharp.RTLSDR
         ///rtl_freq: unsigned int*
         ///tuner_freq: unsigned int*
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_get_xtal_freq", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rtlsdr_get_xtal_freq(IntPtr dev, ref uint rtlFreq, ref uint tunerFreq);
+        public static extern int rtlsdr_get_xtal_freq(IntPtr dev, out uint rtlFreq, out uint tunerFreq);
 
         /// Return Type: int
         ///dev: void*
@@ -132,7 +132,7 @@ namespace SDRSharp.RTLSDR
         ///len: int
         ///n_read: int*
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_read_sync", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rtlsdr_read_sync(IntPtr dev, IntPtr buf, int len, ref int nRead);
+        public static extern int rtlsdr_read_sync(IntPtr dev, IntPtr buf, int len, out int nRead);
 
         /// Return Type: int
         ///dev: void*

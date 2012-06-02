@@ -2,6 +2,7 @@
 using System.Text;
 using System.Globalization;
 using System.Windows.Forms;
+using SDRSharp.Radio;
 
 namespace SDRSharp.RTLSDR
 {
@@ -24,6 +25,7 @@ namespace SDRSharp.RTLSDR
         private void FCDControllerDialog_Load(object sender, EventArgs e)
         {
             samplerateComboBox.SelectedIndex = 3;
+            frequencyCorrectionNumericUpDown.Value = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
         }
 
         private void closeButton_Click(object sender, EventArgs e)
@@ -82,6 +84,7 @@ namespace SDRSharp.RTLSDR
                 samplerateComboBox_SelectedIndexChanged(null, null);
                 gainModeCheckBox_CheckedChanged(null, null);
                 rfGainTrackBar_Scroll(null, null);
+                frequencyCorrectionNumericUpDown_ValueChanged(null, null);
             }
         }
 
@@ -107,6 +110,12 @@ namespace SDRSharp.RTLSDR
             {
                 rfGainTrackBar_Scroll(null, null);
             }
+        }
+
+        private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _owner.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
+            Utils.SaveSetting("RTLFrequencyCorrection", frequencyCorrectionNumericUpDown.Value.ToString());
         }
 
         private class DeviceDisplay
