@@ -24,7 +24,13 @@ namespace SDRSharp.RTLSDR
         public static extern uint rtlsdr_get_device_count();
 
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_get_device_name", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string rtlsdr_get_device_name(uint index);
+        private static extern IntPtr rtlsdr_get_device_name_native(uint index);
+
+        public static string rtlsdr_get_device_name(uint index)
+        {
+            var strptr = rtlsdr_get_device_name_native(index);
+            return Marshal.PtrToStringAnsi(strptr);
+        }
 
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_get_device_usb_strings", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_get_device_usb_strings(uint index, StringBuilder manufact, StringBuilder product, StringBuilder serial);
