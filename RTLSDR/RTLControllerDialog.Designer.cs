@@ -118,7 +118,7 @@
             "2.8 MSPS",
             "2.4 MSPS",
             "2.048 MSPS",
-            "1.92 MSPS steve|m\'s",
+            "1.92 MSPS",
             "1.8 MSPS",
             "1.4 MSPS",
             "1.024 MSPS",
