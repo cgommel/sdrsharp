@@ -18,6 +18,7 @@ namespace SDRSharp.RTLSDR
         private uint _deviceIndex;
         private string _deviceName;
         private bool _useAutomaticGain;
+        private int[] _supportedGains;
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
         private Complex* _iqPtr;
@@ -72,6 +73,10 @@ namespace SDRSharp.RTLSDR
                         Close();
                         Open();
                     }
+
+                    var count = NativeMethods.rtlsdr_get_tuner_gains(_dev, null);
+                    _supportedGains = new int[count];
+                    NativeMethods.rtlsdr_get_tuner_gains(_dev, _supportedGains);
                 }
             }
         }
@@ -170,6 +175,11 @@ namespace SDRSharp.RTLSDR
                 _useAutomaticGain = value;
                 NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useAutomaticGain ? 0 : 1);
             }
+        }
+
+        public int[] SupportedGains
+        {
+            get { return _supportedGains; }
         }
 
         public int Gain

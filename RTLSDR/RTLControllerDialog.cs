@@ -8,12 +8,6 @@ namespace SDRSharp.RTLSDR
 {
     public partial class RtlSdrControllerDialog : Form
     {
-        private static readonly int[] _gainSteps = {
-                                                       -10, 15, 40, 65, 90, 115, 140, 165, 190, 215, 240, 290, 340, 420,
-                                                       430, 450, 470, 490
-                                                   };
-
-
         private readonly RtlSdrIO _owner;
 
         public RtlSdrControllerDialog(RtlSdrIO owner)
@@ -81,6 +75,8 @@ namespace SDRSharp.RTLSDR
             if (deviceComboBox.SelectedItem != null)
             {
                 _owner.DeviceIndex = ((DeviceDisplay) deviceComboBox.SelectedItem).Index;
+
+                rfGainTrackBar.Maximum = _owner.SupportedGains == null ? 1 : (_owner.SupportedGains.Length - 1);
                 samplerateComboBox_SelectedIndexChanged(null, null);
                 gainModeCheckBox_CheckedChanged(null, null);
                 rfGainTrackBar_Scroll(null, null);
@@ -90,9 +86,12 @@ namespace SDRSharp.RTLSDR
 
         private void rfGainTrackBar_Scroll(object sender, EventArgs e)
         {
-            var gain = _gainSteps[rfGainTrackBar.Value];
-            _owner.Gain = gain;
-            gainLabel.Text = gain / 10.0 + " dB";
+            if (_owner.SupportedGains != null)
+            {
+                var gain = _owner.SupportedGains[rfGainTrackBar.Value];
+                _owner.Gain = gain;
+                gainLabel.Text = gain/10.0 + " dB";
+            }
         }
 
         private void samplerateComboBox_SelectedIndexChanged(object sender, EventArgs e)
