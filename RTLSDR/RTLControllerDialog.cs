@@ -91,7 +91,7 @@ namespace SDRSharp.RTLSDR
             {
                 var gain = _owner.SupportedGains[rfGainTrackBar.Value];
                 _owner.Gain = gain;
-                gainLabel.Text = gain/10.0 + " dB";
+                gainLabel.Text = gain / 10.0 + " dB";
             }
         }
 
@@ -125,7 +125,6 @@ namespace SDRSharp.RTLSDR
             public string Manufacturer { get; set; }
             public string Product { get; set; }
             public string Serial { get; set; }
-            public RtlSdrTunerType Tuner { get; set; }
 
             public static DeviceDisplay[] GetActiveDevices()
             {

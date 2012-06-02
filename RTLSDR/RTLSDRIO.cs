@@ -177,8 +177,15 @@ namespace SDRSharp.RTLSDR
             get
             {
                 var count = NativeMethods.rtlsdr_get_tuner_gains(_dev, null);
+                if (count < 0)
+                {
+                    count = 0;
+                }
                 var supportedGains = new int[count];
-                NativeMethods.rtlsdr_get_tuner_gains(_dev, supportedGains);
+                if (count >= 0)
+                {
+                    NativeMethods.rtlsdr_get_tuner_gains(_dev, supportedGains);
+                }
                 return supportedGains;
             }
         }
