@@ -9,11 +9,14 @@ namespace SDRSharp.Radio.PortAudio
         public string Name { get; set; }
         public string Host { get; set; }
         public DeviceDirection Direction { get; set; }
+        public bool IsDefault { get; set; }
 
         public static List<AudioDevice> GetDevices(DeviceDirection direction)
         {
             var result = new List<AudioDevice>();
 
+            var defaultIn = PortAudioAPI.Pa_GetDefaultInputDevice();
+            var defaultOut = PortAudioAPI.Pa_GetDefaultOutputDevice();
             var count = PortAudioAPI.Pa_GetDeviceCount();
             for (var i = 0; i < count; i++)
             {
@@ -27,6 +30,7 @@ namespace SDRSharp.Radio.PortAudio
                     ad.Host = hi.name;
                     ad.Index = i;
                     ad.Direction = deviceDirection;
+                    ad.IsDefault = i == defaultIn || i == defaultOut;
                     result.Add(ad);
                 }
             }

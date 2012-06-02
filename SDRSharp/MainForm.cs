@@ -77,36 +77,41 @@ namespace SDRSharp
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            var devices = AudioDevice.GetDevices(DeviceDirection.Input);
+            #region Initialize audio devices
 
-            foreach (var device in devices)
+            var defaultIndex = 0;
+            var devices = AudioDevice.GetDevices(DeviceDirection.Input);
+            for (var i = 0; i < devices.Count; i++)
             {
-                inputDeviceComboBox.Items.Add(device);
+                inputDeviceComboBox.Items.Add(devices[i]);
+                if (devices[i].IsDefault)
+                {
+                    defaultIndex = i;
+                }
             }
             if (inputDeviceComboBox.Items.Count > 0)
             {
-                inputDeviceComboBox.SelectedIndex = 0;
+                inputDeviceComboBox.SelectedIndex = defaultIndex;
             }
 
+            defaultIndex = 0;
             devices = AudioDevice.GetDevices(DeviceDirection.Output);
-            foreach (var device in devices)
+            for (int i = 0; i < devices.Count; i++)
             {
-                outputDeviceComboBox.Items.Add(device);
+                outputDeviceComboBox.Items.Add(devices[i]);
+                if (devices[i].IsDefault)
+                {
+                    defaultIndex = i;
+                }
             }
             if (outputDeviceComboBox.Items.Count > 0)
             {
-                outputDeviceComboBox.SelectedIndex = 0;
+                outputDeviceComboBox.SelectedIndex = defaultIndex;
             }
-            _fftBins = 4096;
-            _fftOverlap = true;
 
-            viewComboBox.SelectedIndex = 2;
-            fftResolutionComboBox.SelectedIndex = 3;
-            sampleRateComboBox.SelectedIndex = 4;
+            #endregion
 
-            _fftWindowType = WindowType.BlackmanHarris;
-            fftWindowComboBox.SelectedIndex = (int) _fftWindowType;
-            filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris - 1;
+            #region Initialize the VFO
 
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
@@ -118,6 +123,21 @@ namespace SDRSharp
             _vfo.AgcSlope = 0;
             _vfo.AgcHang = true;
             _vfo.CWToneShift = Vfo.DefaultCwSideTone;
+
+            #endregion
+
+            #region Initialize FFT display
+
+            _fftBins = 4096;
+            _fftOverlap = true;
+
+            viewComboBox.SelectedIndex = 2;
+            fftResolutionComboBox.SelectedIndex = 3;
+            sampleRateComboBox.SelectedIndex = 4;
+
+            _fftWindowType = WindowType.BlackmanHarris;
+            fftWindowComboBox.SelectedIndex = (int) _fftWindowType;
+            filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris - 1;
 
             cwShiftNumericUpDown.Value = Vfo.DefaultCwSideTone;
 
@@ -135,8 +155,27 @@ namespace SDRSharp
             spectrumAnalyzer.BandType = BandType.Center;
 
             frequencyNumericUpDown.Value = 0;
-
             stepSizeComboBox.SelectedIndex = 3;
+
+            _fftTimer.Tick += fftTimer_Tick;
+            _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
+            _fftTimer.Enabled = true;
+
+            spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
+            sAttackTrackBar.Value = (int)(spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
+
+            spectrumAnalyzer.Decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+            sDecayTrackBar.Value = (int)(spectrumAnalyzer.Decay * sDecayTrackBar.Maximum);
+
+            waterfall.Attack = Utils.GetDoubleSetting("waterfallAttack", 0.9);
+            wAttackTrackBar.Value = (int)(waterfall.Attack * wAttackTrackBar.Maximum);
+
+            waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
+            wDecayTrackBar.Value = (int)(waterfall.Decay * wDecayTrackBar.Maximum);
+
+            #endregion
+
+            #region Initialize the plugins
 
             var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
 
@@ -198,21 +237,7 @@ namespace SDRSharp
             frontEndComboBox.Items.Add("Other");
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
-            _fftTimer.Tick += fftTimer_Tick;
-            _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
-            _fftTimer.Enabled = true;
-
-            spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
-            sAttackTrackBar.Value = (int) (spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
-            
-            spectrumAnalyzer.Decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
-            sDecayTrackBar.Value = (int) (spectrumAnalyzer.Decay * sDecayTrackBar.Maximum);
-
-            waterfall.Attack = Utils.GetDoubleSetting("waterfallAttack", 0.9);
-            wAttackTrackBar.Value = (int) (waterfall.Attack * wAttackTrackBar.Maximum);
-
-            waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
-            wDecayTrackBar.Value = (int) (waterfall.Decay * wDecayTrackBar.Maximum);
+            #endregion
         }
 
         private void ExtIO_LOFreqChanged(int frequency)
