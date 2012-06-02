@@ -23,6 +23,8 @@ namespace SDRSharp
             this.waveFileRadioButton = new System.Windows.Forms.RadioButton();
             this.fileSelectButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.contrastTrackBar = new System.Windows.Forms.TrackBar();
             this.zoomTrackBar = new System.Windows.Forms.TrackBar();
@@ -79,24 +81,22 @@ namespace SDRSharp
             this.agcDecayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.displayCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.label25 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
+            this.label24 = new System.Windows.Forms.Label();
+            this.label23 = new System.Windows.Forms.Label();
+            this.wDecayTrackBar = new System.Windows.Forms.TrackBar();
+            this.wAttackTrackBar = new System.Windows.Forms.TrackBar();
             this.label21 = new System.Windows.Forms.Label();
             this.fftResolutionComboBox = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.sDecayTrackBar = new System.Windows.Forms.TrackBar();
             this.label14 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
+            this.sAttackTrackBar = new System.Windows.Forms.TrackBar();
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.sAttackTrackBar = new System.Windows.Forms.TrackBar();
-            this.sDecayTrackBar = new System.Windows.Forms.TrackBar();
-            this.wDecayTrackBar = new System.Windows.Forms.TrackBar();
-            this.wAttackTrackBar = new System.Windows.Forms.TrackBar();
-            this.label23 = new System.Windows.Forms.Label();
-            this.label24 = new System.Windows.Forms.Label();
-            this.label25 = new System.Windows.Forms.Label();
-            this.label26 = new System.Windows.Forms.Label();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -118,10 +118,10 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).BeginInit();
             this.displayCollapsiblePanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
             // openDlg
@@ -216,6 +216,50 @@ namespace SDRSharp
             this.panSplitContainer.SplitterDistance = 193;
             this.panSplitContainer.TabIndex = 13;
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.Attack = 0.9D;
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
+            this.spectrumAnalyzer.Decay = 0.3D;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
+            this.spectrumAnalyzer.Frequency = ((long)(0));
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = false;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.Attack = 0.9D;
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
+            this.waterfall.CenterFrequency = ((long)(0));
+            this.waterfall.Contrast = 0;
+            this.waterfall.Decay = 0.5D;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
+            this.waterfall.Frequency = ((long)(0));
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Size = new System.Drawing.Size(651, 402);
+            this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.UseSmoothing = false;
+            this.waterfall.Zoom = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
+            // 
             // iqTimer
             // 
             this.iqTimer.Enabled = true;
@@ -233,6 +277,7 @@ namespace SDRSharp
             this.contrastTrackBar.RightToLeftLayout = true;
             this.contrastTrackBar.Size = new System.Drawing.Size(45, 184);
             this.contrastTrackBar.TabIndex = 17;
+            this.contrastTrackBar.TickFrequency = 6;
             this.contrastTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.contrastTrackBar.Scroll += new System.EventHandler(this.contrastTrackBar_Scroll);
             // 
@@ -246,6 +291,7 @@ namespace SDRSharp
             this.zoomTrackBar.RightToLeftLayout = true;
             this.zoomTrackBar.Size = new System.Drawing.Size(45, 184);
             this.zoomTrackBar.TabIndex = 18;
+            this.zoomTrackBar.TickFrequency = 5;
             this.zoomTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.zoomTrackBar.Scroll += new System.EventHandler(this.zoomTrackBar_Scroll);
             // 
@@ -1039,6 +1085,62 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Size = new System.Drawing.Size(229, 20);
             this.displayCollapsiblePanel.TabIndex = 24;
             // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(6, 238);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(52, 13);
+            this.label25.TabIndex = 26;
+            this.label25.Text = "W-Decay";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(7, 203);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(52, 13);
+            this.label26.TabIndex = 25;
+            this.label26.Text = "W-Attack";
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(6, 167);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(48, 13);
+            this.label24.TabIndex = 24;
+            this.label24.Text = "S-Decay";
+            // 
+            // label23
+            // 
+            this.label23.AutoSize = true;
+            this.label23.Location = new System.Drawing.Point(7, 132);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(48, 13);
+            this.label23.TabIndex = 23;
+            this.label23.Text = "S-Attack";
+            // 
+            // wDecayTrackBar
+            // 
+            this.wDecayTrackBar.Location = new System.Drawing.Point(57, 236);
+            this.wDecayTrackBar.Maximum = 50;
+            this.wDecayTrackBar.Name = "wDecayTrackBar";
+            this.wDecayTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.wDecayTrackBar.TabIndex = 22;
+            this.wDecayTrackBar.TickFrequency = 5;
+            this.wDecayTrackBar.Scroll += new System.EventHandler(this.wDecayTrackBar_Scroll);
+            // 
+            // wAttackTrackBar
+            // 
+            this.wAttackTrackBar.Location = new System.Drawing.Point(57, 200);
+            this.wAttackTrackBar.Maximum = 50;
+            this.wAttackTrackBar.Name = "wAttackTrackBar";
+            this.wAttackTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.wAttackTrackBar.TabIndex = 21;
+            this.wAttackTrackBar.TickFrequency = 5;
+            this.wAttackTrackBar.Scroll += new System.EventHandler(this.wAttackTrackBar_Scroll);
+            // 
             // label21
             // 
             this.label21.AutoSize = true;
@@ -1082,6 +1184,16 @@ namespace SDRSharp
             this.label7.TabIndex = 12;
             this.label7.Text = "View";
             // 
+            // sDecayTrackBar
+            // 
+            this.sDecayTrackBar.Location = new System.Drawing.Point(57, 164);
+            this.sDecayTrackBar.Maximum = 50;
+            this.sDecayTrackBar.Name = "sDecayTrackBar";
+            this.sDecayTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.sDecayTrackBar.TabIndex = 20;
+            this.sDecayTrackBar.TickFrequency = 5;
+            this.sDecayTrackBar.Scroll += new System.EventHandler(this.sDecayTrackBar_Scroll);
+            // 
             // label14
             // 
             this.label14.AutoSize = true;
@@ -1104,6 +1216,16 @@ namespace SDRSharp
             this.viewComboBox.Size = new System.Drawing.Size(135, 21);
             this.viewComboBox.TabIndex = 0;
             this.viewComboBox.SelectedIndexChanged += new System.EventHandler(this.viewComboBox_SelectedIndexChanged);
+            // 
+            // sAttackTrackBar
+            // 
+            this.sAttackTrackBar.Location = new System.Drawing.Point(57, 128);
+            this.sAttackTrackBar.Maximum = 50;
+            this.sAttackTrackBar.Name = "sAttackTrackBar";
+            this.sAttackTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.sAttackTrackBar.TabIndex = 19;
+            this.sAttackTrackBar.TickFrequency = 5;
+            this.sAttackTrackBar.Scroll += new System.EventHandler(this.sAttackTrackBar_Scroll);
             // 
             // gradientButton
             // 
@@ -1140,126 +1262,6 @@ namespace SDRSharp
             this.label8.Size = new System.Drawing.Size(46, 13);
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
-            // 
-            // sAttackTrackBar
-            // 
-            this.sAttackTrackBar.Location = new System.Drawing.Point(57, 128);
-            this.sAttackTrackBar.Maximum = 50;
-            this.sAttackTrackBar.Name = "sAttackTrackBar";
-            this.sAttackTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.sAttackTrackBar.TabIndex = 19;
-            this.sAttackTrackBar.TickFrequency = 5;
-            this.sAttackTrackBar.Scroll += new System.EventHandler(this.sAttackTrackBar_Scroll);
-            // 
-            // sDecayTrackBar
-            // 
-            this.sDecayTrackBar.Location = new System.Drawing.Point(57, 164);
-            this.sDecayTrackBar.Maximum = 50;
-            this.sDecayTrackBar.Name = "sDecayTrackBar";
-            this.sDecayTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.sDecayTrackBar.TabIndex = 20;
-            this.sDecayTrackBar.TickFrequency = 5;
-            this.sDecayTrackBar.Scroll += new System.EventHandler(this.sDecayTrackBar_Scroll);
-            // 
-            // wDecayTrackBar
-            // 
-            this.wDecayTrackBar.Location = new System.Drawing.Point(57, 236);
-            this.wDecayTrackBar.Maximum = 50;
-            this.wDecayTrackBar.Name = "wDecayTrackBar";
-            this.wDecayTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.wDecayTrackBar.TabIndex = 22;
-            this.wDecayTrackBar.TickFrequency = 5;
-            this.wDecayTrackBar.Scroll += new System.EventHandler(this.wDecayTrackBar_Scroll);
-            // 
-            // wAttackTrackBar
-            // 
-            this.wAttackTrackBar.Location = new System.Drawing.Point(57, 200);
-            this.wAttackTrackBar.Maximum = 50;
-            this.wAttackTrackBar.Name = "wAttackTrackBar";
-            this.wAttackTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.wAttackTrackBar.TabIndex = 21;
-            this.wAttackTrackBar.TickFrequency = 5;
-            this.wAttackTrackBar.Scroll += new System.EventHandler(this.wAttackTrackBar_Scroll);
-            // 
-            // label23
-            // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(7, 132);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(48, 13);
-            this.label23.TabIndex = 23;
-            this.label23.Text = "S-Attack";
-            // 
-            // label24
-            // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(6, 167);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(48, 13);
-            this.label24.TabIndex = 24;
-            this.label24.Text = "S-Decay";
-            // 
-            // label25
-            // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(6, 238);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(52, 13);
-            this.label25.TabIndex = 26;
-            this.label25.Text = "W-Decay";
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(7, 203);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(52, 13);
-            this.label26.TabIndex = 25;
-            this.label26.Text = "W-Attack";
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.Attack = 0.9D;
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
-            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
-            this.spectrumAnalyzer.Decay = 0.3D;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 10000;
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Frequency = ((long)(0));
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
-            this.spectrumAnalyzer.SpectrumWidth = 48000;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = false;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.Attack = 0.9D;
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
-            this.waterfall.CenterFrequency = ((long)(0));
-            this.waterfall.Contrast = 0;
-            this.waterfall.Decay = 0.5D;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 10000;
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Frequency = ((long)(0));
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(651, 402);
-            this.waterfall.SpectrumWidth = 48000;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.UseSmoothing = false;
-            this.waterfall.Zoom = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
             // 
             // MainForm
             // 
@@ -1309,10 +1311,10 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).EndInit();
             this.displayCollapsiblePanel.ResumeLayout(false);
             this.displayCollapsiblePanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
