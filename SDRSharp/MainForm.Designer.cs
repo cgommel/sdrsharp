@@ -89,6 +89,14 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.sAttackTrackBar = new System.Windows.Forms.TrackBar();
+            this.sDecayTrackBar = new System.Windows.Forms.TrackBar();
+            this.wDecayTrackBar = new System.Windows.Forms.TrackBar();
+            this.wAttackTrackBar = new System.Windows.Forms.TrackBar();
+            this.label23 = new System.Windows.Forms.Label();
+            this.label24 = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -110,6 +118,10 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).BeginInit();
             this.displayCollapsiblePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
             // openDlg
@@ -1042,21 +1054,28 @@ namespace SDRSharp
             // 
             // displayCollapsiblePanel
             // 
+            this.displayCollapsiblePanel.Controls.Add(this.label25);
+            this.displayCollapsiblePanel.Controls.Add(this.label26);
+            this.displayCollapsiblePanel.Controls.Add(this.label24);
+            this.displayCollapsiblePanel.Controls.Add(this.label23);
+            this.displayCollapsiblePanel.Controls.Add(this.wDecayTrackBar);
+            this.displayCollapsiblePanel.Controls.Add(this.wAttackTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.label21);
             this.displayCollapsiblePanel.Controls.Add(this.fftResolutionComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label7);
+            this.displayCollapsiblePanel.Controls.Add(this.sDecayTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.label14);
             this.displayCollapsiblePanel.Controls.Add(this.viewComboBox);
+            this.displayCollapsiblePanel.Controls.Add(this.sAttackTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.gradientButton);
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
-            this.displayCollapsiblePanel.ExpandedHeight = 107;
+            this.displayCollapsiblePanel.ExpandedHeight = 259;
             this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 521);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
-            this.displayCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(229, 20);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(229, 279);
             this.displayCollapsiblePanel.TabIndex = 24;
             // 
             // label21
@@ -1161,6 +1180,82 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
+            // sAttackTrackBar
+            // 
+            this.sAttackTrackBar.Location = new System.Drawing.Point(57, 128);
+            this.sAttackTrackBar.Maximum = 50;
+            this.sAttackTrackBar.Name = "sAttackTrackBar";
+            this.sAttackTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.sAttackTrackBar.TabIndex = 19;
+            this.sAttackTrackBar.TickFrequency = 5;
+            this.sAttackTrackBar.Scroll += new System.EventHandler(this.sAttackTrackBar_Scroll);
+            // 
+            // sDecayTrackBar
+            // 
+            this.sDecayTrackBar.Location = new System.Drawing.Point(57, 164);
+            this.sDecayTrackBar.Maximum = 50;
+            this.sDecayTrackBar.Name = "sDecayTrackBar";
+            this.sDecayTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.sDecayTrackBar.TabIndex = 20;
+            this.sDecayTrackBar.TickFrequency = 5;
+            this.sDecayTrackBar.Scroll += new System.EventHandler(this.sDecayTrackBar_Scroll);
+            // 
+            // wDecayTrackBar
+            // 
+            this.wDecayTrackBar.Location = new System.Drawing.Point(57, 236);
+            this.wDecayTrackBar.Maximum = 50;
+            this.wDecayTrackBar.Name = "wDecayTrackBar";
+            this.wDecayTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.wDecayTrackBar.TabIndex = 22;
+            this.wDecayTrackBar.TickFrequency = 5;
+            this.wDecayTrackBar.Scroll += new System.EventHandler(this.wDecayTrackBar_Scroll);
+            // 
+            // wAttackTrackBar
+            // 
+            this.wAttackTrackBar.Location = new System.Drawing.Point(57, 200);
+            this.wAttackTrackBar.Maximum = 50;
+            this.wAttackTrackBar.Name = "wAttackTrackBar";
+            this.wAttackTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.wAttackTrackBar.TabIndex = 21;
+            this.wAttackTrackBar.TickFrequency = 5;
+            this.wAttackTrackBar.Scroll += new System.EventHandler(this.wAttackTrackBar_Scroll);
+            // 
+            // label23
+            // 
+            this.label23.AutoSize = true;
+            this.label23.Location = new System.Drawing.Point(7, 132);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(48, 13);
+            this.label23.TabIndex = 23;
+            this.label23.Text = "S-Attack";
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(6, 167);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(48, 13);
+            this.label24.TabIndex = 24;
+            this.label24.Text = "S-Decay";
+            // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(6, 238);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(52, 13);
+            this.label25.TabIndex = 26;
+            this.label25.Text = "W-Decay";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(7, 203);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(52, 13);
+            this.label26.TabIndex = 25;
+            this.label26.Text = "W-Attack";
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1209,6 +1304,10 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).EndInit();
             this.displayCollapsiblePanel.ResumeLayout(false);
             this.displayCollapsiblePanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1292,5 +1391,13 @@ namespace SDRSharp
         private Label label15;
         private NumericUpDown cwShiftNumericUpDown;
         private Panel controlPanel;
+        private Label label25;
+        private Label label26;
+        private Label label24;
+        private Label label23;
+        private TrackBar wDecayTrackBar;
+        private TrackBar wAttackTrackBar;
+        private TrackBar sDecayTrackBar;
+        private TrackBar sAttackTrackBar;
     }
 }

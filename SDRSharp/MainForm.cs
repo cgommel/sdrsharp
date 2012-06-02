@@ -201,6 +201,18 @@ namespace SDRSharp
             _fftTimer.Tick += fftTimer_Tick;
             _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
             _fftTimer.Enabled = true;
+
+            spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
+            sAttackTrackBar.Value = (int) (spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
+            
+            spectrumAnalyzer.Decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
+            sDecayTrackBar.Value = (int) (spectrumAnalyzer.Decay * sDecayTrackBar.Maximum);
+
+            waterfall.Attack = Utils.GetDoubleSetting("waterfallAttack", 0.9);
+            wAttackTrackBar.Value = (int) (waterfall.Attack * wAttackTrackBar.Maximum);
+
+            waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
+            wDecayTrackBar.Value = (int) (waterfall.Decay * wDecayTrackBar.Maximum);
         }
 
         private void ExtIO_LOFreqChanged(int frequency)
@@ -244,6 +256,11 @@ namespace SDRSharp
                 _frontendController.Close();
                 _frontendController = null;
             }
+
+            Utils.SaveSetting("spectrumAnalyzerAttack", spectrumAnalyzer.Attack.ToString(CultureInfo.InvariantCulture));
+            Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay.ToString(CultureInfo.InvariantCulture));
+            Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
+            Utils.SaveSetting("waterfallDecay", waterfall.Decay.ToString(CultureInfo.InvariantCulture));
         }
 
         #endregion
@@ -1020,6 +1037,26 @@ namespace SDRSharp
         {
             spectrumAnalyzer.Zoom = zoomTrackBar.Value * 100 / zoomTrackBar.Maximum;
             waterfall.Zoom = spectrumAnalyzer.Zoom;
+        }
+
+        private void sAttackTrackBar_Scroll(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.Attack = sAttackTrackBar.Value / (double) sAttackTrackBar.Maximum;
+        }
+
+        private void sDecayTrackBar_Scroll(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.Decay = sDecayTrackBar.Value / (double)sDecayTrackBar.Maximum;
+        }
+
+        private void wAttackTrackBar_Scroll(object sender, EventArgs e)
+        {
+            waterfall.Attack = wAttackTrackBar.Value / (double)wAttackTrackBar.Maximum;
+        }
+
+        private void wDecayTrackBar_Scroll(object sender, EventArgs e)
+        {
+            waterfall.Decay = wDecayTrackBar.Value / (double) wDecayTrackBar.Maximum;
         }
 
         #endregion

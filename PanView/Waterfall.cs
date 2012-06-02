@@ -26,9 +26,8 @@ namespace SDRSharp.PanView
         public const int CursorSnapDistance = 4;
         public const float MaxZoom = 4.0f;
 
-        private readonly static double _attack = Utils.GetDoubleSetting("waterfallAttack", 0.9);
-        private readonly static double _decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
-
+        private double _attack;
+        private double _decay;
         private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
@@ -272,6 +271,18 @@ namespace SDRSharp.PanView
             set { _useSmoothing = value; }
         }
 
+        public double Decay
+        {
+            get { return _decay; }
+            set { _decay = value; }
+        }
+
+        public double Attack
+        {
+            get { return _attack; }
+            set { _attack = value; }
+        }
+
         private void ApplyZoom()
         {
             _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
@@ -362,7 +373,7 @@ namespace SDRSharp.PanView
                 SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
-                    var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
+                    var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
                     _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }

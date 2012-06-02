@@ -14,11 +14,11 @@ namespace SDRSharp.PanView
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
 
-        private readonly static double _attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
-        private readonly static double _decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
         private readonly static Color _spectrumColor = Utils.GetColorSetting("spectrumAnalyzerColor", Color.DarkGray);
         private readonly static bool _fillSpectrumAnalyzer = Utils.GetBooleanSetting("fillSpectrumAnalyzer");
 
+        private double _attack;
+        private double _decay;
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
         private byte[] _spectrum;
@@ -230,6 +230,18 @@ namespace SDRSharp.PanView
             }
         }
 
+        public double Attack
+        {
+            get { return _attack; }
+            set { _attack = value; }
+        }
+
+        public double Decay
+        {
+            get { return _decay; }
+            set { _decay = value; }
+        }
+
         private void ApplyZoom()
         {
             _scale = 0.01f + (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
@@ -343,7 +355,7 @@ namespace SDRSharp.PanView
                 Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
-                    var ratio = _spectrum[i] < _temp[i] ? _attack : _decay;
+                    var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
                     _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }
