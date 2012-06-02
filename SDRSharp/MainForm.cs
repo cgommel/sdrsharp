@@ -660,9 +660,11 @@ namespace SDRSharp
             waterfall.CenterFrequency = newCenterFreq;
             spectrumAnalyzer.CenterFrequency = newCenterFreq;
 
+            frequencyNumericUpDown.Maximum = decimal.MaxValue;
+            frequencyNumericUpDown.Minimum = decimal.MinValue;
+            frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
             frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
-            frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
 
             if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
