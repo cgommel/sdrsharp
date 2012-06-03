@@ -8,7 +8,7 @@ namespace SDRSharp.RTLSDR
 {
     public unsafe class RtlSdrIO : IFrontendController, IDisposable
     {
-        private const uint DefaultReadLength = 1024 * 16;
+        private const uint DefaultReadLength = 1024 * 8;
         private const uint DefaultFrequency = 105500000;
 
         private const float InputGain = 0.001f;
