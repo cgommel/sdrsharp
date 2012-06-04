@@ -87,7 +87,7 @@
       <DependentUpon>RTLControllerDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="RtlSdrIO.cs" />
+    <Compile Include="RTLSDRIO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
