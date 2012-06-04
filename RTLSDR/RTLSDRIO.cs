@@ -8,12 +8,12 @@ namespace SDRSharp.RTLSDR
 {
     public unsafe class RtlSdrIO : IFrontendController, IDisposable
     {
-        private const uint DefaultReadLength = 1024 * 8;
         private const uint DefaultFrequency = 105500000;
 
         private const float InputGain = 0.001f;
         private const int DefaultSamplerate = 2048000;
 
+        private static readonly uint _readLength = (uint) Utils.GetIntSetting("RTLBufferLength", 16 * 1024);
         private IntPtr _dev;
         private uint _deviceIndex;
         private string _deviceName;
@@ -221,7 +221,7 @@ namespace SDRSharp.RTLSDR
 
         private void StreamProc()
         {
-            NativeMethods.rtlsdr_read_async(_dev, _rtlCallback, (IntPtr) _gcHandle, 0, DefaultReadLength);
+            NativeMethods.rtlsdr_read_async(_dev, _rtlCallback, (IntPtr) _gcHandle, 0, _readLength);
         }
 
         protected void ComplexSamplesAvailable(Complex* buffer, int length)
