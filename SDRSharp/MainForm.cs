@@ -707,6 +707,8 @@ namespace SDRSharp
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
             frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2);
             frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
+            frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
 
             if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
@@ -838,7 +840,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
-                stepSizeComboBox.SelectedIndex = 3;
+                stepSizeComboBox.SelectedIndex = 2;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
@@ -850,7 +852,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
-                stepSizeComboBox.SelectedIndex = 3;
+                stepSizeComboBox.SelectedIndex = 2;
 
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
@@ -862,7 +864,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultDSBBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 3;
+                stepSizeComboBox.SelectedIndex = 2;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -907,20 +909,38 @@ namespace SDRSharp
 
         private void stepSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            var stepSize = 0;
             var match = Regex.Match(stepSizeComboBox.Text, "([0-9\\.]+) kHz", RegexOptions.None);
             if (match.Success)
             {
-                centerFreqNumericUpDown.Increment = (int)(double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) * 1000);
-                //frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
+                stepSize = (int)(double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) * 1000);
             }
             else
             {
                 match = Regex.Match(stepSizeComboBox.Text, "([0-9]+) Hz", RegexOptions.None);
                 if (match.Success)
                 {
-                    centerFreqNumericUpDown.Increment = int.Parse(match.Groups[1].Value);
-                    //frequencyNumericUpDown.Increment = centerFreqNumericUpDown.Increment;
+                    stepSize = int.Parse(match.Groups[1].Value);
                 }
+            }
+            if (stepSize > 0)
+            {
+                centerFreqNumericUpDown.Increment = stepSize;
+                frequencyNumericUpDown.Increment = stepSize;
+                waterfall.StepSize = stepSize;
+                spectrumAnalyzer.StepSize = stepSize;
+
+                frequencyNumericUpDown.Maximum = decimal.MaxValue;
+                frequencyNumericUpDown.Minimum = decimal.MinValue;
+                
+                centerFreqNumericUpDown.Value = ((long) centerFreqNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
+                frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
+
+                frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + (int)(_vfo.SampleRate / 2);
+                frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value - (int)(_vfo.SampleRate / 2);
+
+                frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
+                frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
             }
         }
 

@@ -41,10 +41,11 @@ namespace SDRSharp.PanView
         private byte[] _spectrum;
         private long _centerFrequency;
         private int _spectrumWidth;
+        private int _stepSize;
         private long _frequency;
         private float _lower;
         private float _upper;
-        private float _scale = 1.01f;
+        private float _scale = 1f;
         private long _displayCenterFrequency;
         private bool _changingBandwidth;
         private bool _changingFrequency;
@@ -283,9 +284,19 @@ namespace SDRSharp.PanView
             set { _attack = value; }
         }
 
+        public int StepSize
+        {
+            get { return _stepSize; }
+            set
+            {
+                _performNeeded = true;
+                _stepSize = value;
+            }
+        }
+
         private void ApplyZoom()
         {
-            _scale = 0.01f + (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
+            _scale = (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
             _displayCenterFrequency = GetDisplayCenterFrequency();
             if (_spectrumWidth > 0)
             {
@@ -634,7 +645,7 @@ namespace SDRSharp.PanView
                 f = max;
             }
 
-            f = 10 * (f / 10);
+            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
 
             if (f != _frequency)
             {
@@ -649,7 +660,7 @@ namespace SDRSharp.PanView
                 f = 0;
             }
 
-            f = 10 * (f / 10);
+            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
             if (f != _centerFrequency)
             {
                 OnCenterFrequencyChanged(new FrequencyEventArgs(f));
@@ -717,6 +728,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            _hotTrackNeeded = false;
             if (_changingFrequency)
             {
                 var f = (long) ((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
@@ -791,7 +803,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            UpdateFrequency(_frequency + e.Delta / 10);
+            UpdateFrequency(_frequency + _stepSize * Math.Sign(e.Delta));
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -800,11 +812,11 @@ namespace SDRSharp.PanView
             switch (e.KeyCode)
             {
                 case Keys.Left:
-                    UpdateCenterFrequency(_centerFrequency - 1000);
+                    UpdateCenterFrequency(_centerFrequency - _stepSize);
                     break;
 
                 case Keys.Right:
-                    UpdateCenterFrequency(_centerFrequency + 1000);
+                    UpdateCenterFrequency(_centerFrequency + _stepSize);
                     break;
             }
         }

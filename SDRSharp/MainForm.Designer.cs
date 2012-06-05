@@ -230,6 +230,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
             this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.StepSize = 1000;
             this.spectrumAnalyzer.TabIndex = 0;
             this.spectrumAnalyzer.UseSmoothing = false;
             this.spectrumAnalyzer.Zoom = 0;
@@ -252,13 +253,13 @@ namespace SDRSharp
             this.waterfall.Name = "waterfall";
             this.waterfall.Size = new System.Drawing.Size(651, 402);
             this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.StepSize = 0;
             this.waterfall.TabIndex = 0;
             this.waterfall.UseSmoothing = false;
             this.waterfall.Zoom = 0;
             this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
             this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
             this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            this.waterfall.DoubleClick += new System.EventHandler(this.gradientButton_Click);
             // 
             // iqTimer
             // 

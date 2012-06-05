@@ -33,12 +33,13 @@ namespace SDRSharp.PanView
         private BandType _bandType;
         private int _filterBandwidth;
         private int _filterOffset;
+        private int _stepSize = 1000;
         private float _xIncrement;
         private long _frequency;
         private float _lower;
         private float _upper;
         private int _zoom;
-        private float _scale = 1.01f;
+        private float _scale = 1f;
         private int _oldX;
         private int _oldFilterBandwidth;
         private long _oldFrequency;
@@ -242,9 +243,20 @@ namespace SDRSharp.PanView
             set { _decay = value; }
         }
 
+        public int StepSize
+        {
+            get { return _stepSize; }
+            set
+            {
+                _stepSize = value;
+                _drawBackgroundNeeded = true;
+                _performNeeded = true;
+            }
+        }
+
         private void ApplyZoom()
         {
-            _scale = 0.01f + (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
+            _scale = (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
             if (_spectrumWidth > 0)
             {
                 _displayCenterFrequency = GetDisplayCenterFrequency();
@@ -413,7 +425,7 @@ namespace SDRSharp.PanView
                 // Frequencies
                 var baseLabelLength = (int) graphics.MeasureString("1,000,000.000kHz", font).Width;
                 var frequencyStep = (int) (_spectrumWidth / _scale * baseLabelLength / (ClientRectangle.Width - 2 * AxisMargin));
-                int stepSnap = 1000;
+                int stepSnap = _stepSize;
                 frequencyStep = frequencyStep / stepSnap * stepSnap + stepSnap;
                 var lineCount = (int) (_spectrumWidth / _scale / frequencyStep) + 4;
                 var xIncrement = (ClientRectangle.Width - 2.0f * AxisMargin) * frequencyStep * _scale / _spectrumWidth;
@@ -621,7 +633,7 @@ namespace SDRSharp.PanView
                 f = max;
             }
 
-            f = 10 * (f / 10);
+            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
 
             if (f != _frequency)
             {
@@ -636,7 +648,7 @@ namespace SDRSharp.PanView
                 f = 0;
             }
 
-            f = 10 * (f / 10);
+            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
 
             if (f != _frequency)
             {
@@ -768,7 +780,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            UpdateFrequency(_frequency + e.Delta / 10);
+            UpdateFrequency(_frequency + _stepSize * Math.Sign(e.Delta));
         }
 
         protected override void OnMouseLeave(EventArgs e)
