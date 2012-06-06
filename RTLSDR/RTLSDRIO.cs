@@ -14,6 +14,7 @@ namespace SDRSharp.RTLSDR
         private const int DefaultSamplerate = 2048000;
 
         private static readonly uint _readLength = (uint) Utils.GetIntSetting("RTLBufferLength", 16 * 1024);
+
         private IntPtr _dev;
         private uint _deviceIndex;
         private string _deviceName;
@@ -85,6 +86,7 @@ namespace SDRSharp.RTLSDR
             NativeMethods.rtlsdr_open(out _dev, _deviceIndex);
             NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
             NativeMethods.rtlsdr_set_center_freq(_dev, DefaultFrequency);
+            NativeMethods.rtlsdr_set_freq_correction(_dev, Utils.GetIntSetting("RTLFrequencyCorrection", 0));
         }
 
         public void Start(SamplesAvailableDelegate callback)
