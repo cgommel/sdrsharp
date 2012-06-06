@@ -49,6 +49,7 @@ namespace SDRSharp.PanView
         private bool _changingCenterFrequency;
         private bool _useSmoothing;
         private bool _hotTrackNeeded;
+        private bool _useSnap;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
@@ -252,6 +253,12 @@ namespace SDRSharp.PanView
                 _drawBackgroundNeeded = true;
                 _performNeeded = true;
             }
+        }
+
+        public bool UseSnap
+        {
+            get { return _useSnap; }
+            set { _useSnap = value; }
         }
 
         private void ApplyZoom()
@@ -458,7 +465,7 @@ namespace SDRSharp.PanView
                     }
                     else if (Math.Abs(frequency) > 1000)
                     {
-                        f = string.Format("{0:0,0}kHz", frequency / 1000.0);
+                        f = string.Format("{0:0,0.###}kHz", frequency / 1000.0);
                     }
                     else
                     {
@@ -633,7 +640,10 @@ namespace SDRSharp.PanView
                 f = max;
             }
 
-            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
+            if (_useSnap)
+            {
+                f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
+            }
 
             if (f != _frequency)
             {
@@ -648,7 +658,10 @@ namespace SDRSharp.PanView
                 f = 0;
             }
 
-            f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
+            if (_useSnap)
+            {
+                f = (f + Math.Sign(f) * _stepSize / 2) / _stepSize * _stepSize;
+            }
 
             if (f != _frequency)
             {
@@ -674,52 +687,59 @@ namespace SDRSharp.PanView
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
-            if (e.X > _lower && e.X < _upper && cursorWidth < ClientRectangle.Width)
+
+            if (e.Button == MouseButtons.Left)
             {
-                _oldX = e.X;
-                _oldFrequency = _frequency;
-                _changingFrequency = true;
+                var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
+                if (e.X > _lower && e.X < _upper && cursorWidth < ClientRectangle.Width)
+                {
+                    _oldX = e.X;
+                    _oldFrequency = _frequency;
+                    _changingFrequency = true;
+                }
+                else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
+                    (_bandType == BandType.Center || _bandType == BandType.Lower))
+                    ||
+                    (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
+                    (_bandType == BandType.Center || _bandType == BandType.Upper)))
+                {
+                    _oldX = e.X;
+                    _oldFilterBandwidth = _filterBandwidth;
+                    _changingBandwidth = true;
+                }
+                else
+                {
+                    _oldX = e.X;
+                    _oldCenterFrequency = _centerFrequency;
+                    _changingCenterFrequency = true;
+                }
             }
-            else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
-                (_bandType == BandType.Center || _bandType == BandType.Lower))
-                ||
-                (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
-                (_bandType == BandType.Center || _bandType == BandType.Upper)))
+            else if (e.Button == MouseButtons.Right)
             {
-                _oldX = e.X;
-                _oldFilterBandwidth = _filterBandwidth;
-                _changingBandwidth = true;
-            }
-            else
-            {
-                _oldX = e.X;
-                _oldCenterFrequency = _centerFrequency;
-                _changingCenterFrequency = true;
+                UpdateFrequency(_frequency / Waterfall.RightClickSnapDistance * Waterfall.RightClickSnapDistance);
             }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
+            _hotTrackNeeded = false;
             base.OnMouseUp(e);
-
             if (_changingCenterFrequency && e.X == _oldX)
             {
-                _hotTrackNeeded = false;
-                _drawBackgroundNeeded = true;
-                _performNeeded = true;
                 var f = (long)((_oldX - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
                 UpdateFrequency(f);
             }
+            _changingCenterFrequency = false;
+            _drawBackgroundNeeded = true;
+            _performNeeded = true;
             _changingBandwidth = false;
             _changingFrequency = false;
-            _changingCenterFrequency = false;
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            base.OnMouseMove(e);
             _hotTrackNeeded = false;
+            base.OnMouseMove(e);
             if (_changingFrequency)
             {
                 var f = (long)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
@@ -757,6 +777,7 @@ namespace SDRSharp.PanView
                 (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 Cursor = Cursors.SizeWE;
+                _hotTrackNeeded = false;
                 _drawBackgroundNeeded = true;
                 _performNeeded = true;
             }
@@ -780,7 +801,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            UpdateFrequency(_frequency + _stepSize * Math.Sign(e.Delta));
+            UpdateFrequency(_frequency + (_useSnap ? _stepSize * Math.Sign(e.Delta) : e.Delta / 10));
         }
 
         protected override void OnMouseLeave(EventArgs e)
