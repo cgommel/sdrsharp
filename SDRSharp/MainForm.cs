@@ -108,6 +108,9 @@ namespace SDRSharp
             {
                 outputDeviceComboBox.SelectedIndex = defaultIndex;
             }
+            
+            _streamControl.AudioGain = 30.0f;
+            _streamControl.BufferNeeded += ProcessBuffer;
 
             #endregion
 
@@ -142,10 +145,7 @@ namespace SDRSharp
             filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris - 1;
 
             cwShiftNumericUpDown.Value = Vfo.DefaultCwSideTone;
-
-            _streamControl.AudioGain = 25.0f;
-            _streamControl.BufferNeeded += ProcessBuffer;
-
+            
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             waterfall.Frequency = _vfo.Frequency;
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
@@ -638,9 +638,9 @@ namespace SDRSharp
             BuildFFTWindow();
         }
 
-        private void audioGainNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void audioGainTrackBar_ValueChanged(object sender, EventArgs e)
         {
-            _streamControl.AudioGain = (int)audioGainNumericUpDown.Value;
+            _streamControl.AudioGain = audioGainTrackBar.Value;
         }
 
         #endregion

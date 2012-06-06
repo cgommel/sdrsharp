@@ -23,6 +23,8 @@ namespace SDRSharp
             this.waveFileRadioButton = new System.Windows.Forms.RadioButton();
             this.fileSelectButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.contrastTrackBar = new System.Windows.Forms.TrackBar();
             this.zoomTrackBar = new System.Windows.Forms.TrackBar();
@@ -60,11 +62,11 @@ namespace SDRSharp
             this.label5 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.audioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.audioGainTrackBar = new System.Windows.Forms.TrackBar();
             this.latencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.sampleRateComboBox = new System.Windows.Forms.ComboBox();
-            this.audioGainNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label12 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.outputDeviceComboBox = new System.Windows.Forms.ComboBox();
@@ -96,8 +98,6 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -112,8 +112,8 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.fmSquelchNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).BeginInit();
             this.audioCollapsiblePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.audioGainTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.latencyNumericUpDown)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.audioGainNumericUpDown)).BeginInit();
             this.agcCollapsiblePanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.agcSlopeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).BeginInit();
@@ -216,6 +216,53 @@ namespace SDRSharp
             this.panSplitContainer.Size = new System.Drawing.Size(651, 599);
             this.panSplitContainer.SplitterDistance = 193;
             this.panSplitContainer.TabIndex = 13;
+            // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.Attack = 0.9D;
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
+            this.spectrumAnalyzer.Decay = 0.3D;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
+            this.spectrumAnalyzer.Frequency = ((long)(0));
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.StepSize = 1000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = false;
+            this.spectrumAnalyzer.UseSnap = false;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.Attack = 0.9D;
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
+            this.waterfall.CenterFrequency = ((long)(0));
+            this.waterfall.Contrast = 0;
+            this.waterfall.Decay = 0.5D;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
+            this.waterfall.Frequency = ((long)(0));
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Size = new System.Drawing.Size(651, 402);
+            this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.StepSize = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.UseSmoothing = false;
+            this.waterfall.UseSnap = false;
+            this.waterfall.Zoom = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             // 
             // iqTimer
             // 
@@ -756,27 +803,39 @@ namespace SDRSharp
             // 
             // audioCollapsiblePanel
             // 
+            this.audioCollapsiblePanel.Controls.Add(this.audioGainTrackBar);
             this.audioCollapsiblePanel.Controls.Add(this.latencyNumericUpDown);
             this.audioCollapsiblePanel.Controls.Add(this.label6);
             this.audioCollapsiblePanel.Controls.Add(this.label13);
             this.audioCollapsiblePanel.Controls.Add(this.sampleRateComboBox);
-            this.audioCollapsiblePanel.Controls.Add(this.audioGainNumericUpDown);
             this.audioCollapsiblePanel.Controls.Add(this.label12);
             this.audioCollapsiblePanel.Controls.Add(this.label3);
             this.audioCollapsiblePanel.Controls.Add(this.outputDeviceComboBox);
             this.audioCollapsiblePanel.Controls.Add(this.inputDeviceComboBox);
             this.audioCollapsiblePanel.Controls.Add(this.label11);
-            this.audioCollapsiblePanel.ExpandedHeight = 143;
+            this.audioCollapsiblePanel.ExpandedHeight = 184;
             this.audioCollapsiblePanel.Location = new System.Drawing.Point(0, 329);
             this.audioCollapsiblePanel.Name = "audioCollapsiblePanel";
             this.audioCollapsiblePanel.NextPanel = this.agcCollapsiblePanel;
             this.audioCollapsiblePanel.PanelTitle = "Audio";
-            this.audioCollapsiblePanel.Size = new System.Drawing.Size(229, 163);
+            this.audioCollapsiblePanel.Size = new System.Drawing.Size(229, 204);
             this.audioCollapsiblePanel.TabIndex = 22;
+            // 
+            // audioGainTrackBar
+            // 
+            this.audioGainTrackBar.Location = new System.Drawing.Point(57, 24);
+            this.audioGainTrackBar.Maximum = 40;
+            this.audioGainTrackBar.Minimum = 15;
+            this.audioGainTrackBar.Name = "audioGainTrackBar";
+            this.audioGainTrackBar.Size = new System.Drawing.Size(156, 45);
+            this.audioGainTrackBar.TabIndex = 0;
+            this.audioGainTrackBar.TickFrequency = 5;
+            this.audioGainTrackBar.Value = 30;
+            this.audioGainTrackBar.ValueChanged += new System.EventHandler(this.audioGainTrackBar_ValueChanged);
             // 
             // latencyNumericUpDown
             // 
-            this.latencyNumericUpDown.Location = new System.Drawing.Point(126, 137);
+            this.latencyNumericUpDown.Location = new System.Drawing.Point(126, 151);
             this.latencyNumericUpDown.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -800,7 +859,7 @@ namespace SDRSharp
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 139);
+            this.label6.Location = new System.Drawing.Point(8, 153);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(67, 13);
             this.label6.TabIndex = 30;
@@ -809,7 +868,7 @@ namespace SDRSharp
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(7, 59);
+            this.label13.Location = new System.Drawing.Point(7, 73);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(60, 13);
             this.label13.TabIndex = 28;
@@ -833,30 +892,15 @@ namespace SDRSharp
             "125000 sample/sec",
             "150000 sample/sec",
             "192000 sample/sec"});
-            this.sampleRateComboBox.Location = new System.Drawing.Point(70, 56);
+            this.sampleRateComboBox.Location = new System.Drawing.Point(70, 70);
             this.sampleRateComboBox.Name = "sampleRateComboBox";
             this.sampleRateComboBox.Size = new System.Drawing.Size(135, 21);
             this.sampleRateComboBox.TabIndex = 1;
             // 
-            // audioGainNumericUpDown
-            // 
-            this.audioGainNumericUpDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.audioGainNumericUpDown.Location = new System.Drawing.Point(70, 26);
-            this.audioGainNumericUpDown.Name = "audioGainNumericUpDown";
-            this.audioGainNumericUpDown.Size = new System.Drawing.Size(135, 24);
-            this.audioGainNumericUpDown.TabIndex = 0;
-            this.audioGainNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.audioGainNumericUpDown.Value = new decimal(new int[] {
-            25,
-            0,
-            0,
-            0});
-            this.audioGainNumericUpDown.ValueChanged += new System.EventHandler(this.audioGainNumericUpDown_ValueChanged);
-            // 
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(7, 113);
+            this.label12.Location = new System.Drawing.Point(7, 127);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(39, 13);
             this.label12.TabIndex = 26;
@@ -876,7 +920,7 @@ namespace SDRSharp
             this.outputDeviceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.outputDeviceComboBox.DropDownWidth = 300;
             this.outputDeviceComboBox.FormattingEnabled = true;
-            this.outputDeviceComboBox.Location = new System.Drawing.Point(70, 110);
+            this.outputDeviceComboBox.Location = new System.Drawing.Point(70, 124);
             this.outputDeviceComboBox.Name = "outputDeviceComboBox";
             this.outputDeviceComboBox.Size = new System.Drawing.Size(135, 21);
             this.outputDeviceComboBox.TabIndex = 3;
@@ -886,7 +930,7 @@ namespace SDRSharp
             this.inputDeviceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.inputDeviceComboBox.DropDownWidth = 300;
             this.inputDeviceComboBox.FormattingEnabled = true;
-            this.inputDeviceComboBox.Location = new System.Drawing.Point(70, 83);
+            this.inputDeviceComboBox.Location = new System.Drawing.Point(70, 97);
             this.inputDeviceComboBox.Name = "inputDeviceComboBox";
             this.inputDeviceComboBox.Size = new System.Drawing.Size(135, 21);
             this.inputDeviceComboBox.TabIndex = 2;
@@ -894,7 +938,7 @@ namespace SDRSharp
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(7, 86);
+            this.label11.Location = new System.Drawing.Point(7, 100);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(31, 13);
             this.label11.TabIndex = 24;
@@ -911,7 +955,7 @@ namespace SDRSharp
             this.agcCollapsiblePanel.Controls.Add(this.agcDecayNumericUpDown);
             this.agcCollapsiblePanel.Controls.Add(this.label4);
             this.agcCollapsiblePanel.ExpandedHeight = 103;
-            this.agcCollapsiblePanel.Location = new System.Drawing.Point(0, 492);
+            this.agcCollapsiblePanel.Location = new System.Drawing.Point(0, 533);
             this.agcCollapsiblePanel.Name = "agcCollapsiblePanel";
             this.agcCollapsiblePanel.NextPanel = this.displayCollapsiblePanel;
             this.agcCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
@@ -1053,7 +1097,7 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
             this.displayCollapsiblePanel.ExpandedHeight = 259;
-            this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 512);
+            this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 553);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
@@ -1239,53 +1283,6 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.Attack = 0.9D;
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
-            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
-            this.spectrumAnalyzer.Decay = 0.3D;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 10000;
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Frequency = ((long)(0));
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 193);
-            this.spectrumAnalyzer.SpectrumWidth = 48000;
-            this.spectrumAnalyzer.StepSize = 1000;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = false;
-            this.spectrumAnalyzer.UseSnap = false;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.Attack = 0.9D;
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
-            this.waterfall.CenterFrequency = ((long)(0));
-            this.waterfall.Contrast = 0;
-            this.waterfall.Decay = 0.5D;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 10000;
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Frequency = ((long)(0));
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(651, 402);
-            this.waterfall.SpectrumWidth = 48000;
-            this.waterfall.StepSize = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.UseSmoothing = false;
-            this.waterfall.UseSnap = false;
-            this.waterfall.Zoom = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1325,8 +1322,8 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.centerFreqNumericUpDown)).EndInit();
             this.audioCollapsiblePanel.ResumeLayout(false);
             this.audioCollapsiblePanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.audioGainTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.latencyNumericUpDown)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.audioGainNumericUpDown)).EndInit();
             this.agcCollapsiblePanel.ResumeLayout(false);
             this.agcCollapsiblePanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.agcSlopeNumericUpDown)).EndInit();
@@ -1349,7 +1346,6 @@ namespace SDRSharp
 
         private Button playButton;
         private Button stopButton;
-        private NumericUpDown audioGainNumericUpDown;
         private Label label3;
         private OpenFileDialog openDlg;
         private CheckBox agcCheckBox;
@@ -1430,5 +1426,6 @@ namespace SDRSharp
         private TrackBar sDecayTrackBar;
         private TrackBar sAttackTrackBar;
         private CheckBox snapFrequencyCheckBox;
+        private TrackBar audioGainTrackBar;
     }
 }
