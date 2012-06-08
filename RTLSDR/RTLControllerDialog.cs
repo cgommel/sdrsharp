@@ -80,7 +80,10 @@ namespace SDRSharp.RTLSDR
                 rfGainTrackBar.Maximum = _owner.SupportedGains == null ? 1 : (_owner.SupportedGains.Length - 1);
                 samplerateComboBox_SelectedIndexChanged(null, null);
                 gainModeCheckBox_CheckedChanged(null, null);
-                rfGainTrackBar_Scroll(null, null);
+                if (!gainModeCheckBox.Checked)
+                {
+                    rfGainTrackBar_Scroll(null, null);
+                }
                 frequencyCorrectionNumericUpDown_ValueChanged(null, null);
             }
         }
