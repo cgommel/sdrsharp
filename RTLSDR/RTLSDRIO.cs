@@ -243,9 +243,10 @@ namespace SDRSharp.RTLSDR
             }
             var instance = (RtlSdrIO) gcHandle.Target;
 
-            if (instance._iqBuffer == null || instance._iqBuffer.Length != len)
+            var sampleCount = (int) len / 2;
+            if (instance._iqBuffer == null || instance._iqBuffer.Length != sampleCount)
             {
-                instance._iqBuffer = UnsafeBuffer.Create((int) len / 2, sizeof (Complex));
+                instance._iqBuffer = UnsafeBuffer.Create(sampleCount, sizeof(Complex));
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
