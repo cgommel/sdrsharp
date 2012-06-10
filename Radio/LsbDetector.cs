@@ -21,7 +21,7 @@
 
         public int BfoFrequency
         {
-            get { return _bfo.Frequency; }
+            get { return (int) _bfo.Frequency; }
             set { _bfo.Frequency = value; }
         }
     }

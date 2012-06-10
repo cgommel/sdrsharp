@@ -459,7 +459,7 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < stageCount; i++)
             {
-                filters[i] = new FirFilter(_kernel23);
+                filters[i] = new FirFilter(_kernel47);
             }
 
             return filters;

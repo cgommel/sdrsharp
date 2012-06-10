@@ -5,7 +5,7 @@ namespace SDRSharp.Radio
     public sealed class Oscillator
     {
         private double _sampleRate;
-        private int _frequency;
+        private double _frequency;
         private double _anglePerSample;
         private double _sinOfAnglePerSample;
         private double _cosOfAnglePerSample;
@@ -19,20 +19,26 @@ namespace SDRSharp.Radio
             get { return _sampleRate; }
             set
             {
-                _sampleRate = value;
-                _vectR = 1;
-                _vectI = 0;
-                Configure();
+                if (_sampleRate != value)
+                {
+                    _sampleRate = value;
+                    _vectR = 1;
+                    _vectI = 0;
+                    Configure();
+                }
             }
         }
 
-        public int Frequency
+        public double Frequency
         {
             get { return _frequency; }
             set
             {
-                _frequency = value;
-                Configure();
+                if (_frequency != value)
+                {
+                    _frequency = value;
+                    Configure();
+                }
             }
         }
 

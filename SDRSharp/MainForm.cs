@@ -138,7 +138,7 @@ namespace SDRSharp
 
             viewComboBox.SelectedIndex = 2;
             fftResolutionComboBox.SelectedIndex = 3;
-            sampleRateComboBox.SelectedIndex = 4;
+            sampleRateComboBox.SelectedIndex = 7;
 
             _fftWindowType = WindowType.BlackmanHarris;
             fftWindowComboBox.SelectedIndex = (int) _fftWindowType;
@@ -426,6 +426,10 @@ namespace SDRSharp
         private void iqTimer_Tick(object sender, EventArgs e)
         {
             Text = string.Format(_baseTitle + " - IQ Imbalance: Gain = {0:F3} Phase = {1:F3}°", _iqBalancer.Gain, _iqBalancer.Phase * 180 / Math.PI);
+            if (_vfo.SignalIsStereo)
+            {
+                Text += " ((( stereo )))";
+            }
         }
 
         private void BuildFFTWindow()
@@ -799,6 +803,8 @@ namespace SDRSharp
             agcUseHangCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
             agcCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
 
+            fmStereoCheckBox.Enabled = wfmRadioButton.Checked;
+
             fmSquelchNumericUpDown.Enabled = nfmRadioButton.Checked;
             cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
 
@@ -900,6 +906,11 @@ namespace SDRSharp
             }
         }
 
+        private void fmStereoCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _vfo.FmStereo = fmStereoCheckBox.Checked;
+        }
+
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
@@ -938,19 +949,19 @@ namespace SDRSharp
                 waterfall.StepSize = stepSize;
                 spectrumAnalyzer.StepSize = stepSize;
 
-                if (snapFrequencyCheckBox.Checked)
+                if (snapFrequencyCheckBox.Checked && iqStreamRadioButton.Checked)
                 {
                     frequencyNumericUpDown.Maximum = decimal.MaxValue;
                     frequencyNumericUpDown.Minimum = decimal.MinValue;
 
-                    centerFreqNumericUpDown.Value = ((long) centerFreqNumericUpDown.Value + stepSize/2)/stepSize * stepSize;
-                    frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize/2)/stepSize*stepSize;
+                    centerFreqNumericUpDown.Value = ((long) centerFreqNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
+                    frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize / 2) / stepSize*stepSize;
 
-                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + (int) (_vfo.SampleRate/2);
-                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value - (int) (_vfo.SampleRate/2);
+                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + (int) (_vfo.SampleRate / 2);
+                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value - (int) (_vfo.SampleRate / 2);
 
-                    frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum)/waterfall.StepSize * waterfall.StepSize;
-                    frequencyNumericUpDown.Minimum = 2*spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
+                    frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
+                    frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
                 }
             }
         }
