@@ -28,6 +28,7 @@ namespace SDRSharp.Radio
         private FirFilter _audioFilter;
         private IQFirFilter _iqFilter;
         private DetectorType _detectorType;
+        private DetectorType _actualDetectorType;
         private WindowType _windowType;
         private double _sampleRate;
         private int _bandwidth;
@@ -278,6 +279,7 @@ namespace SDRSharp.Radio
 
         private void Configure()
         {
+            _actualDetectorType = _detectorType;
             _localOscillator.SampleRate = _sampleRate;
             _localOscillator.Frequency = _frequency;
             if (_needNewDecimators)
@@ -439,22 +441,22 @@ namespace SDRSharp.Radio
 
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
-            if (_detectorType != DetectorType.WFM)
+            if (_actualDetectorType != DetectorType.WFM)
             {
                 _audioFilter.Process(_rawAudioPtr, length);
             }
 
-            if (_useAgc && _detectorType != DetectorType.WFM && _detectorType != DetectorType.NFM)
+            if (_useAgc && _actualDetectorType != DetectorType.WFM && _actualDetectorType != DetectorType.NFM)
             {
                 _agc.Process(_rawAudioPtr, length);
             }
 
-            if (_detectorType == DetectorType.AM)
+            if (_actualDetectorType == DetectorType.AM)
             {
                 _dcRemover.Process(_rawAudioPtr, length);
             }
 
-            if (_detectorType == DetectorType.WFM)
+            if (_actualDetectorType == DetectorType.WFM)
             {
                 _stereoDecoder.Process(_rawAudioPtr, audioBuffer, length);
             }
@@ -483,7 +485,7 @@ namespace SDRSharp.Radio
 
         private void Demodulate(Complex* iq, float* audio, int length)
         {
-            switch (_detectorType)
+            switch (_actualDetectorType)
             {
                 case DetectorType.WFM:
                 case DetectorType.NFM:
