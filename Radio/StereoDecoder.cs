@@ -199,8 +199,10 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < length; i++)
             {
-                interleavedStereo[i * 2]     = _channelAPtr[i] + _channelBPtr[i];
-                interleavedStereo[i * 2 + 1] = _channelAPtr[i] - _channelBPtr[i];
+                var a = _channelAPtr[i];
+                var b = 2f * _channelBPtr[i];
+                interleavedStereo[i * 2]     = a + b;
+                interleavedStereo[i * 2 + 1] = a - b;
             }
 
             #endregion
