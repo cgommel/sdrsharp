@@ -770,8 +770,8 @@ namespace SDRSharp
             // audioCollapsiblePanel
             // 
             this.audioCollapsiblePanel.Controls.Add(this.audioGainTrackBar);
-            this.audioCollapsiblePanel.Controls.Add(this.filterAudioCheckBox);
             this.audioCollapsiblePanel.Controls.Add(this.latencyNumericUpDown);
+            this.audioCollapsiblePanel.Controls.Add(this.filterAudioCheckBox);
             this.audioCollapsiblePanel.Controls.Add(this.label6);
             this.audioCollapsiblePanel.Controls.Add(this.label13);
             this.audioCollapsiblePanel.Controls.Add(this.sampleRateComboBox);
@@ -1254,7 +1254,7 @@ namespace SDRSharp
             // 
             this.filterAudioCheckBox.Checked = true;
             this.filterAudioCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.filterAudioCheckBox.Location = new System.Drawing.Point(115, 177);
+            this.filterAudioCheckBox.Location = new System.Drawing.Point(118, 177);
             this.filterAudioCheckBox.Name = "filterAudioCheckBox";
             this.filterAudioCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.filterAudioCheckBox.Size = new System.Drawing.Size(87, 17);
