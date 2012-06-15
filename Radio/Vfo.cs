@@ -280,7 +280,7 @@ namespace SDRSharp.Radio
 
         public bool FilterAudio
         {
-            get { return _fmStereo; }
+            get { return _filterAudio; }
             set { _filterAudio = value; }
         }
 
