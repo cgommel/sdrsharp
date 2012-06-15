@@ -30,6 +30,7 @@ namespace SDRSharp
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
             this.cwuRadioButton = new System.Windows.Forms.RadioButton();
             this.cwlRadioButton = new System.Windows.Forms.RadioButton();
             this.nfmRadioButton = new System.Windows.Forms.RadioButton();
@@ -96,7 +97,7 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
+            this.filterAudioCheckBox = new System.Windows.Forms.CheckBox();
             this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
             this.waterfall = new SDRSharp.PanView.Waterfall();
             this.panSplitContainer.Panel1.SuspendLayout();
@@ -327,6 +328,20 @@ namespace SDRSharp
             this.radioCollapsiblePanel.Size = new System.Drawing.Size(229, 353);
             this.radioCollapsiblePanel.TabIndex = 21;
             // 
+            // fmStereoCheckBox
+            // 
+            this.fmStereoCheckBox.Checked = true;
+            this.fmStereoCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.fmStereoCheckBox.Enabled = false;
+            this.fmStereoCheckBox.Location = new System.Drawing.Point(111, 331);
+            this.fmStereoCheckBox.Name = "fmStereoCheckBox";
+            this.fmStereoCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.fmStereoCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.fmStereoCheckBox.TabIndex = 33;
+            this.fmStereoCheckBox.Text = "FM Stereo";
+            this.fmStereoCheckBox.UseVisualStyleBackColor = true;
+            this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
+            // 
             // cwuRadioButton
             // 
             this.cwuRadioButton.AutoSize = true;
@@ -373,11 +388,10 @@ namespace SDRSharp
             // 
             // snapFrequencyCheckBox
             // 
-            this.snapFrequencyCheckBox.AutoSize = true;
-            this.snapFrequencyCheckBox.Location = new System.Drawing.Point(17, 283);
+            this.snapFrequencyCheckBox.Location = new System.Drawing.Point(6, 283);
             this.snapFrequencyCheckBox.Name = "snapFrequencyCheckBox";
             this.snapFrequencyCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.snapFrequencyCheckBox.Size = new System.Drawing.Size(83, 17);
+            this.snapFrequencyCheckBox.Size = new System.Drawing.Size(94, 17);
             this.snapFrequencyCheckBox.TabIndex = 17;
             this.snapFrequencyCheckBox.Text = "Snap to grid";
             this.snapFrequencyCheckBox.UseVisualStyleBackColor = true;
@@ -711,26 +725,23 @@ namespace SDRSharp
             // 
             // swapInQCheckBox
             // 
-            this.swapInQCheckBox.AutoSize = true;
-            this.swapInQCheckBox.Location = new System.Drawing.Point(126, 308);
+            this.swapInQCheckBox.Location = new System.Drawing.Point(111, 308);
             this.swapInQCheckBox.Name = "swapInQCheckBox";
             this.swapInQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.swapInQCheckBox.Size = new System.Drawing.Size(79, 17);
+            this.swapInQCheckBox.Size = new System.Drawing.Size(94, 17);
             this.swapInQCheckBox.TabIndex = 20;
             this.swapInQCheckBox.Text = "Swap I && Q";
-            this.swapInQCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.swapInQCheckBox.UseVisualStyleBackColor = true;
             this.swapInQCheckBox.CheckedChanged += new System.EventHandler(this.swapInQCheckBox_CheckedChanged);
             // 
             // correctIQCheckBox
             // 
-            this.correctIQCheckBox.AutoSize = true;
             this.correctIQCheckBox.Checked = true;
             this.correctIQCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.correctIQCheckBox.Location = new System.Drawing.Point(26, 308);
+            this.correctIQCheckBox.Location = new System.Drawing.Point(6, 308);
             this.correctIQCheckBox.Name = "correctIQCheckBox";
             this.correctIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.correctIQCheckBox.Size = new System.Drawing.Size(74, 17);
+            this.correctIQCheckBox.Size = new System.Drawing.Size(94, 17);
             this.correctIQCheckBox.TabIndex = 19;
             this.correctIQCheckBox.Text = "Correct IQ";
             this.correctIQCheckBox.UseVisualStyleBackColor = true;
@@ -759,6 +770,7 @@ namespace SDRSharp
             // audioCollapsiblePanel
             // 
             this.audioCollapsiblePanel.Controls.Add(this.audioGainTrackBar);
+            this.audioCollapsiblePanel.Controls.Add(this.filterAudioCheckBox);
             this.audioCollapsiblePanel.Controls.Add(this.latencyNumericUpDown);
             this.audioCollapsiblePanel.Controls.Add(this.label6);
             this.audioCollapsiblePanel.Controls.Add(this.label13);
@@ -1238,20 +1250,18 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
-            // fmStereoCheckBox
+            // filterAudioCheckBox
             // 
-            this.fmStereoCheckBox.AutoSize = true;
-            this.fmStereoCheckBox.Checked = true;
-            this.fmStereoCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.fmStereoCheckBox.Enabled = false;
-            this.fmStereoCheckBox.Location = new System.Drawing.Point(130, 331);
-            this.fmStereoCheckBox.Name = "fmStereoCheckBox";
-            this.fmStereoCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.fmStereoCheckBox.Size = new System.Drawing.Size(75, 17);
-            this.fmStereoCheckBox.TabIndex = 33;
-            this.fmStereoCheckBox.Text = "FM Stereo";
-            this.fmStereoCheckBox.UseVisualStyleBackColor = true;
-            this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
+            this.filterAudioCheckBox.Checked = true;
+            this.filterAudioCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.filterAudioCheckBox.Location = new System.Drawing.Point(115, 177);
+            this.filterAudioCheckBox.Name = "filterAudioCheckBox";
+            this.filterAudioCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.filterAudioCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.filterAudioCheckBox.TabIndex = 34;
+            this.filterAudioCheckBox.Text = "Filter Audio";
+            this.filterAudioCheckBox.UseVisualStyleBackColor = true;
+            this.filterAudioCheckBox.CheckedChanged += new System.EventHandler(this.filterAudioCheckBox_CheckedChanged);
             // 
             // spectrumAnalyzer
             // 
@@ -1445,5 +1455,6 @@ namespace SDRSharp
         private CheckBox snapFrequencyCheckBox;
         private TrackBar audioGainTrackBar;
         private CheckBox fmStereoCheckBox;
+        private CheckBox filterAudioCheckBox;
     }
 }

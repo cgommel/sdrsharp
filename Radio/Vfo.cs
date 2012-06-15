@@ -50,6 +50,7 @@ namespace SDRSharp.Radio
         private bool _fmStereo = true;
         private UnsafeBuffer _rawAudioBuffer;
         private float* _rawAudioPtr;
+        private bool _filterAudio = true;
 
         public Vfo()
         {
@@ -277,6 +278,12 @@ namespace SDRSharp.Radio
             get { return _actualDetectorType == DetectorType.WFM && _fmStereo && _stereoDecoder.IsPllLocked; }
         }
 
+        public bool FilterAudio
+        {
+            get { return _fmStereo; }
+            set { _filterAudio = value; }
+        }
+
         private void Configure()
         {
             _actualDetectorType = _detectorType;
@@ -427,7 +434,7 @@ namespace SDRSharp.Radio
 
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
-            if (_actualDetectorType != DetectorType.WFM)
+            if (_filterAudio && _actualDetectorType != DetectorType.WFM)
             {
                 _audioFilter.Process(_rawAudioPtr, length);
             }

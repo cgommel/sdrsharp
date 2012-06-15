@@ -647,6 +647,11 @@ namespace SDRSharp
             _streamControl.AudioGain = audioGainTrackBar.Value;
         }
 
+        private void filterAudioCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _vfo.FilterAudio = filterAudioCheckBox.Checked;
+        }
+
         #endregion
 
         #region Main controls
