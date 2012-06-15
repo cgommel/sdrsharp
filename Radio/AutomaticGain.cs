@@ -151,17 +151,9 @@ namespace SDRSharp.Radio
                     _delaySamples = (int) (_sampleRate * DelayTimeconst);
                     _windowSamples = (int) (_sampleRate * WindowTimeconst);
 
-                    if (_sigDelayBuf != null)
-                    {
-                        _sigDelayBuf.Dispose();
-                    }
                     _sigDelayBuf = UnsafeBuffer.Create(_delaySamples, sizeof(float));
                     _sigDelayBufPtr = (float*) _sigDelayBuf;
 
-                    if (_magBuf != null)
-                    {
-                        _magBuf.Dispose();
-                    }
                     _magBuf = UnsafeBuffer.Create(_windowSamples, sizeof(float));
                     _magBufPtr = (float*) _magBuf;
 

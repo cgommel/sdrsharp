@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe class IQBalancer : IDisposable
+    public unsafe class IQBalancer
     {
         private const int FFTBins = 512;
         private const float DcTimeConst = 0.001f;
@@ -24,17 +24,6 @@ namespace SDRSharp.Radio
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
             _windowPtr = (float*)_windowBuffer;
-        }
-
-        ~IQBalancer()
-        {
-            Dispose();
-        }
-
-        public void Dispose()
-        {
-            _windowBuffer.Dispose();
-            GC.SuppressFinalize(this);
         }
 
         public float Phase
@@ -75,20 +64,12 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 // I branch
-                var temp = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
-                if (!float.IsNaN(temp))
-                {
-                    _averageI = temp;
-                }
-                iq[i].Real = iq[i].Real - _averageI;
+                _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                iq[i].Real -= _averageI;
 
                 // Q branch
-                temp = _averageQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
-                if (!float.IsNaN(temp))
-                {
-                    _averageQ = temp;
-                }
-                iq[i].Imag = iq[i].Imag - _averageQ;
+                _averageQ = _averageQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
+                iq[i].Imag -= _averageQ;
             }
         }
 

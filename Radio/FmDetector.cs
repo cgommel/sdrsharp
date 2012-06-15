@@ -74,10 +74,6 @@ namespace SDRSharp.Radio
             {
                 if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
-                    if (_hissBuffer != null)
-                    {
-                        _hissBuffer.Dispose();
-                    }
                     _hissBuffer = UnsafeBuffer.Create(length, sizeof(float));
                     _hissPtr = (float*) _hissBuffer;
                 }

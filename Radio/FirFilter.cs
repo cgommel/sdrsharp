@@ -16,6 +16,10 @@ namespace SDRSharp.Radio
         private bool _isSymmetric;
         private bool _isSparse;
 
+        public FirFilter() : this(new float[0])
+        {
+        }
+
         public FirFilter(float[] coefficients)
         {
             SetCoefficients(coefficients);
@@ -28,8 +32,8 @@ namespace SDRSharp.Radio
 
         public void Dispose()
         {
-            _coeffBuffer.Dispose();
-            _queueBuffer.Dispose();
+            _coeffBuffer = null;
+            _queueBuffer = null;
             _coeffPtr = null;
             _queuePtr = null;
             GC.SuppressFinalize(this);
@@ -46,18 +50,9 @@ namespace SDRSharp.Radio
             {
                 _queueSize = coefficients.Length;
 
-                if (_coeffBuffer != null)
-                {
-                    _coeffBuffer.Dispose();
-                }
                 _coeffBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
                 _coeffPtr = (float*) _coeffBuffer;
 
-
-                if (_queueBuffer != null)
-                {
-                    _queueBuffer.Dispose();
-                }
                 _queueBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
                 _queuePtr = (float*) _queueBuffer;
             }

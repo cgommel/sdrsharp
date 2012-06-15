@@ -2,10 +2,14 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe sealed class IQFirFilter : IFilter, IDisposable
+    public unsafe sealed class IQFirFilter : IFilter
     {
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
+
+        public IQFirFilter() : this(new float[0])
+        {
+        }
 
         public IQFirFilter(float[] coefficients)
         {

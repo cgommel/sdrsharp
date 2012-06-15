@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe class StereoDecoder
+    public unsafe sealed class StereoDecoder
     {
         private const int PilotDefaultFrequency = 19000;
         private const int PilotBandwidth = 10;

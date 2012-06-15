@@ -24,9 +24,9 @@ namespace SDRSharp.Radio
         private readonly DsbDetector _dsbDetector = new DsbDetector();
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
+        private readonly FirFilter _audioFilter = new FirFilter();
+        private readonly IQFirFilter _iqFilter = new IQFirFilter();
         private IQDecimator _baseBandDecimator;
-        private FirFilter _audioFilter;
-        private IQFirFilter _iqFilter;
         private DetectorType _detectorType;
         private DetectorType _actualDetectorType;
         private WindowType _windowType;
@@ -274,7 +274,7 @@ namespace SDRSharp.Radio
 
         public bool SignalIsStereo
         {
-            get { return _detectorType == DetectorType.WFM && _fmStereo && _stereoDecoder.IsPllLocked; }
+            get { return _actualDetectorType == DetectorType.WFM && _fmStereo && _stereoDecoder.IsPllLocked; }
         }
 
         private void Configure()
@@ -285,7 +285,7 @@ namespace SDRSharp.Radio
             if (_needNewDecimators)
             {
                 _needNewDecimators = false;
-                if (_detectorType == DetectorType.WFM)
+                if (_actualDetectorType == DetectorType.WFM)
                 {
                     var afSamplerate = _sampleRate / Math.Pow(2.0, _decimationStageCount);
                     _audioDecimationStageCount = 0;
@@ -319,7 +319,7 @@ namespace SDRSharp.Radio
             _fmDetector.SquelchThreshold = _fmSquelchThreshold;
             _stereoDecoder.Configure(_fmDetector.SampleRate, _audioDecimationStageCount);
             _stereoDecoder.ForceMono = !_fmStereo;
-            switch (_detectorType)
+            switch (_actualDetectorType)
             {
                 case DetectorType.USB:
                     _usbDetector.BfoFrequency = -_bandwidth / 2;
@@ -362,19 +362,12 @@ namespace SDRSharp.Radio
             int cutoff1 = 0;
             int cutoff2 = 10000;
             var iqBW = _bandwidth / 2;
-            int iqOrder = _detectorType == DetectorType.WFM ? 30 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
+            int iqOrder = _actualDetectorType == DetectorType.WFM ? 30 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
             
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
-            if (_iqFilter == null)
-            {
-                _iqFilter = new IQFirFilter(coeffs);
-            }
-            else
-            {
-                _iqFilter.SetCoefficients(coeffs);
-            }
+            _iqFilter.SetCoefficients(coeffs);
 
-            switch (_detectorType)
+            switch (_actualDetectorType)
             {
                 case DetectorType.AM:
                     cutoff1 = MinBCAudioFrequency;
@@ -405,14 +398,7 @@ namespace SDRSharp.Radio
             }
 
             coeffs = FilterBuilder.MakeBandPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount + _audioDecimationStageCount), _filterOrder, cutoff1, cutoff2, _windowType);
-            if (_audioFilter == null)
-            {
-                _audioFilter = new FirFilter(coeffs);
-            }
-            else
-            {
-                _audioFilter.SetCoefficients(coeffs);
-            }
+            _audioFilter.SetCoefficients(coeffs);
         }
 
         public void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
