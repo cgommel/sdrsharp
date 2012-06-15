@@ -119,7 +119,7 @@ namespace SDRSharp
             _vfo.DetectorType = DetectorType.AM;
             _vfo.Bandwidth = DefaultAMBandwidth;
             _vfo.FilterOrder = 400;
-            _vfo.FmSquelch = 50;
+            _vfo.SquelchThreshold = 0;
             _vfo.UseAGC = true;
             _vfo.AgcThreshold = -100.0f;
             _vfo.AgcDecay = 100;
@@ -810,7 +810,8 @@ namespace SDRSharp
 
             fmStereoCheckBox.Enabled = wfmRadioButton.Checked;
 
-            fmSquelchNumericUpDown.Enabled = nfmRadioButton.Checked;
+            useSquelchCheckBox.Enabled = nfmRadioButton.Checked || amRadioButton.Checked;
+            squelchNumericUpDown.Enabled = useSquelchCheckBox.Enabled && useSquelchCheckBox.Checked;
             cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
 
             if (wfmRadioButton.Checked)
@@ -833,6 +834,7 @@ namespace SDRSharp
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
                 stepSizeComboBox.SelectedIndex = 11;
+                useSquelchCheckBox.Checked = true;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -923,9 +925,22 @@ namespace SDRSharp
             spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
         }
 
-        private void fmSquelchNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void squelchNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.FmSquelch = (int)fmSquelchNumericUpDown.Value;
+            _vfo.SquelchThreshold = (int) squelchNumericUpDown.Value;
+        }
+
+        private void useSquelchCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            squelchNumericUpDown.Enabled = useSquelchCheckBox.Checked;
+            if (useSquelchCheckBox.Checked)
+            {
+                _vfo.SquelchThreshold = (int)squelchNumericUpDown.Value;
+            }
+            else
+            {
+                _vfo.SquelchThreshold = 0;
+            }
         }
 
         private void stepSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)

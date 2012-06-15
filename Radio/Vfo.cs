@@ -46,7 +46,7 @@ namespace SDRSharp.Radio
         private float _agcDecay;
         private float _agcSlope;
         private bool _agcUseHang;
-        private int _fmSquelchThreshold;
+        private int _squelchThreshold;
         private bool _fmStereo = true;
         private UnsafeBuffer _rawAudioBuffer;
         private float* _rawAudioPtr;
@@ -219,14 +219,14 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int FmSquelch
+        public int SquelchThreshold
         {
-            get { return _fmSquelchThreshold; }
+            get { return _squelchThreshold; }
             set
             {
-                if (_fmSquelchThreshold != value)
+                if (_squelchThreshold != value)
                 {
-                    _fmSquelchThreshold = value;
+                    _squelchThreshold = value;
                     _needConfigure = true;
                 }
             }
@@ -323,7 +323,8 @@ namespace SDRSharp.Radio
             _usbDetector.SampleRate = baseBandSampleRate;
             _lsbDetector.SampleRate = baseBandSampleRate;
             _fmDetector.SampleRate = baseBandSampleRate;
-            _fmDetector.SquelchThreshold = _fmSquelchThreshold;
+            _fmDetector.SquelchThreshold = _squelchThreshold;
+            _amDetector.SquelchThreshold = _squelchThreshold;
             _stereoDecoder.Configure(_fmDetector.SampleRate, _audioDecimationStageCount);
             _stereoDecoder.ForceMono = !_fmStereo;
             switch (_actualDetectorType)
