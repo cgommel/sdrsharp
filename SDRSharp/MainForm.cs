@@ -847,6 +847,7 @@ namespace SDRSharp
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
                 stepSizeComboBox.SelectedIndex = 4;
+                useSquelchCheckBox.Checked = false;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
