@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Globalization;
 using System.Windows.Forms;
 using SDRSharp.Radio;
@@ -16,7 +15,7 @@ namespace SDRSharp.RTLSDR
             InitializeComponent();
         }
 
-        private void FCDControllerDialog_Load(object sender, EventArgs e)
+        private void RtlSdrControllerDialog_Load(object sender, EventArgs e)
         {
             samplerateComboBox.SelectedIndex = 3;
             frequencyCorrectionNumericUpDown.Value = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
@@ -38,8 +37,8 @@ namespace SDRSharp.RTLSDR
             refreshTimer.Enabled = Visible;
             if (Visible)
             {
-                samplerateComboBox.Enabled = !_owner.IsStreaming;
-                deviceComboBox.Enabled = !_owner.IsStreaming;
+                samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
+                deviceComboBox.Enabled = !_owner.Device.IsStreaming;
 
                 var devices = DeviceDisplay.GetActiveDevices();
 
@@ -49,8 +48,8 @@ namespace SDRSharp.RTLSDR
                 var found = false;
                 for (var i = 0; i < deviceComboBox.Items.Count; i++)
                 {
-                    var item = (DeviceDisplay) deviceComboBox.Items[i];
-                    if (item.Index == _owner.DeviceIndex)
+                    var deviceDisplay = (DeviceDisplay) deviceComboBox.Items[i];
+                    if (deviceDisplay.Index == _owner.Device.Index)
                     {
                         deviceComboBox.SelectedIndex = i;
                         found = true;
@@ -66,49 +65,56 @@ namespace SDRSharp.RTLSDR
 
         private void refreshTimer_Tick(object sender, EventArgs e)
         {
-            samplerateComboBox.Enabled = !_owner.IsStreaming;
-            deviceComboBox.Enabled = !_owner.IsStreaming;
+            samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
+            deviceComboBox.Enabled = !_owner.Device.IsStreaming;
         }
 
         private void deviceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (deviceComboBox.SelectedItem != null)
+            var deviceDisplay = (DeviceDisplay) deviceComboBox.SelectedItem;
+            if (deviceDisplay != null)
             {
-                _owner.DeviceIndex = ((DeviceDisplay) deviceComboBox.SelectedItem).Index;
-
-                tunerTypeLabel.Text = _owner.TunerType.ToString();
-                rfGainTrackBar.Maximum = _owner.SupportedGains == null ? 1 : (_owner.SupportedGains.Length - 1);
-                samplerateComboBox_SelectedIndexChanged(null, null);
-                gainModeCheckBox_CheckedChanged(null, null);
-                if (!gainModeCheckBox.Checked)
+                try
                 {
-                    rfGainTrackBar_Scroll(null, null);
+                    _owner.SelectDevice(deviceDisplay.Index);
+
+                    tunerTypeLabel.Text = _owner.Device.TunerType.ToString();
+                    rfGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
+                    samplerateComboBox_SelectedIndexChanged(null, null);
+                    gainModeCheckBox_CheckedChanged(null, null);
+                    if (!gainModeCheckBox.Checked)
+                    {
+                        rfGainTrackBar_Scroll(null, null);
+                    }
+                    frequencyCorrectionNumericUpDown_ValueChanged(null, null);
                 }
-                frequencyCorrectionNumericUpDown_ValueChanged(null, null);
+                catch (Exception ex)
+                {
+                    deviceComboBox.SelectedIndex = -1;
+                    MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private void rfGainTrackBar_Scroll(object sender, EventArgs e)
         {
-            if (_owner.SupportedGains != null)
-            {
-                var gain = _owner.SupportedGains[rfGainTrackBar.Value];
-                _owner.Gain = gain;
-                gainLabel.Text = gain / 10.0 + " dB";
-            }
+            var gain = _owner.Device.SupportedGains[rfGainTrackBar.Value];
+            _owner.Device.Gain = gain;
+            gainLabel.Text = gain / 10.0 + " dB";
         }
 
         private void samplerateComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             var samplerateString = samplerateComboBox.Items[samplerateComboBox.SelectedIndex].ToString().Split(' ')[0];
             var sampleRate = double.Parse(samplerateString, CultureInfo.InvariantCulture);
-            _owner.Samplerate = sampleRate * 1000000.0;
+            _owner.Device.Samplerate = (uint) (sampleRate * 1000000.0);
         }
 
         private void gainModeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             rfGainTrackBar.Enabled = !gainModeCheckBox.Checked;
-            _owner.UseAutomaticGain = gainModeCheckBox.Checked;
+            _owner.Device.UseAutomaticGain = gainModeCheckBox.Checked;
+            gainLabel.Visible = !gainModeCheckBox.Checked;
             if (!gainModeCheckBox.Checked)
             {
                 rfGainTrackBar_Scroll(null, null);
@@ -117,48 +123,33 @@ namespace SDRSharp.RTLSDR
 
         private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _owner.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
+            _owner.Device.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
             Utils.SaveSetting("RTLFrequencyCorrection", frequencyCorrectionNumericUpDown.Value.ToString());
         }
+    }
 
-        private class DeviceDisplay
+    public class DeviceDisplay
+    {
+        public uint Index { get; private set; }
+        public string Name { get; set; }
+
+        public static DeviceDisplay[] GetActiveDevices()
         {
-            public uint Index { get; private set; }
-            public string Name { get; set; }
-            public string Manufacturer { get; set; }
-            public string Product { get; set; }
-            public string Serial { get; set; }
+            var count = NativeMethods.rtlsdr_get_device_count();
+            var result = new DeviceDisplay[count];
 
-            public static DeviceDisplay[] GetActiveDevices()
+            for (var i = 0u; i < count; i++)
             {
-                var count = NativeMethods.rtlsdr_get_device_count();
-                var result = new DeviceDisplay[count];
-
-                for (var i = 0u; i < count; i++)
-                {
-                    var manufact = new StringBuilder(1024);
-                    var product = new StringBuilder(1024);
-                    var serial = new StringBuilder(1024);
-                    NativeMethods.rtlsdr_get_device_usb_strings(i, manufact, product, serial);
-                    var name = NativeMethods.rtlsdr_get_device_name(i);
-
-                    result[i] = new DeviceDisplay
-                                    {
-                                        Index = i,
-                                        Name = name,
-                                        Manufacturer = manufact.ToString(),
-                                        Product = product.ToString(),
-                                        Serial = serial.ToString()
-                                    };
-                }
-
-                return result;
+                var name = NativeMethods.rtlsdr_get_device_name(i);
+                result[i] = new DeviceDisplay { Index = i, Name = name };
             }
 
-            public override string ToString()
-            {
-                return Name;
-            }
+            return result;
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

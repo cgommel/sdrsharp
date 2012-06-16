@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 
@@ -8,29 +6,12 @@ namespace SDRSharp.RTLSDR
 {
     public unsafe class RtlSdrIO : IFrontendController, IDisposable
     {
-        private const uint DefaultFrequency = 105500000;
-
-        private const float InputGain = 0.001f;
-        private const int DefaultSamplerate = 2048000;
-
-        private static readonly uint _readLength = (uint) Utils.GetIntSetting("RTLBufferLength", 16 * 1024);
-
-        private IntPtr _dev;
-        private uint _deviceIndex;
-        private string _deviceName;
-        private bool _useAutomaticGain;
-        private GCHandle _gcHandle;
-        private UnsafeBuffer _iqBuffer;
-        private Complex* _iqPtr;
-        private Thread _worker;
-        private SamplesAvailableDelegate _managedCallback;
         private readonly RtlSdrControllerDialog _gui;
-        private static readonly RtlSdrReadAsyncDelegate _rtlCallback = RtlSdrSamplesAvailable;
-
+        private RtlDevice _rtlDevice;
+        private Radio.SamplesAvailableDelegate _callback;
 
         public RtlSdrIO()
         {
-            _gcHandle = GCHandle.Alloc(this);
             _gui = new RtlSdrControllerDialog(this);
         }
 
@@ -41,93 +22,72 @@ namespace SDRSharp.RTLSDR
 
         public void Dispose()
         {
-            Stop();
-            Close();
-            if (_gcHandle.IsAllocated)
-            {
-                _gcHandle.Free();
-            }
             _gui.Dispose();
             GC.SuppressFinalize(this);
         }
 
-        public string DeviceName
+        public void SelectDevice(uint index)
         {
-            get { return _deviceName; }
+            if (_rtlDevice != null && _rtlDevice.Index == index)
+            {
+                return;
+            }
+            Close();
+            _rtlDevice = new RtlDevice(index);
+            _rtlDevice.SamplesAvailable += rtlDevice_SamplesAvailable;
         }
 
-        public uint DeviceIndex
+        public RtlDevice Device
         {
-            get
-            {
-                return _deviceIndex;
-            }
-            set
-            {
-                if (_deviceIndex != value)
-                {
-                    _deviceIndex = value;
-                    _deviceName = NativeMethods.rtlsdr_get_device_name(_deviceIndex);
-                    if (_dev != IntPtr.Zero)
-                    {
-                        Close();
-                        Open();
-                    }
-                }
-            }
+            get { return _rtlDevice; }
         }
 
         public void Open()
         {
-            if (NativeMethods.rtlsdr_get_device_count() <= 0)
+            var devices = DeviceDisplay.GetActiveDevices();
+            foreach (var device in devices)
             {
-                throw new ApplicationException("No compatible device detected");
+                try
+                {
+                    SelectDevice(device.Index);
+                    return;
+                }
+                catch (ApplicationException)
+                {
+                    // Just ignore it
+                }
             }
-            NativeMethods.rtlsdr_open(out _dev, _deviceIndex);
-            NativeMethods.rtlsdr_set_sample_rate(_dev, DefaultSamplerate);
-            NativeMethods.rtlsdr_set_center_freq(_dev, DefaultFrequency);
-            NativeMethods.rtlsdr_set_freq_correction(_dev, Utils.GetIntSetting("RTLFrequencyCorrection", 0));
-        }
-
-        public void Start(SamplesAvailableDelegate callback)
-        {
-            if (_worker != null)
+            if (devices.Length > 0)
             {
-                return;
+                throw new ApplicationException(devices.Length + " compatible devices have been found but are all busy");
             }
-                
-            NativeMethods.rtlsdr_reset_buffer(_dev);
-
-            _managedCallback = callback;
-            _worker = new Thread(StreamProc);
-            _worker.Priority = ThreadPriority.Highest;
-            _worker.Start();
-        }
-
-        public void Stop()
-        {
-            if (_worker == null)
-            {
-                return;
-            }
-            NativeMethods.rtlsdr_cancel_async(_dev);
-            _worker.Join();
-            _worker = null;
-            _managedCallback = null;
+            throw new ApplicationException("No compatible devices found");
         }
 
         public void Close()
         {
-            if (_dev != IntPtr.Zero)
+            if (_rtlDevice != null)
             {
-                NativeMethods.rtlsdr_close(_dev);
-                _dev = IntPtr.Zero;
+                _rtlDevice.Stop();
+                _rtlDevice.SamplesAvailable -= rtlDevice_SamplesAvailable;
+                _rtlDevice.Dispose();
+                _rtlDevice = null;
             }
         }
 
-        public bool IsStreaming
+        public void Start(Radio.SamplesAvailableDelegate callback)
         {
-            get { return _worker != null; }
+            if (_rtlDevice == null)
+            {
+                throw new ApplicationException("No device selected");
+            }
+            _callback = callback;
+            _rtlDevice.Start();
+        }
+
+        public void Stop()
+        {
+            _rtlDevice.Stop();
         }
 
         public bool IsSoundCardBased
@@ -140,75 +100,6 @@ namespace SDRSharp.RTLSDR
             get { return string.Empty; }
         }
 
-        public double Samplerate
-        {
-            get
-            {
-                return NativeMethods.rtlsdr_get_sample_rate(_dev);
-            }
-            set
-            {
-                NativeMethods.rtlsdr_set_sample_rate(_dev, (uint) value);
-            }
-        }
-
-        public long Frequency
-        {
-            get
-            {
-                return NativeMethods.rtlsdr_get_center_freq(_dev);
-            }
-            set
-            {
-                NativeMethods.rtlsdr_set_center_freq(_dev, unchecked ((uint) value));
-            }
-        }
-
-        public bool UseAutomaticGain
-        {
-            get { return _useAutomaticGain; }
-            set
-            {
-                _useAutomaticGain = value;
-                NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useAutomaticGain ? 0 : 1);
-            }
-        }
-
-        public int[] SupportedGains
-        {
-            get
-            {
-                var count = NativeMethods.rtlsdr_get_tuner_gains(_dev, null);
-                if (count < 0)
-                {
-                    count = 0;
-                }
-                var supportedGains = new int[count];
-                if (count >= 0)
-                {
-                    NativeMethods.rtlsdr_get_tuner_gains(_dev, supportedGains);
-                }
-                return supportedGains;
-            }
-        }
-
-        public int Gain
-        {
-            get { return NativeMethods.rtlsdr_get_tuner_gain(_dev); }
-            set { NativeMethods.rtlsdr_set_tuner_gain(_dev, value); }
-        }
-
-        public int FrequencyCorrection
-        {
-            get { return NativeMethods.rtlsdr_get_freq_correction(_dev); }
-            set { NativeMethods.rtlsdr_set_freq_correction(_dev, value); }
-        }
-
-        public RtlSdrTunerType TunerType
-        {
-            get { return NativeMethods.rtlsdr_get_tuner_type(_dev); }
-        }
-
         public void ShowSettingGUI(IWin32Window parent)
         {
             _gui.Show();
@@ -219,46 +110,26 @@ namespace SDRSharp.RTLSDR
             _gui.Hide();
         }
 
-        #region Streaming methods
-
-        private void StreamProc()
+        public double Samplerate
         {
-            NativeMethods.rtlsdr_read_async(_dev, _rtlCallback, (IntPtr) _gcHandle, 0, _readLength);
+            get { return _rtlDevice == null ? 0.0 : _rtlDevice.Samplerate; }
         }
 
-        protected void ComplexSamplesAvailable(Complex* buffer, int length)
+        public long Frequency
         {
-            if (_managedCallback != null)
+            get { return _rtlDevice == null ? 0 : _rtlDevice.Frequency; }
+            set
             {
-                _managedCallback(this, buffer, length);
+                if (_rtlDevice != null)
+                {
+                    _rtlDevice.Frequency = (uint) value;
+                }
             }
         }
 
-        private static void RtlSdrSamplesAvailable(byte* buf, uint len, IntPtr ctx)
+        private void rtlDevice_SamplesAvailable(object sender, SamplesAvailableEventArgs e)
         {
-            var gcHandle = GCHandle.FromIntPtr(ctx);
-            if (!gcHandle.IsAllocated)
-            {
-                return;
-            }
-            var instance = (RtlSdrIO) gcHandle.Target;
-
-            var sampleCount = (int) len / 2;
-            if (instance._iqBuffer == null || instance._iqBuffer.Length != sampleCount)
-            {
-                instance._iqBuffer = UnsafeBuffer.Create(sampleCount, sizeof(Complex));
-                instance._iqPtr = (Complex*) instance._iqBuffer;
-            }
-
-            for (int i = 0; i < instance._iqBuffer.Length; i++)
-            {
-                instance._iqPtr[i].Real = (*(buf + i * 2 + 1) - 128) / 128.0f * InputGain;
-                instance._iqPtr[i].Imag = (*(buf + i * 2) - 128) / 128.0f * InputGain;
-            }
-
-            instance.ComplexSamplesAvailable(instance._iqPtr, instance._iqBuffer.Length);
+            _callback(this, e.Buffer, e.Length);
         }
-
-        #endregion
     }
 }
