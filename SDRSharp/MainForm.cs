@@ -57,6 +57,7 @@ namespace SDRSharp
         private readonly System.Threading.Timer _tuneTimer;
         private long _frequencyToSet;
         private long _frequencySet;
+        private long _frequencyShift;
 
         #endregion
 
@@ -458,6 +459,8 @@ namespace SDRSharp
                 centerFreqNumericUpDown.Enabled = true;
                 frontEndComboBox.Enabled = true;
                 frontendGuiButton.Enabled = true;
+                frequencyShiftCheckBox.Enabled = true;
+                frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
 
                 frontEndComboBox_SelectedIndexChanged(null, null);
             }
@@ -479,6 +482,8 @@ namespace SDRSharp
                 centerFreqNumericUpDown.Enabled = false;
                 frontEndComboBox.Enabled = false;
                 frontendGuiButton.Enabled = false;
+                frequencyShiftCheckBox.Enabled = false;
+                frequencyShiftNumericUpDown.Enabled = false;
 
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
@@ -505,6 +510,8 @@ namespace SDRSharp
                 frequencyNumericUpDown.Value = 0;
                 frequencyNumericUpDown_ValueChanged(null, null);
                 frontendGuiButton.Enabled = false;
+                frequencyShiftCheckBox.Enabled = true;
+                frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
                 return;
             }
             try
@@ -541,7 +548,7 @@ namespace SDRSharp
                 _vfo.Frequency = 0;
                 centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
-                frequencyNumericUpDown.Value = _frontendController.Frequency;
+                frequencyNumericUpDown.Value = _frontendController.Frequency + _frequencyShift;
                 frequencyNumericUpDown_ValueChanged(null, null);
             }
             catch
@@ -631,7 +638,7 @@ namespace SDRSharp
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
-                frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
+                frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value + _frequencyShift;
 
                 zoomTrackBar.Value = 0;
                 zoomTrackBar_Scroll(null, null);
@@ -703,25 +710,25 @@ namespace SDRSharp
         {
             waterfall.Frequency = (long) frequencyNumericUpDown.Value;
             spectrumAnalyzer.Frequency = (long) frequencyNumericUpDown.Value;
-            _vfo.Frequency = (int) (waterfall.Frequency - (long) centerFreqNumericUpDown.Value);
+            _vfo.Frequency = (int) (waterfall.Frequency - (long) centerFreqNumericUpDown.Value - _frequencyShift);
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             var newCenterFreq = (long) centerFreqNumericUpDown.Value;
-            waterfall.CenterFrequency = newCenterFreq;
-            spectrumAnalyzer.CenterFrequency = newCenterFreq;
+            waterfall.CenterFrequency = newCenterFreq + _frequencyShift;
+            spectrumAnalyzer.CenterFrequency = newCenterFreq + _frequencyShift;
 
             frequencyNumericUpDown.Maximum = decimal.MaxValue;
             frequencyNumericUpDown.Minimum = decimal.MinValue;
-            frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency;
-            frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2);
+            frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency + _frequencyShift;
+            frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2) + _frequencyShift;
+            frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2) + _frequencyShift;
 
             if (snapFrequencyCheckBox.Checked)
             {
                 frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
-                frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
+                frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum - _frequencyShift;
             }
 
             if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
@@ -761,7 +768,7 @@ namespace SDRSharp
         {
             if (iqStreamRadioButton.Checked)
             {
-                centerFreqNumericUpDown.Value = e.Frequency;
+                centerFreqNumericUpDown.Value = e.Frequency - _frequencyShift;
             }
         }
 
@@ -791,6 +798,31 @@ namespace SDRSharp
         private void autoCorrectIQCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _iqBalancer.AutoBalanceIQ = correctIQCheckBox.Checked;
+        }
+
+        private void frequencyShiftCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
+            frequencyNumericUpDown.Minimum = long.MinValue;
+            frequencyNumericUpDown.Maximum = long.MaxValue;
+            if (frequencyShiftCheckBox.Checked)
+            {
+                _frequencyShift = (long) frequencyShiftNumericUpDown.Value;
+                frequencyNumericUpDown.Value += _frequencyShift;
+            }
+            else
+            {
+                var shift = _frequencyShift;
+                _frequencyShift = 0;
+                frequencyNumericUpDown.Value -= shift;
+            }
+            centerFreqNumericUpDown_ValueChanged(null, null);
+        }
+
+        private void frequencyShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _frequencyShift = (long) frequencyShiftNumericUpDown.Value;
+            centerFreqNumericUpDown_ValueChanged(null, null);
         }
 
         #endregion
@@ -976,10 +1008,10 @@ namespace SDRSharp
                     frequencyNumericUpDown.Minimum = decimal.MinValue;
 
                     centerFreqNumericUpDown.Value = ((long) centerFreqNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
-                    frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize / 2) / stepSize*stepSize;
+                    frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
 
-                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + (int) (_vfo.SampleRate / 2);
-                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value - (int) (_vfo.SampleRate / 2);
+                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + _frequencyShift + (int) (_vfo.SampleRate / 2);
+                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value + _frequencyShift - (int)(_vfo.SampleRate / 2);
 
                     frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
                     frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
