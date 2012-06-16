@@ -728,7 +728,7 @@ namespace SDRSharp
             if (snapFrequencyCheckBox.Checked)
             {
                 frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
-                frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum - _frequencyShift;
+                frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
             }
 
             if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
