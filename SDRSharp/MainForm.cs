@@ -507,7 +507,7 @@ namespace SDRSharp
                 sampleRateComboBox.Enabled = true;
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
-                frequencyNumericUpDown.Value = 0;
+                frequencyNumericUpDown.Value = _frequencyShift;
                 frequencyNumericUpDown_ValueChanged(null, null);
                 frontendGuiButton.Enabled = false;
                 frequencyShiftCheckBox.Enabled = true;
