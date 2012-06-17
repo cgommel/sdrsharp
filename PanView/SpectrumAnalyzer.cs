@@ -41,7 +41,9 @@ namespace SDRSharp.PanView
         private int _zoom;
         private float _scale = 1f;
         private int _oldX;
-        private int _oldY;
+        private int _trackingX;
+        private int _trackingY;
+        private long _trackingFrequency;
         private int _oldFilterBandwidth;
         private long _oldFrequency;
         private long _oldCenterFrequency;
@@ -343,35 +345,41 @@ namespace SDRSharp.PanView
                     break;
             }
             _upper = _lower + bandpassWidth;
-            using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
+            using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.White)))
+            using (var transparentSpot = new SolidBrush(Color.FromArgb(200, Color.Red)))
             using (var carrierPen = new Pen(Color.Red))
-            //using (var hotTrackPen = new Pen(Color.Red))
             using (var graphics = Graphics.FromImage(_buffer))
             using (var font = new Font("Arial", 16f))
             {
                 if (cursorWidth < ClientRectangle.Width)
                 {
                     carrierPen.Width = CarrierPenWidth;
-                    graphics.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
+                    graphics.FillRectangle(transparentBackground, _lower, 0, bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
                     }
-
-                    //if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin)
-                    //{
-                    //    graphics.DrawLine(hotTrackPen, _oldX, 0f, _oldX, ClientRectangle.Height);
-                    //}
                 }
-                if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin &&
-                    _oldY >= AxisMargin && _oldY <= ClientRectangle.Height - AxisMargin)
+                if (_hotTrackNeeded && _trackingX >= AxisMargin && _trackingX <= ClientRectangle.Width - AxisMargin &&
+                    _trackingY >= AxisMargin && _trackingY <= ClientRectangle.Height - AxisMargin)
                 {
-                    var fstring = GetFrequencyDisplay(_oldFrequency);
+                    var index = _trackingX - AxisMargin;
+                    if (_useSnap)
+                    {
+                        // Todo: snap the index
+                    }
+                    if (index > 0 && index < _spectrum.Length)
+                    {
+                        var yIncrement = (ClientRectangle.Height - 2*AxisMargin)/(float) byte.MaxValue;
+                        var newY = (int) (ClientRectangle.Height - AxisMargin - _spectrum[index]*yIncrement);
+                        graphics.FillEllipse(transparentSpot, _trackingX - 5, newY - 5, 10, 10);
+                    }
+                    var fstring = GetFrequencyDisplay(_trackingFrequency);
                     var stringSize = graphics.MeasureString(fstring, font);
-                    var xOffset = _oldX + 5.0f;
-                    var yOffset = _oldY - stringSize.Height - 5;
-                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width);
-                    graphics.FillRectangle(transparentBrush, xOffset - 5, yOffset - 2, stringSize.Width, stringSize.Height);
+                    var xOffset = _trackingX + 5.0f;
+                    var yOffset = _trackingY - stringSize.Height - 5;
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 5);
+                    graphics.FillRectangle(transparentBackground, xOffset - 5, yOffset - 2, stringSize.Width, stringSize.Height);
                     graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
             }
@@ -740,7 +748,6 @@ namespace SDRSharp.PanView
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            _hotTrackNeeded = false;
             base.OnMouseUp(e);
             if (_changingCenterFrequency && e.X == _oldX)
             {
@@ -756,8 +763,16 @@ namespace SDRSharp.PanView
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            _hotTrackNeeded = false;
             base.OnMouseMove(e);
+
+            _trackingX = e.X;
+            _trackingY = e.Y;
+            _trackingFrequency = (long)((e.X - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
+            if (_useSnap)
+            {
+                _trackingFrequency = (_trackingFrequency + Math.Sign(_trackingFrequency) * _stepSize / 2) / _stepSize * _stepSize;
+            }
+
             if (_changingFrequency)
             {
                 var f = (long)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
@@ -795,31 +810,13 @@ namespace SDRSharp.PanView
                 (_bandType == BandType.Center || _bandType == BandType.Upper)))
             {
                 Cursor = Cursors.SizeWE;
-                _hotTrackNeeded = false;
-                _drawBackgroundNeeded = true;
-                _performNeeded = true;
             }
             else
             {
                 Cursor = Cursors.Default;
-                if (e.X < _lower - Waterfall.CursorSnapDistance || e.X > _upper + Waterfall.CursorSnapDistance)
-                {
-                    _oldFrequency = (long) ((e.X - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
-                    if (_useSnap)
-                    {
-                        _oldFrequency = (_oldFrequency + Math.Sign(_oldFrequency) * _stepSize / 2) / _stepSize * _stepSize;
-                    }
-                    _oldX = e.X;
-                    _oldY = e.Y;
-                    _hotTrackNeeded = true;
-                }
-                else
-                {
-                    _hotTrackNeeded = false;
-                }
-                _drawBackgroundNeeded = true;
-                _performNeeded = true;
             }
+            _drawBackgroundNeeded = true;
+            _performNeeded = true;
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -834,6 +831,12 @@ namespace SDRSharp.PanView
             _hotTrackNeeded = false;
             _drawBackgroundNeeded = true;
             _performNeeded = true;
+        }
+
+        protected override void  OnMouseEnter(EventArgs e)
+        {
+ 	        base.OnMouseEnter(e);
+            _hotTrackNeeded = true;
         }
     }
 }
