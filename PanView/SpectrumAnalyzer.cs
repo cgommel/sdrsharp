@@ -41,6 +41,7 @@ namespace SDRSharp.PanView
         private int _zoom;
         private float _scale = 1f;
         private int _oldX;
+        private int _oldY;
         private int _oldFilterBandwidth;
         private long _oldFrequency;
         private long _oldCenterFrequency;
@@ -342,13 +343,13 @@ namespace SDRSharp.PanView
                     break;
             }
             _upper = _lower + bandpassWidth;
-
-            if (cursorWidth < ClientRectangle.Width)
+            using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
+            using (var carrierPen = new Pen(Color.Red))
+            //using (var hotTrackPen = new Pen(Color.Red))
+            using (var graphics = Graphics.FromImage(_buffer))
+            using (var font = new Font("Arial", 16f))
             {
-                using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
-                using (var carrierPen = new Pen(Color.Red))
-                using (var hotTrackPen = new Pen(Color.Red))
-                using (var graphics = Graphics.FromImage(_buffer))
+                if (cursorWidth < ClientRectangle.Width)
                 {
                     carrierPen.Width = CarrierPenWidth;
                     graphics.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
@@ -357,10 +358,21 @@ namespace SDRSharp.PanView
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
                     }
 
-                    if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin)
-                    {
-                        graphics.DrawLine(hotTrackPen, _oldX, 0f, _oldX, ClientRectangle.Height);
-                    }
+                    //if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin)
+                    //{
+                    //    graphics.DrawLine(hotTrackPen, _oldX, 0f, _oldX, ClientRectangle.Height);
+                    //}
+                }
+                if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin &&
+                    _oldY >= AxisMargin && _oldY <= ClientRectangle.Height - AxisMargin)
+                {
+                    var fstring = GetFrequencyDisplay(_oldFrequency);
+                    var stringSize = graphics.MeasureString(fstring, font);
+                    var xOffset = _oldX + 5.0f;
+                    var yOffset = _oldY - stringSize.Height - 5;
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width);
+                    graphics.FillRectangle(transparentBrush, xOffset - 5, yOffset - 2, stringSize.Width, stringSize.Height);
+                    graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
             }
         }
@@ -450,39 +462,45 @@ namespace SDRSharp.PanView
                 for (var i = -lineCount / 2; i < lineCount / 2; i++)
                 {
                     var frequency = _displayCenterFrequency + i * frequencyStep - _displayCenterFrequency % frequencyStep;
-                    string f;
-                    if (frequency == 0)
-                    {
-                        f = "DC";
-                    }
-                    else if (Math.Abs(frequency) > 1500000000)
-                    {
-                        f = string.Format("{0:#,0.000 000}GHz", frequency / 1000000000.0);
-                    }
-                    else if (Math.Abs(frequency) > 30000000)
-                    {
-                        f = string.Format("{0:0,0.000}MHz", frequency / 1000000.0);
-                    }
-                    else if (Math.Abs(frequency) > 1000)
-                    {
-                        f = string.Format("{0:0,0.###}kHz", frequency / 1000.0);
-                    }
-                    else
-                    {
-                        f = frequency.ToString();
-                    }
-                    var sizeF = graphics.MeasureString(f, font);
+                    var fstring = GetFrequencyDisplay(frequency);
+                    var sizeF = graphics.MeasureString(fstring, font);
                     var width = sizeF.Width;
                     var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
                     if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
                     {
                         x -= width / 2f;
-                        graphics.DrawString(f, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 5f);
+                        graphics.DrawString(fstring, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 5f);
                     }
                 }
             }
 
             #endregion
+        }
+
+        private static string GetFrequencyDisplay(long frequency)
+        {
+            string result;
+            if (frequency == 0)
+            {
+                result = "DC";
+            }
+            else if (Math.Abs(frequency) > 1500000000)
+            {
+                result = string.Format("{0:#,0.000 000}GHz", frequency / 1000000000.0);
+            }
+            else if (Math.Abs(frequency) > 30000000)
+            {
+                result = string.Format("{0:0,0.000#}MHz", frequency / 1000000.0);
+            }
+            else if (Math.Abs(frequency) > 1000)
+            {
+                result = string.Format("{0:#,#.###}kHz", frequency / 1000.0);
+            }
+            else
+            {
+                result = frequency.ToString();
+            }
+            return result;
         }
 
         private void Draw()
@@ -786,7 +804,13 @@ namespace SDRSharp.PanView
                 Cursor = Cursors.Default;
                 if (e.X < _lower - Waterfall.CursorSnapDistance || e.X > _upper + Waterfall.CursorSnapDistance)
                 {
+                    _oldFrequency = (long) ((e.X - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
+                    if (_useSnap)
+                    {
+                        _oldFrequency = (_oldFrequency + Math.Sign(_oldFrequency) * _stepSize / 2) / _stepSize * _stepSize;
+                    }
                     _oldX = e.X;
+                    _oldY = e.Y;
                     _hotTrackNeeded = true;
                 }
                 else
