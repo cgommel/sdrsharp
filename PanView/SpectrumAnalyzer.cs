@@ -345,11 +345,11 @@ namespace SDRSharp.PanView
                     break;
             }
             _upper = _lower + bandpassWidth;
-            using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.White)))
+            using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var transparentSpot = new SolidBrush(Color.FromArgb(200, Color.Red)))
             using (var carrierPen = new Pen(Color.Red))
             using (var graphics = Graphics.FromImage(_buffer))
-            using (var font = new Font("Arial", 16f))
+            using (var font = new Font("Arial", 12f))
             {
                 if (cursorWidth < ClientRectangle.Width)
                 {
@@ -378,9 +378,9 @@ namespace SDRSharp.PanView
                     var stringSize = graphics.MeasureString(fstring, font);
                     var xOffset = _trackingX + 15.0f;
                     var yOffset = _trackingY + Cursor.Current.Size.Height - 8.0f;
-                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 5);
-                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 2);
-                    graphics.FillRectangle(transparentBackground, xOffset - 5, yOffset - 2, stringSize.Width, stringSize.Height);
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
+                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
+                    //graphics.FillRectangle(transparentBackground, xOffset - 4, yOffset - 1, stringSize.Width, stringSize.Height);
                     graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
             }

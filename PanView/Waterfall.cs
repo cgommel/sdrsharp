@@ -521,7 +521,7 @@ namespace SDRSharp.PanView
             }
             _upper = _lower + bandpassWidth;
 
-            using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.White)))
+            using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var hotTrackPen = new Pen(Color.Red))
             using (var carrierPen = new Pen(Color.Red))
             {
