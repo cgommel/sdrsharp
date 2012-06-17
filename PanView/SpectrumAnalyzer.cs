@@ -376,9 +376,10 @@ namespace SDRSharp.PanView
                     }
                     var fstring = GetFrequencyDisplay(_trackingFrequency);
                     var stringSize = graphics.MeasureString(fstring, font);
-                    var xOffset = _trackingX + 5.0f;
-                    var yOffset = _trackingY - stringSize.Height - 5;
+                    var xOffset = _trackingX + 15.0f;
+                    var yOffset = _trackingY + Cursor.Current.Size.Height - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 5);
+                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 2);
                     graphics.FillRectangle(transparentBackground, xOffset - 5, yOffset - 2, stringSize.Width, stringSize.Height);
                     graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
