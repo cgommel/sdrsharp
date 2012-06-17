@@ -1282,6 +1282,11 @@ namespace SDRSharp
             23283,
             0,
             0});
+            this.frequencyShiftNumericUpDown.Minimum = new decimal(new int[] {
+            276447232,
+            23283,
+            0,
+            -2147483648});
             this.frequencyShiftNumericUpDown.Name = "frequencyShiftNumericUpDown";
             this.frequencyShiftNumericUpDown.Size = new System.Drawing.Size(135, 24);
             this.frequencyShiftNumericUpDown.TabIndex = 11;
