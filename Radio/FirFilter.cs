@@ -5,6 +5,7 @@ namespace SDRSharp.Radio
     public unsafe sealed class FirFilter : IDisposable
     {
         private const double Epsilon = 1e-6;
+        private const int CircularBufferSize = 4;
 
         private float* _coeffPtr;
         private UnsafeBuffer _coeffBuffer;
@@ -13,6 +14,7 @@ namespace SDRSharp.Radio
         private UnsafeBuffer _queueBuffer;
 
         private int _queueSize;
+        private int _offset;
         private bool _isSymmetric;
         private bool _isSparse;
 
@@ -49,11 +51,12 @@ namespace SDRSharp.Radio
             if (_coeffBuffer == null || coefficients.Length != _queueSize)
             {
                 _queueSize = coefficients.Length;
+                _offset = _queueSize * (CircularBufferSize - 1);
 
                 _coeffBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
                 _coeffPtr = (float*) _coeffBuffer;
 
-                _queueBuffer = UnsafeBuffer.Create(_queueSize, sizeof(float));
+                _queueBuffer = UnsafeBuffer.Create(_queueSize * CircularBufferSize, sizeof(float));
                 _queuePtr = (float*) _queueBuffer;
             }
 
@@ -90,7 +93,9 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < length; n++)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -98,8 +103,8 @@ namespace SDRSharp.Radio
                 var len = halfLen;
 
                 var ptr1 = _coeffPtr;
-                var ptr2 = _queuePtr;
-                var ptr3 = _queuePtr + _queueSize - 1;
+                var ptr2 = queue;
+                var ptr3 = queue + _queueSize - 1;
 
                 if (len >= 4)
                 {
@@ -119,9 +124,13 @@ namespace SDRSharp.Radio
                 {
                     acc += *ptr1++ * (*ptr2++ + *ptr3--);
                 }
-                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+                acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
@@ -132,7 +141,9 @@ namespace SDRSharp.Radio
             length <<= 1;
             for (var n = 0; n < length; n += 2)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -140,8 +151,8 @@ namespace SDRSharp.Radio
                 var len = halfLen;
 
                 var ptr1 = _coeffPtr;
-                var ptr2 = _queuePtr;
-                var ptr3 = _queuePtr + _queueSize - 1;
+                var ptr2 = queue;
+                var ptr3 = queue + _queueSize - 1;
 
                 if (len >= 4)
                 {
@@ -161,9 +172,13 @@ namespace SDRSharp.Radio
                 {
                     acc += *ptr1++ * (*ptr2++ + *ptr3--);
                 }
-                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+                acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
@@ -173,7 +188,8 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < length; n++)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -181,8 +197,8 @@ namespace SDRSharp.Radio
                 var len = halfLen;
 
                 var ptr1 = _coeffPtr;
-                var ptr2 = _queuePtr;
-                var ptr3 = _queuePtr + _queueSize - 1;
+                var ptr2 = queue;
+                var ptr3 = queue + _queueSize - 1;
 
                 if (len >= 8)
                 {
@@ -211,9 +227,13 @@ namespace SDRSharp.Radio
                 {
                     acc += *ptr1++ * (*ptr2++ + *ptr3--);
                 }
-                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+                acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
@@ -224,7 +244,8 @@ namespace SDRSharp.Radio
             length <<= 1;
             for (var n = 0; n < length; n += 2)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -232,8 +253,8 @@ namespace SDRSharp.Radio
                 var len = halfLen;
 
                 var ptr1 = _coeffPtr;
-                var ptr2 = _queuePtr;
-                var ptr3 = _queuePtr + _queueSize - 1;
+                var ptr2 = queue;
+                var ptr3 = queue + _queueSize - 1;
 
                 if (len >= 8)
                 {
@@ -262,9 +283,13 @@ namespace SDRSharp.Radio
                 {
                     acc += *ptr1++ * (*ptr2++ + *ptr3--);
                 }
-                acc += _queuePtr[halfLen] * _coeffPtr[halfLen];
+                acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
@@ -274,12 +299,13 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < length; n++)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
                 var len = _queueSize;
-                var ptr1 = _queuePtr;
+                var ptr1 = queue;
                 var ptr2 = _coeffPtr;
                 if (len >= 4)
                 {
@@ -298,7 +324,11 @@ namespace SDRSharp.Radio
                     acc += *ptr1++ * *ptr2++;
                 }
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
@@ -309,12 +339,13 @@ namespace SDRSharp.Radio
             length <<= 1;
             for (var n = 0; n < length; n += 2)
             {
-                _queuePtr[0] = buffer[n];
+                var queue = _queuePtr + _offset;
+                queue[0] = buffer[n];
 
                 var acc = 0.0f;
 
                 var len = _queueSize;
-                var ptr1 = _queuePtr;
+                var ptr1 = queue;
                 var ptr2 = _coeffPtr;
                 if (len >= 4)
                 {
@@ -333,7 +364,11 @@ namespace SDRSharp.Radio
                     acc += *ptr1++ * *ptr2++;
                 }
 
-                Utils.Memcpy(_queuePtr + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                if (--_offset < 0)
+                {
+                    _offset = _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                }
 
                 buffer[n] = acc;
             }
