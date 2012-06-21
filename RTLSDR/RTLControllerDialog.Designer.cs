@@ -122,7 +122,8 @@
             "1.8 MSPS",
             "1.4 MSPS",
             "1.024 MSPS",
-            "0.900001 MSPS"});
+            "0.900001 MSPS",
+            "0.25 MSPS"});
             this.samplerateComboBox.Location = new System.Drawing.Point(12, 75);
             this.samplerateComboBox.Name = "samplerateComboBox";
             this.samplerateComboBox.Size = new System.Drawing.Size(247, 21);
