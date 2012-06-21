@@ -13,6 +13,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
+        private const float DefaultCursorHeight = 32.0f;
 
         private readonly static Color _spectrumColor = Utils.GetColorSetting("spectrumAnalyzerColor", Color.DarkGray);
         private readonly static bool _fillSpectrumAnalyzer = Utils.GetBooleanSetting("fillSpectrumAnalyzer");
@@ -382,7 +383,7 @@ namespace SDRSharp.PanView
                     var fstring = GetFrequencyDisplay(_changingFrequency ? _frequency : _changingBandwidth ? _filterBandwidth : _trackingFrequency);
                     var stringSize = graphics.MeasureString(fstring, font);
                     var xOffset = _trackingX + 15.0f;
-                    var yOffset = _trackingY + Cursor.Current.Size.Height - 8.0f;
+                    var yOffset = _trackingY + (Cursor.Current == null ? DefaultCursorHeight : Cursor.Current.Size.Height) - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
                     //graphics.FillRectangle(transparentBackground, xOffset - 4, yOffset - 1, stringSize.Width, stringSize.Height);
