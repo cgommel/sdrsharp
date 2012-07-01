@@ -23,6 +23,7 @@ namespace SDRSharp.PanView
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
         private byte[] _spectrum;
+        private bool[] _peaks;
         private byte[] _temp;
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
@@ -54,6 +55,7 @@ namespace SDRSharp.PanView
         private bool _useSmoothing;
         private bool _hotTrackNeeded;
         private bool _useSnap;
+        private bool _markPeaks;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
@@ -265,6 +267,12 @@ namespace SDRSharp.PanView
             set { _useSnap = value; }
         }
 
+        public bool MarkPeaks
+        {
+            get { return _markPeaks; }
+            set { _markPeaks = value; }
+        }
+
         private void ApplyZoom()
         {
             _scale = (float) Math.Pow(10, _zoom * Waterfall.MaxZoom / 100.0f);
@@ -363,6 +371,21 @@ namespace SDRSharp.PanView
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
                     }
                 }
+                if (MarkPeaks && _spectrumWidth > 0)
+                {
+                    PeakDetector.GetPeaks(_spectrum, _peaks, (int)(_scale * _filterBandwidth * _spectrum.Length / _spectrumWidth));
+                    for (var i = 0; i < _peaks.Length; i++)
+                    {
+                        if (_peaks[i])
+                        {
+                            var yIncrement = (ClientRectangle.Height - 2*AxisMargin) / (float) byte.MaxValue;
+                            var y = (int) (ClientRectangle.Height - AxisMargin - _spectrum[i] * yIncrement);
+                            var x = i + AxisMargin;
+                            graphics.DrawEllipse(Pens.Yellow, x - 5, y - 5, 10, 10);
+                        }
+                    }
+                }
+
                 if (_hotTrackNeeded && _trackingX >= AxisMargin && _trackingX <= ClientRectangle.Width - AxisMargin &&
                     _trackingY >= AxisMargin && _trackingY <= ClientRectangle.Height - AxisMargin)
                 {
@@ -387,7 +410,7 @@ namespace SDRSharp.PanView
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
                     //graphics.FillRectangle(transparentBackground, xOffset - 4, yOffset - 1, stringSize.Width, stringSize.Height);
-                    graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
+                    graphics.DrawString(fstring, font, Brushes.White, (int)xOffset, (int)yOffset, StringFormat.GenericTypographic);
                 }
             }
         }
@@ -603,6 +626,7 @@ namespace SDRSharp.PanView
                 var length = ClientRectangle.Width - 2 * AxisMargin;
                 var oldSpectrum = _spectrum;
                 _spectrum = new byte[length];
+                _peaks = new bool[length];
                 if (oldSpectrum != null)
                 {
                     Waterfall.SmoothCopy(oldSpectrum, _spectrum, oldSpectrum.Length, 1, 0);

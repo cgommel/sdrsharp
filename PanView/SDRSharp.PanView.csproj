@@ -75,6 +75,7 @@
     <Compile Include="GradientDialog.Designer.cs">
       <DependentUpon>GradientDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="PeakDetector.cs" />
     <Compile Include="SpectrumAnalyzer.cs">
       <SubType>UserControl</SubType>
     </Compile>

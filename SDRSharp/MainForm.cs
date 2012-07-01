@@ -1179,6 +1179,11 @@ namespace SDRSharp
             waterfall.Decay = wDecayTrackBar.Value / (double) wDecayTrackBar.Maximum;
         }
 
+        private void markPeaksCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.MarkPeaks = markPeaksCheckBox.Checked;
+        }
+
         #endregion
     }
 }
