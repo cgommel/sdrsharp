@@ -2,14 +2,10 @@
 {
     public sealed class PeakDetector
     {
-        private const byte Threshold = 20;
+        private const byte Threshold = 15;
 
         public static void GetPeaks(byte[] buffer, bool[] peaks, int windowSize)
         {
-            if (windowSize < 2)
-            {
-                windowSize = 2;
-            }
             for (var i = 0; i < buffer.Length; i++)
             {
                 var isPeak = true;
@@ -34,7 +30,7 @@
                         {
                             max = buffer[k];
                         }
-                        else if (buffer[k] < min)
+                        if (buffer[k] < min)
                         {
                             min = buffer[k];
                         }

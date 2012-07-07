@@ -355,9 +355,7 @@ namespace SDRSharp.PanView
             }
             _upper = _lower + bandpassWidth;
             using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
-            using (var transparentSpot = new SolidBrush(Color.FromArgb(200, Color.Red)))
             using (var redPen = new Pen(Color.Red))
-            //using (var yellowPen = new Pen(Color.Yellow))
             using (var graphics = Graphics.FromImage(_buffer))
             using (var font = new Font("Arial", 12f))
             {
@@ -371,14 +369,17 @@ namespace SDRSharp.PanView
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
                     }
                 }
-                if (MarkPeaks && _spectrumWidth > 0)
+                if (_markPeaks && _spectrumWidth > 0)
                 {
-                    PeakDetector.GetPeaks(_spectrum, _peaks, (int)(_scale * _filterBandwidth * _spectrum.Length / _spectrumWidth));
+                    var windowSize = (int) bandpassWidth;
+                    windowSize = Math.Max(windowSize, 10);
+                    windowSize = Math.Min(windowSize, _spectrum.Length);
+                    PeakDetector.GetPeaks(_spectrum, _peaks, windowSize);
+                    var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) byte.MaxValue;
                     for (var i = 0; i < _peaks.Length; i++)
                     {
                         if (_peaks[i])
                         {
-                            var yIncrement = (ClientRectangle.Height - 2*AxisMargin) / (float) byte.MaxValue;
                             var y = (int) (ClientRectangle.Height - AxisMargin - _spectrum[i] * yIncrement);
                             var x = i + AxisMargin;
                             graphics.DrawEllipse(Pens.Yellow, x - 5, y - 5, 10, 10);
@@ -398,9 +399,7 @@ namespace SDRSharp.PanView
                         }
                         if (index > 0 && index < _spectrum.Length)
                         {
-                            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float)byte.MaxValue;
-                            var newY = (int)(ClientRectangle.Height - AxisMargin - _spectrum[index] * yIncrement);
-                            graphics.FillEllipse(transparentSpot, _trackingX - 5, newY - 5, 10, 10);
+                            graphics.DrawLine(redPen, _trackingX, 0, _trackingX, ClientRectangle.Height);
                         }
                     }
                     var fstring = GetFrequencyDisplay(_changingFrequency ? _frequency : _changingBandwidth ? _filterBandwidth : _trackingFrequency);
@@ -409,7 +408,6 @@ namespace SDRSharp.PanView
                     var yOffset = _trackingY + (Cursor.Current == null ? DefaultCursorHeight : Cursor.Current.Size.Height) - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
-                    //graphics.FillRectangle(transparentBackground, xOffset - 4, yOffset - 1, stringSize.Width, stringSize.Height);
                     graphics.DrawString(fstring, font, Brushes.White, (int)xOffset, (int)yOffset, StringFormat.GenericTypographic);
                 }
             }
