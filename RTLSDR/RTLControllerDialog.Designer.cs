@@ -42,6 +42,7 @@
             this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.tunerTypeLabel = new System.Windows.Forms.Label();
+            this.rtlAgcCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
@@ -54,10 +55,10 @@
             // closeButton
             // 
             this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.closeButton.Location = new System.Drawing.Point(184, 208);
+            this.closeButton.Location = new System.Drawing.Point(184, 238);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(75, 23);
-            this.closeButton.TabIndex = 5;
+            this.closeButton.TabIndex = 6;
             this.closeButton.Text = "Close";
             this.closeButton.UseVisualStyleBackColor = true;
             this.closeButton.Click += new System.EventHandler(this.closeButton_Click);
@@ -84,17 +85,17 @@
             // rfGainTrackBar
             // 
             this.rfGainTrackBar.Enabled = false;
-            this.rfGainTrackBar.Location = new System.Drawing.Point(2, 129);
+            this.rfGainTrackBar.Location = new System.Drawing.Point(3, 161);
             this.rfGainTrackBar.Maximum = 17;
             this.rfGainTrackBar.Name = "rfGainTrackBar";
             this.rfGainTrackBar.Size = new System.Drawing.Size(267, 45);
-            this.rfGainTrackBar.TabIndex = 3;
+            this.rfGainTrackBar.TabIndex = 4;
             this.rfGainTrackBar.Scroll += new System.EventHandler(this.rfGainTrackBar_Scroll);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 111);
+            this.label2.Location = new System.Drawing.Point(12, 145);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(46, 13);
             this.label2.TabIndex = 22;
@@ -135,17 +136,17 @@
             this.gainModeCheckBox.AutoSize = true;
             this.gainModeCheckBox.Checked = true;
             this.gainModeCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.gainModeCheckBox.Location = new System.Drawing.Point(64, 110);
+            this.gainModeCheckBox.Location = new System.Drawing.Point(12, 125);
             this.gainModeCheckBox.Name = "gainModeCheckBox";
-            this.gainModeCheckBox.Size = new System.Drawing.Size(73, 17);
-            this.gainModeCheckBox.TabIndex = 2;
-            this.gainModeCheckBox.Text = "Automatic";
+            this.gainModeCheckBox.Size = new System.Drawing.Size(79, 17);
+            this.gainModeCheckBox.TabIndex = 3;
+            this.gainModeCheckBox.Text = "Tuner AGC";
             this.gainModeCheckBox.UseVisualStyleBackColor = true;
             this.gainModeCheckBox.CheckedChanged += new System.EventHandler(this.gainModeCheckBox_CheckedChanged);
             // 
             // gainLabel
             // 
-            this.gainLabel.Location = new System.Drawing.Point(191, 111);
+            this.gainLabel.Location = new System.Drawing.Point(191, 145);
             this.gainLabel.Name = "gainLabel";
             this.gainLabel.Size = new System.Drawing.Size(68, 13);
             this.gainLabel.TabIndex = 26;
@@ -155,7 +156,7 @@
             // 
             // frequencyCorrectionNumericUpDown
             // 
-            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(165, 175);
+            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(169, 207);
             this.frequencyCorrectionNumericUpDown.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -167,15 +168,15 @@
             0,
             -2147483648});
             this.frequencyCorrectionNumericUpDown.Name = "frequencyCorrectionNumericUpDown";
-            this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(94, 20);
-            this.frequencyCorrectionNumericUpDown.TabIndex = 4;
+            this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(90, 20);
+            this.frequencyCorrectionNumericUpDown.TabIndex = 5;
             this.frequencyCorrectionNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.frequencyCorrectionNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyCorrectionNumericUpDown_ValueChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 177);
+            this.label4.Location = new System.Drawing.Point(12, 209);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(136, 13);
             this.label4.TabIndex = 28;
@@ -190,12 +191,24 @@
             this.tunerTypeLabel.Text = "E4000";
             this.tunerTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // rtlAgcCheckBox
+            // 
+            this.rtlAgcCheckBox.AutoSize = true;
+            this.rtlAgcCheckBox.Location = new System.Drawing.Point(12, 102);
+            this.rtlAgcCheckBox.Name = "rtlAgcCheckBox";
+            this.rtlAgcCheckBox.Size = new System.Drawing.Size(72, 17);
+            this.rtlAgcCheckBox.TabIndex = 2;
+            this.rtlAgcCheckBox.Text = "RTL AGC";
+            this.rtlAgcCheckBox.UseVisualStyleBackColor = true;
+            this.rtlAgcCheckBox.CheckedChanged += new System.EventHandler(this.rtlAgcCheckBox_CheckedChanged);
+            // 
             // RtlSdrControllerDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
-            this.ClientSize = new System.Drawing.Size(271, 243);
+            this.ClientSize = new System.Drawing.Size(271, 271);
+            this.Controls.Add(this.rtlAgcCheckBox);
             this.Controls.Add(this.tunerTypeLabel);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.frequencyCorrectionNumericUpDown);
@@ -242,6 +255,7 @@
         private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label tunerTypeLabel;
+        private System.Windows.Forms.CheckBox rtlAgcCheckBox;
     }
 }
 

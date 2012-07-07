@@ -82,6 +82,7 @@ namespace SDRSharp.RTLSDR
                     rfGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
                     samplerateComboBox_SelectedIndexChanged(null, null);
                     gainModeCheckBox_CheckedChanged(null, null);
+                    rtlAgcCheckBox_CheckedChanged(null, null);
                     if (!gainModeCheckBox.Checked)
                     {
                         rfGainTrackBar_Scroll(null, null);
@@ -113,7 +114,7 @@ namespace SDRSharp.RTLSDR
         private void gainModeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             rfGainTrackBar.Enabled = !gainModeCheckBox.Checked;
-            _owner.Device.UseAutomaticGain = gainModeCheckBox.Checked;
+            _owner.Device.UseTunerAGC = gainModeCheckBox.Checked;
             gainLabel.Visible = !gainModeCheckBox.Checked;
             if (!gainModeCheckBox.Checked)
             {
@@ -125,6 +126,11 @@ namespace SDRSharp.RTLSDR
         {
             _owner.Device.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
             Utils.SaveSetting("RTLFrequencyCorrection", frequencyCorrectionNumericUpDown.Value.ToString());
+        }
+
+        private void rtlAgcCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _owner.Device.UseRtlAGC = rtlAgcCheckBox.Checked;
         }
     }
 

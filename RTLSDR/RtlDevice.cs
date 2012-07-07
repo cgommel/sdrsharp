@@ -15,7 +15,8 @@ namespace SDRSharp.RTLSDR
         private IntPtr _dev;
         private readonly string _name;
         private readonly int[] _supportedGains;
-        private bool _useAutomaticGain = true;
+        private bool _useTunerAGC = true;
+        private bool _useRtlAGC;
         private int _tunerGain;
         private uint _centerFrequency = DefaultFrequency;
         private uint _sampleRate = DefaultSamplerate;
@@ -87,12 +88,12 @@ namespace SDRSharp.RTLSDR
             {
                 throw new ApplicationException("Cannot access RTL device");
             }
-            r = NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useAutomaticGain ? 0 : 1);
+            r = NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useTunerAGC ? 0 : 1);
             if (r != 0)
             {
                 throw new ApplicationException("Cannot access RTL device");
             }
-            if (!_useAutomaticGain)
+            if (!_useTunerAGC)
             {
                 r = NativeMethods.rtlsdr_set_tuner_gain(_dev, _tunerGain);
                 if (r != 0)
@@ -167,15 +168,28 @@ namespace SDRSharp.RTLSDR
             }
         }
 
-        public bool UseAutomaticGain
+        public bool UseRtlAGC
         {
-            get { return _useAutomaticGain; }
+            get { return _useRtlAGC; }
             set
             {
-                _useAutomaticGain = value;
+                _useRtlAGC = value;
                 if (_dev != IntPtr.Zero)
                 {
-                    NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useAutomaticGain ? 0 : 1);
+                    NativeMethods.rtlsdr_set_agc_mode(_dev, _useRtlAGC ? 1 : 0);
+                }
+            }
+        }
+
+        public bool UseTunerAGC
+        {
+            get { return _useTunerAGC; }
+            set
+            {
+                _useTunerAGC = value;
+                if (_dev != IntPtr.Zero)
+                {
+                    NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useTunerAGC ? 0 : 1);
                 }
             }
         }

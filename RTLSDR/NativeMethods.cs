@@ -77,6 +77,9 @@ namespace SDRSharp.RTLSDR
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_tuner_gain_mode", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_set_tuner_gain_mode(IntPtr dev, int manual);
 
+        [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_agc_mode", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int rtlsdr_set_agc_mode(IntPtr dev, int on);
+
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_sample_rate", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_set_sample_rate(IntPtr dev, uint rate);
 
