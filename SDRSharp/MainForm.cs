@@ -793,7 +793,7 @@ namespace SDRSharp
 
         private void filterTypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _vfo.WindowType = (WindowType) (filterTypeComboBox.SelectedIndex - 1);
+            _vfo.WindowType = (WindowType) (filterTypeComboBox.SelectedIndex + 1);
         }
 
         private void autoCorrectIQCheckBox_CheckedChanged(object sender, EventArgs e)
