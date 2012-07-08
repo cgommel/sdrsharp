@@ -32,11 +32,12 @@ namespace SDRSharp
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.cwuRadioButton = new System.Windows.Forms.RadioButton();
-            this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
             this.useSquelchCheckBox = new System.Windows.Forms.CheckBox();
+            this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
             this.cwlRadioButton = new System.Windows.Forms.RadioButton();
             this.nfmRadioButton = new System.Windows.Forms.RadioButton();
             this.dsbRadioButton = new System.Windows.Forms.RadioButton();
@@ -102,7 +103,6 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -206,7 +206,7 @@ namespace SDRSharp
             this.panSplitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panSplitContainer.Location = new System.Drawing.Point(247, 42);
+            this.panSplitContainer.Location = new System.Drawing.Point(256, 42);
             this.panSplitContainer.Name = "panSplitContainer";
             this.panSplitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -219,7 +219,7 @@ namespace SDRSharp
             // 
             this.panSplitContainer.Panel2.Controls.Add(this.waterfall);
             this.panSplitContainer.Panel2MinSize = 10;
-            this.panSplitContainer.Size = new System.Drawing.Size(651, 619);
+            this.panSplitContainer.Size = new System.Drawing.Size(642, 619);
             this.panSplitContainer.SplitterDistance = 199;
             this.panSplitContainer.TabIndex = 13;
             // 
@@ -236,7 +236,7 @@ namespace SDRSharp
             this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
             this.spectrumAnalyzer.MarkPeaks = false;
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(651, 199);
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(642, 199);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
             this.spectrumAnalyzer.StepSize = 1000;
             this.spectrumAnalyzer.TabIndex = 0;
@@ -260,7 +260,7 @@ namespace SDRSharp
             this.waterfall.Frequency = ((long)(0));
             this.waterfall.Location = new System.Drawing.Point(0, 0);
             this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(651, 416);
+            this.waterfall.Size = new System.Drawing.Size(642, 416);
             this.waterfall.SpectrumWidth = 48000;
             this.waterfall.StepSize = 0;
             this.waterfall.TabIndex = 0;
@@ -337,7 +337,7 @@ namespace SDRSharp
             this.controlPanel.Controls.Add(this.agcCollapsiblePanel);
             this.controlPanel.Location = new System.Drawing.Point(12, 42);
             this.controlPanel.Name = "controlPanel";
-            this.controlPanel.Size = new System.Drawing.Size(229, 619);
+            this.controlPanel.Size = new System.Drawing.Size(238, 619);
             this.controlPanel.TabIndex = 25;
             // 
             // radioCollapsiblePanel
@@ -380,8 +380,19 @@ namespace SDRSharp
             this.radioCollapsiblePanel.Name = "radioCollapsiblePanel";
             this.radioCollapsiblePanel.NextPanel = this.audioCollapsiblePanel;
             this.radioCollapsiblePanel.PanelTitle = "Radio";
-            this.radioCollapsiblePanel.Size = new System.Drawing.Size(229, 382);
+            this.radioCollapsiblePanel.Size = new System.Drawing.Size(217, 382);
             this.radioCollapsiblePanel.TabIndex = 21;
+            // 
+            // markPeaksCheckBox
+            // 
+            this.markPeaksCheckBox.Location = new System.Drawing.Point(110, 361);
+            this.markPeaksCheckBox.Name = "markPeaksCheckBox";
+            this.markPeaksCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.markPeaksCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.markPeaksCheckBox.TabIndex = 33;
+            this.markPeaksCheckBox.Text = "Mark Peaks";
+            this.markPeaksCheckBox.UseVisualStyleBackColor = true;
+            this.markPeaksCheckBox.CheckedChanged += new System.EventHandler(this.markPeaksCheckBox_CheckedChanged);
             // 
             // frequencyShiftCheckBox
             // 
@@ -432,6 +443,16 @@ namespace SDRSharp
             this.cwuRadioButton.UseVisualStyleBackColor = true;
             this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
             // 
+            // useSquelchCheckBox
+            // 
+            this.useSquelchCheckBox.Location = new System.Drawing.Point(9, 253);
+            this.useSquelchCheckBox.Name = "useSquelchCheckBox";
+            this.useSquelchCheckBox.Size = new System.Drawing.Size(69, 17);
+            this.useSquelchCheckBox.TabIndex = 17;
+            this.useSquelchCheckBox.Text = "Squelch";
+            this.useSquelchCheckBox.UseVisualStyleBackColor = true;
+            this.useSquelchCheckBox.CheckedChanged += new System.EventHandler(this.useSquelchCheckBox_CheckedChanged);
+            // 
             // fmStereoCheckBox
             // 
             this.fmStereoCheckBox.Checked = true;
@@ -445,16 +466,6 @@ namespace SDRSharp
             this.fmStereoCheckBox.Text = "FM Stereo";
             this.fmStereoCheckBox.UseVisualStyleBackColor = true;
             this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
-            // 
-            // useSquelchCheckBox
-            // 
-            this.useSquelchCheckBox.Location = new System.Drawing.Point(9, 253);
-            this.useSquelchCheckBox.Name = "useSquelchCheckBox";
-            this.useSquelchCheckBox.Size = new System.Drawing.Size(69, 17);
-            this.useSquelchCheckBox.TabIndex = 17;
-            this.useSquelchCheckBox.Text = "Squelch";
-            this.useSquelchCheckBox.UseVisualStyleBackColor = true;
-            this.useSquelchCheckBox.CheckedChanged += new System.EventHandler(this.useSquelchCheckBox_CheckedChanged);
             // 
             // cwlRadioButton
             // 
@@ -877,7 +888,7 @@ namespace SDRSharp
             this.audioCollapsiblePanel.Name = "audioCollapsiblePanel";
             this.audioCollapsiblePanel.NextPanel = this.agcCollapsiblePanel;
             this.audioCollapsiblePanel.PanelTitle = "Audio";
-            this.audioCollapsiblePanel.Size = new System.Drawing.Size(229, 196);
+            this.audioCollapsiblePanel.Size = new System.Drawing.Size(217, 196);
             this.audioCollapsiblePanel.TabIndex = 22;
             // 
             // audioGainTrackBar
@@ -1032,7 +1043,7 @@ namespace SDRSharp
             this.agcCollapsiblePanel.NextPanel = this.displayCollapsiblePanel;
             this.agcCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
             this.agcCollapsiblePanel.PanelTitle = "AGC";
-            this.agcCollapsiblePanel.Size = new System.Drawing.Size(229, 20);
+            this.agcCollapsiblePanel.Size = new System.Drawing.Size(217, 20);
             this.agcCollapsiblePanel.TabIndex = 23;
             // 
             // agcUseHangCheckBox
@@ -1174,7 +1185,7 @@ namespace SDRSharp
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelState = SDRSharp.CollapsiblePanel.PanelStateOptions.Collapsed;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(229, 20);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(217, 20);
             this.displayCollapsiblePanel.TabIndex = 24;
             // 
             // label25
@@ -1354,17 +1365,6 @@ namespace SDRSharp
             this.label8.Size = new System.Drawing.Size(46, 13);
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
-            // 
-            // markPeaksCheckBox
-            // 
-            this.markPeaksCheckBox.Location = new System.Drawing.Point(110, 361);
-            this.markPeaksCheckBox.Name = "markPeaksCheckBox";
-            this.markPeaksCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.markPeaksCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.markPeaksCheckBox.TabIndex = 33;
-            this.markPeaksCheckBox.Text = "Mark Peaks";
-            this.markPeaksCheckBox.UseVisualStyleBackColor = true;
-            this.markPeaksCheckBox.CheckedChanged += new System.EventHandler(this.markPeaksCheckBox_CheckedChanged);
             // 
             // MainForm
             // 

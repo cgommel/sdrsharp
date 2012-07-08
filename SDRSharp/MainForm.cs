@@ -297,7 +297,8 @@ namespace SDRSharp
         private void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
         {
             _iqBalancer.Process(iqBuffer, length);
-            _fftStream.Write(iqBuffer, 0, length);
+            if (_fftStream.Length < _fftBins || _fftOverlap)
+                _fftStream.Write(iqBuffer, length);
             _vfo.ProcessBuffer(iqBuffer, audioBuffer, length);
         }
 
@@ -355,9 +356,9 @@ namespace SDRSharp
                     }
                     else
                     {
-                        var bytes = Math.Min(_fftStream.Length, _fftBins - _fftFillPosition);
-                        bytes = Math.Max(bytes, 0);
-                        _fftFillPosition += _fftStream.Read(_fftBuffer, _fftFillPosition, bytes);
+                        var len = Math.Min(_fftBins - _fftFillPosition, _fftStream.Length);
+                        _fftFillPosition += _fftStream.Read(_fftBuffer, _fftFillPosition, len);
+
                         if (_fftFillPosition < _fftBins)
                         {
                             break;
