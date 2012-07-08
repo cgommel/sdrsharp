@@ -28,7 +28,7 @@ namespace SDRSharp.PanView
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
-        private int _spectrumWidth;
+        private long _spectrumWidth;
         private long _centerFrequency;
         private long _displayCenterFrequency;
         private Point[] _points;
@@ -91,7 +91,7 @@ namespace SDRSharp.PanView
         {
             get
             {
-                return _spectrumWidth;
+                return (int) _spectrumWidth;
             }
             set
             {

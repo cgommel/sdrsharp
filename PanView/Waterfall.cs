@@ -41,7 +41,7 @@ namespace SDRSharp.PanView
         private byte[] _temp;
         private byte[] _spectrum;
         private long _centerFrequency;
-        private int _spectrumWidth;
+        private long _spectrumWidth;
         private int _stepSize;
         private long _frequency;
         private float _lower;
@@ -163,7 +163,7 @@ namespace SDRSharp.PanView
         {
             get
             {
-                return _spectrumWidth;
+                return (int) _spectrumWidth;
             }
             set
             {
