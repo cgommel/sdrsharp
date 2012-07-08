@@ -64,7 +64,7 @@ namespace SDRSharp.Radio
                 {
                     magnitude = MaxPower;
                 }
-                dest[i] = (byte) (magnitude * byte.MaxValue / (MaxPower - MinPower));
+                dest[i] = (byte)((magnitude - MinPower) * byte.MaxValue / (MaxPower - MinPower));
             }
         }
 
