@@ -8,17 +8,21 @@ namespace SDRSharp.RTLSDR
     public partial class RtlSdrControllerDialog : Form
     {
         private readonly RtlSdrIO _owner;
+        private readonly bool _initialized;
 
         public RtlSdrControllerDialog(RtlSdrIO owner)
         {
-            _owner = owner;
             InitializeComponent();
-        }
 
-        private void RtlSdrControllerDialog_Load(object sender, EventArgs e)
-        {
-            samplerateComboBox.SelectedIndex = 3;
+            _owner = owner;
+            var devices = DeviceDisplay.GetActiveDevices();
+            deviceComboBox.Items.Clear();
+            deviceComboBox.Items.AddRange(devices);
+
             frequencyCorrectionNumericUpDown.Value = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
+            samplerateComboBox.SelectedIndex = 3;
+
+            _initialized = true;
         }
 
         private void closeButton_Click(object sender, EventArgs e)
@@ -39,27 +43,6 @@ namespace SDRSharp.RTLSDR
             {
                 samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
                 deviceComboBox.Enabled = !_owner.Device.IsStreaming;
-
-                var devices = DeviceDisplay.GetActiveDevices();
-
-                deviceComboBox.Items.Clear();
-                deviceComboBox.Items.AddRange(devices);
-
-                var found = false;
-                for (var i = 0; i < deviceComboBox.Items.Count; i++)
-                {
-                    var deviceDisplay = (DeviceDisplay) deviceComboBox.Items[i];
-                    if (deviceDisplay.Index == _owner.Device.Index)
-                    {
-                        deviceComboBox.SelectedIndex = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    deviceComboBox.SelectedIndex = -1;
-                }
             }
         }
 
@@ -71,23 +54,16 @@ namespace SDRSharp.RTLSDR
 
         private void deviceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             var deviceDisplay = (DeviceDisplay) deviceComboBox.SelectedItem;
             if (deviceDisplay != null)
             {
                 try
                 {
                     _owner.SelectDevice(deviceDisplay.Index);
-
-                    tunerTypeLabel.Text = _owner.Device.TunerType.ToString();
-                    rfGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
-                    samplerateComboBox_SelectedIndexChanged(null, null);
-                    gainModeCheckBox_CheckedChanged(null, null);
-                    rtlAgcCheckBox_CheckedChanged(null, null);
-                    if (!gainModeCheckBox.Checked)
-                    {
-                        rfGainTrackBar_Scroll(null, null);
-                    }
-                    frequencyCorrectionNumericUpDown_ValueChanged(null, null);
                 }
                 catch (Exception ex)
                 {
@@ -99,6 +75,10 @@ namespace SDRSharp.RTLSDR
 
         private void rfGainTrackBar_Scroll(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             var gain = _owner.Device.SupportedGains[rfGainTrackBar.Value];
             _owner.Device.Gain = gain;
             gainLabel.Text = gain / 10.0 + " dB";
@@ -106,6 +86,10 @@ namespace SDRSharp.RTLSDR
 
         private void samplerateComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             var samplerateString = samplerateComboBox.Items[samplerateComboBox.SelectedIndex].ToString().Split(' ')[0];
             var sampleRate = double.Parse(samplerateString, CultureInfo.InvariantCulture);
             _owner.Device.Samplerate = (uint) (sampleRate * 1000000.0);
@@ -113,6 +97,10 @@ namespace SDRSharp.RTLSDR
 
         private void gainModeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             rfGainTrackBar.Enabled = !gainModeCheckBox.Checked;
             _owner.Device.UseTunerAGC = gainModeCheckBox.Checked;
             gainLabel.Visible = !gainModeCheckBox.Checked;
@@ -124,13 +112,49 @@ namespace SDRSharp.RTLSDR
 
         private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             _owner.Device.FrequencyCorrection = (int) frequencyCorrectionNumericUpDown.Value;
             Utils.SaveSetting("RTLFrequencyCorrection", frequencyCorrectionNumericUpDown.Value.ToString());
         }
 
         private void rtlAgcCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (!_initialized)
+            {
+                return;
+            }
             _owner.Device.UseRtlAGC = rtlAgcCheckBox.Checked;
+        }
+
+        public void ConfigureGUI()
+        {
+            tunerTypeLabel.Text = _owner.Device.TunerType.ToString();
+            rfGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
+
+            for (var i = 0; i < deviceComboBox.Items.Count; i++)
+            {
+                var deviceDisplay = (DeviceDisplay)deviceComboBox.Items[i];
+                if (deviceDisplay.Index == _owner.Device.Index)
+                {
+                    deviceComboBox.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        public void ConfigureDevice()
+        {
+            samplerateComboBox_SelectedIndexChanged(null, null);
+            frequencyCorrectionNumericUpDown_ValueChanged(null, null);
+            rtlAgcCheckBox_CheckedChanged(null, null);
+            gainModeCheckBox_CheckedChanged(null, null);
+            if (!gainModeCheckBox.Checked)
+            {
+                rfGainTrackBar_Scroll(null, null);
+            }
         }
     }
 

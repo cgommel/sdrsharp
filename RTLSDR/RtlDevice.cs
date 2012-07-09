@@ -20,7 +20,7 @@ namespace SDRSharp.RTLSDR
         private int _tunerGain;
         private uint _centerFrequency = DefaultFrequency;
         private uint _sampleRate = DefaultSamplerate;
-        private int _frequencyCorrection = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
+        private int _frequencyCorrection;
 
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;

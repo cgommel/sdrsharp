@@ -231,7 +231,6 @@
             this.Text = "RTL-SDR Controller";
             this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RtlSdrControllerDialog_FormClosing);
-            this.Load += new System.EventHandler(this.RtlSdrControllerDialog_Load);
             this.VisibleChanged += new System.EventHandler(this.RtlSdrControllerDialog_VisibleChanged);
             ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).EndInit();

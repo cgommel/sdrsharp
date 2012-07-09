@@ -22,7 +22,10 @@ namespace SDRSharp.RTLSDR
 
         public void Dispose()
         {
-            _gui.Dispose();
+            if (_gui != null)
+            {
+                _gui.Dispose();
+            }
             GC.SuppressFinalize(this);
         }
 
@@ -35,6 +38,8 @@ namespace SDRSharp.RTLSDR
             Close();
             _rtlDevice = new RtlDevice(index);
             _rtlDevice.SamplesAvailable += rtlDevice_SamplesAvailable;
+            _gui.ConfigureGUI();
+            _gui.ConfigureDevice();
         }
 
         public RtlDevice Device
