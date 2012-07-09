@@ -11,7 +11,7 @@ namespace SDRSharp.RTLSDR
         private const uint DefaultFrequency = 105500000;
         private const int DefaultSamplerate = 2048000;
 
-        private uint _index;
+        private readonly uint _index;
         private IntPtr _dev;
         private readonly string _name;
         private readonly int[] _supportedGains;
