@@ -16,9 +16,9 @@ namespace SDRSharp.Radio
         }
 
         private const int WaveBufferSize = 16 * 1024;
-        private const int MinOutputSampleRate = 24000;
         private const int MaxDecimationFactor = 1024;
-        
+
+        private static readonly int _minOutputSampleRate = Utils.GetIntSetting("minOutputSampleRate", 24000);
         private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
         private float* _dspOutPtr;
@@ -478,13 +478,13 @@ namespace SDRSharp.Radio
 
         private int GetDecimationStageCount()
         {
-            if (_inputSampleRate <= MinOutputSampleRate)
+            if (_inputSampleRate <= _minOutputSampleRate)
             {
                 return 0;
             }
 
             int result = MaxDecimationFactor;
-            while (_inputSampleRate < MinOutputSampleRate * result && result > 0)
+            while (_inputSampleRate < _minOutputSampleRate * result && result > 0)
             {
                 result /= 2;
             }
