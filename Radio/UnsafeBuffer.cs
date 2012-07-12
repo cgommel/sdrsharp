@@ -5,23 +5,16 @@ namespace SDRSharp.Radio
 {
     public unsafe sealed class UnsafeBuffer : IDisposable
     {
-        const int Alignment = 32;
-
         private readonly GCHandle _handle;
         private void* _ptr;
         private int _length;
         private Array _buffer;
 
-        private UnsafeBuffer(Array buffer, int realLength) : this(buffer, realLength, 1)
-        {
-        }
-
-        private UnsafeBuffer(Array buffer, int realLength, int alignment)
+        private UnsafeBuffer(Array buffer, int realLength)
         {
             _buffer = buffer;
             _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
             _ptr = (void*) _handle.AddrOfPinnedObject();
-            _ptr = (void*)((long)((byte*)_ptr + alignment - 1) & ~(alignment - 1));
             _length = realLength;
         }
 
@@ -59,8 +52,8 @@ namespace SDRSharp.Radio
 
         public static UnsafeBuffer Create(int length, int sizeOfElement)
         {
-            var buffer = new byte[length * sizeOfElement + Alignment];
-            return new UnsafeBuffer(buffer, length, Alignment);
+            var buffer = new byte[length * sizeOfElement];
+            return new UnsafeBuffer(buffer, length);
         }
 
         public static UnsafeBuffer Create(Array buffer)
