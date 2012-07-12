@@ -1,0 +1,11 @@
+These projects (and the corresponding DLLs) are under the MIT license:
+SDRSharp.csproj
+SDRSharp.CollapsiblePanel.csproj
+SDRSharp.PanView.csproj
+SDRSharp.SoftRock.csproj
+SDRSharp.FUNcube.csproj
+SDRSharp.RTLSDR.csproj
+SDRSharp.SDRIQ.csproj
+
+This project (and the corresponding DLL) is under the MS-RSL license:
+SDRSharp.Radio.csproj
