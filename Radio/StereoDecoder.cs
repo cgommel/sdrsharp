@@ -35,7 +35,7 @@ namespace SDRSharp.Radio
         private FloatDecimator _channelADecimator;
         private FloatDecimator _channelBDecimator;
         private double _sampleRate;
-        private int _decimationFactor;
+        private int _audioDecimationFactor;
         private float _deemphasisAlpha;
         private float _deemphasisAvgL;
         private float _deemphasisAvgR;
@@ -85,7 +85,7 @@ namespace SDRSharp.Radio
 
             #region Filter L+R
 
-            length /= _decimationFactor;
+            length /= _audioDecimationFactor;
             _channelAFilter.Process(_channelAPtr, length);
 
             #endregion
@@ -192,7 +192,7 @@ namespace SDRSharp.Radio
 
             #region Recover and filter L and R audio channels
 
-            length /= _decimationFactor;
+            length /= _audioDecimationFactor;
 
             _channelAFilter.Process(_channelAPtr, length);
             _channelBFilter.Process(_channelBPtr, length);
@@ -223,7 +223,7 @@ namespace SDRSharp.Radio
 
         public void Configure(double sampleRate, int decimationStageCount)
         {
-            _decimationFactor = (int) Math.Pow(2.0, decimationStageCount);
+            _audioDecimationFactor = (int) Math.Pow(2.0, decimationStageCount);
 
             if (_sampleRate != sampleRate)
             {
@@ -238,8 +238,8 @@ namespace SDRSharp.Radio
                 _pilotPhaseAdj = PhaseAdjM * _sampleRate + PhaseAdjB;
                 _pilotLockAlpha = 1.0 - Math.Exp(-1.0 / (_sampleRate * PllLockTime));
                 
-                var outputSampleRate = sampleRate / _decimationFactor;
-                var coefficients = FilterBuilder.MakeLowPassKernel(outputSampleRate, 300, 15000, WindowType.BlackmanHarris);
+                var outputSampleRate = sampleRate / _audioDecimationFactor;
+                var coefficients = FilterBuilder.MakeBandPassKernel(outputSampleRate, 250, Vfo.MinBCAudioFrequency, Vfo.MaxBCAudioFrequency, WindowType.BlackmanHarris);
                 _channelAFilter = new FirFilter(coefficients);
                 _channelBFilter = new FirFilter(coefficients);
 
