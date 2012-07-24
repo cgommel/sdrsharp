@@ -634,8 +634,8 @@ namespace SDRSharp
             spectrumAnalyzer.SpectrumWidth = (int) _streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (long) (centerFreqNumericUpDown.Value + _streamControl.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = (long) (centerFreqNumericUpDown.Value - _streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = (long) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = (long) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2);
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
