@@ -341,9 +341,12 @@ namespace SDRSharp.Radio
 
         public static int GetHWLO()
         {
+			int result = 0;
             if (_dllHandle != IntPtr.Zero && _getHWLO != null)
-                return _getHWLO();
-            return 0;
+                result = _getHWLO();
+			if (result < 0)
+				result = 0;
+            return result;
         }
 
         public static void SetHWLO(int freq)
