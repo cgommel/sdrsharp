@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.CollapsiblePanel",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.RTLSDR", "RTLSDR\SDRSharp.RTLSDR.csproj", "{66F804AC-2E08-4665-977A-0AFDB00CA70F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.RTLTCP", "RTLTCP\SDRSharp.RTLTCP.csproj", "{CDDB35AF-EAC2-4D1B-BD7C-9D82EE5F26EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -48,6 +50,10 @@ Global
 		{66F804AC-2E08-4665-977A-0AFDB00CA70F}.Debug|x86.Build.0 = Debug|x86
 		{66F804AC-2E08-4665-977A-0AFDB00CA70F}.Release|x86.ActiveCfg = Release|x86
 		{66F804AC-2E08-4665-977A-0AFDB00CA70F}.Release|x86.Build.0 = Release|x86
+		{CDDB35AF-EAC2-4D1B-BD7C-9D82EE5F26EA}.Debug|x86.ActiveCfg = Debug|x86
+		{CDDB35AF-EAC2-4D1B-BD7C-9D82EE5F26EA}.Debug|x86.Build.0 = Debug|x86
+		{CDDB35AF-EAC2-4D1B-BD7C-9D82EE5F26EA}.Release|x86.ActiveCfg = Release|x86
+		{CDDB35AF-EAC2-4D1B-BD7C-9D82EE5F26EA}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
