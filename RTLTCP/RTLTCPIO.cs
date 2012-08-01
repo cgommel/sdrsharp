@@ -30,11 +30,13 @@ namespace SDRSharp.RTLTCP
         private string _host;
         private int _port;
         private uint _gainMode;
-        private uint _gainVal;
+        private int _gainVal;
         private UnsafeBuffer _b;
 
         public const uint GAIN_MODE_AUTO = 0;
         public const uint GAIN_MODE_MANUAL = 1;
+
+        private const int BUFFER_SIZE = 16 * 1024;
 
         public string hostName
         {
@@ -48,16 +50,16 @@ namespace SDRSharp.RTLTCP
             set { _port = value; }
         }
 
-        private bool sendCommand(byte cmd, UInt32 val)
+        private bool sendCommand(byte cmd, byte[] val)
         {
             if (null == _s) { return false; }
+            if (val.Length < 4) { return false; }
             byte[] buffer = new byte[5];
             buffer[0] = cmd;
-            byte[] valBytes = BitConverter.GetBytes(val);
-            buffer[1] = valBytes[3]; //Network byte order
-            buffer[2] = valBytes[2];
-            buffer[3] = valBytes[1];
-            buffer[4] = valBytes[0];
+            buffer[1] = val[3]; //Network byte order
+            buffer[2] = val[2];
+            buffer[3] = val[1];
+            buffer[4] = val[0];
             try
             {
                 _s.Send(buffer);
@@ -68,6 +70,18 @@ namespace SDRSharp.RTLTCP
                 Console.WriteLine(e.ToString());
                 return false;
             }
+        }
+
+        private bool sendCommand(byte cmd, UInt32 val)
+        {
+            byte[] valBytes = BitConverter.GetBytes(val);
+            return sendCommand(cmd, valBytes);
+        }
+
+        private bool sendCommand(byte cmd, Int32 val)
+        {
+            byte[] valBytes = BitConverter.GetBytes(val);
+            return sendCommand(cmd, valBytes);
         }
 
         public RtlTcpIO()
@@ -176,10 +190,10 @@ namespace SDRSharp.RTLTCP
             set { _freq = value; sendCommand(CMD_SET_FREQ, (uint)_freq); } //Perhaps only change _freq on success? Oh well, the protocol doesn't tell us if it actually *locks* on the frequency anyway
         }
 
-        public uint Gain
+        public int Gain
         {
             get { return _gainVal; }
-            set { _gainVal = value; sendCommand(CMD_SET_GAIN, (uint)_gainVal); }
+            set { _gainVal = value; sendCommand(CMD_SET_GAIN, (int)_gainVal); } //Gain can be negative
         }
 
         public uint GainMode
@@ -190,7 +204,7 @@ namespace SDRSharp.RTLTCP
 
         private void receiveSamples()
         {
-            byte[] recBuffer = new byte[2048];
+            byte[] recBuffer = new byte[BUFFER_SIZE + 1024];
             int offs = 0;
             UInt64 sessionTotalB = 0;
             DateTime start = DateTime.Now;
@@ -198,7 +212,7 @@ namespace SDRSharp.RTLTCP
             {
                 try
                 {
-                    int bytesRec = _s.Receive(recBuffer, offs, 1024, SocketFlags.None);
+                    int bytesRec = _s.Receive(recBuffer, offs, BUFFER_SIZE, SocketFlags.None);
                     sessionTotalB += (UInt64)bytesRec;
                     int totalBytes = offs + bytesRec;
                     offs = totalBytes % 2; //Need to correctly handle the hypothetical case where we somehow get an odd number of bytes

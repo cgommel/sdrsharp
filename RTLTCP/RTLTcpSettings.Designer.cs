@@ -52,14 +52,14 @@
             // 
             this.portBox.Location = new System.Drawing.Point(139, 37);
             this.portBox.Name = "portBox";
-            this.portBox.Size = new System.Drawing.Size(100, 20);
+            this.portBox.Size = new System.Drawing.Size(133, 20);
             this.portBox.TabIndex = 1;
             // 
             // srBox
             // 
             this.srBox.Location = new System.Drawing.Point(139, 88);
             this.srBox.Name = "srBox";
-            this.srBox.Size = new System.Drawing.Size(100, 20);
+            this.srBox.Size = new System.Drawing.Size(133, 20);
             this.srBox.TabIndex = 2;
             // 
             // button1
@@ -128,15 +128,15 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(27, 151);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(63, 13);
+            this.label4.Size = new System.Drawing.Size(101, 13);
             this.label4.TabIndex = 9;
-            this.label4.Text = "Gain setting";
+            this.label4.Text = "Gain setting (dB*10)";
             // 
             // gainBox
             // 
             this.gainBox.Location = new System.Drawing.Point(139, 148);
             this.gainBox.Name = "gainBox";
-            this.gainBox.Size = new System.Drawing.Size(100, 20);
+            this.gainBox.Size = new System.Drawing.Size(133, 20);
             this.gainBox.TabIndex = 10;
             // 
             // RTLTcpSettings

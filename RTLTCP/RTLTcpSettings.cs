@@ -30,7 +30,7 @@ namespace SDRSharp.RTLTCP
             else
             {
                 _owner.GainMode = RtlTcpIO.GAIN_MODE_MANUAL;
-                _owner.Gain = Convert.ToUInt32(gainBox.Text);
+                _owner.Gain = Convert.ToInt32(gainBox.Text);
             }
         }
 
