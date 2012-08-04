@@ -49,6 +49,5 @@ namespace SDRSharp.FrequencyManager
             _memoryEntry.FilterBandwidth = (long)nudFilterBandwidth.Value;
             DialogResult = DialogResult.OK;
         }
-
     }
 }

@@ -170,7 +170,8 @@ namespace SDRSharp.FrequencyManager
             if (MemoryInfoNeeded != null)
                 MemoryInfoNeeded(this, info);
             if (memoryEntry.Frequency == 0) return;
-            memoryEntry.Name = GetFrequencyDisplay(memoryEntry.Frequency);
+            memoryEntry.GroupName = "Misc";
+            memoryEntry.Name = GetFrequencyDisplay(memoryEntry.Frequency) + " " + memoryEntry.DetectorType;
             DoEdit(memoryEntry, true);
         }
 
