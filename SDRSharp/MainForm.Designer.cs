@@ -66,7 +66,6 @@ namespace SDRSharp
             this.correctIQCheckBox = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.frequencyManagerCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
-            this.frequencyManagerPanel = new SDRSharp.FrequencyManager.FrequencyManagerPanel();
             this.audioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
             this.audioGainTrackBar = new System.Windows.Forms.TrackBar();
             this.latencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -105,6 +104,7 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.frequencyManagerPanel = new SDRSharp.FrequencyManager.FrequencyManagerPanel();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -885,17 +885,6 @@ namespace SDRSharp
             this.frequencyManagerCollapsiblePanel.Size = new System.Drawing.Size(217, 311);
             this.frequencyManagerCollapsiblePanel.TabIndex = 26;
             // 
-            // frequencyManagerPanel
-            // 
-            this.frequencyManagerPanel.Location = new System.Drawing.Point(0, 20);
-            this.frequencyManagerPanel.Margin = new System.Windows.Forms.Padding(2);
-            this.frequencyManagerPanel.Name = "frequencyManagerPanel";
-            this.frequencyManagerPanel.SelectedGroup = null;
-            this.frequencyManagerPanel.Size = new System.Drawing.Size(217, 291);
-            this.frequencyManagerPanel.TabIndex = 1;
-            this.frequencyManagerPanel.MemoryInfoNeeded += new SDRSharp.FrequencyManager.RadioInfo(this.frequencyManagerPanel_MemoryInfoNeeded);
-            this.frequencyManagerPanel.MemoryInfoAvailable += new SDRSharp.FrequencyManager.RadioInfo(this.frequencyManagerPanel_MemoryInfoAvailable);
-            // 
             // audioCollapsiblePanel
             // 
             this.audioCollapsiblePanel.Controls.Add(this.audioGainTrackBar);
@@ -1390,6 +1379,17 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
+            // frequencyManagerPanel
+            // 
+            this.frequencyManagerPanel.Location = new System.Drawing.Point(0, 20);
+            this.frequencyManagerPanel.Margin = new System.Windows.Forms.Padding(2);
+            this.frequencyManagerPanel.Name = "frequencyManagerPanel";
+            this.frequencyManagerPanel.SelectedGroup = null;
+            this.frequencyManagerPanel.Size = new System.Drawing.Size(217, 291);
+            this.frequencyManagerPanel.TabIndex = 1;
+            this.frequencyManagerPanel.MemoryInfoNeeded += new SDRSharp.FrequencyManager.RadioInfo(this.frequencyManagerPanel_MemoryInfoNeeded);
+            this.frequencyManagerPanel.MemoryInfoAvailable += new SDRSharp.FrequencyManager.RadioInfo(this.frequencyManagerPanel_MemoryInfoAvailable);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1407,12 +1407,14 @@ namespace SDRSharp
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.playButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SDR#";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.panSplitContainer.Panel1.ResumeLayout(false);
             this.panSplitContainer.Panel2.ResumeLayout(false);
             this.panSplitContainer.ResumeLayout(false);

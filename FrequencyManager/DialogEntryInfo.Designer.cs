@@ -110,19 +110,19 @@
             // 
             this.comboGroupName.FormattingEnabled = true;
             this.comboGroupName.Location = new System.Drawing.Point(85, 34);
-            this.comboGroupName.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.comboGroupName.Margin = new System.Windows.Forms.Padding(2);
             this.comboGroupName.Name = "comboGroupName";
             this.comboGroupName.Size = new System.Drawing.Size(178, 21);
-            this.comboGroupName.TabIndex = 6;
+            this.comboGroupName.TabIndex = 0;
             this.comboGroupName.TextChanged += new System.EventHandler(this.Control_TextChanged);
             // 
             // textBoxName
             // 
             this.textBoxName.Location = new System.Drawing.Point(85, 64);
-            this.textBoxName.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBoxName.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxName.Name = "textBoxName";
             this.textBoxName.Size = new System.Drawing.Size(178, 20);
-            this.textBoxName.TabIndex = 7;
+            this.textBoxName.TabIndex = 1;
             this.textBoxName.TextChanged += new System.EventHandler(this.Control_TextChanged);
             // 
             // frequencyNumericUpDown
@@ -133,15 +133,20 @@
             0,
             0});
             this.frequencyNumericUpDown.Location = new System.Drawing.Point(85, 96);
-            this.frequencyNumericUpDown.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.frequencyNumericUpDown.Margin = new System.Windows.Forms.Padding(2);
             this.frequencyNumericUpDown.Maximum = new decimal(new int[] {
-            1410065407,
-            2,
+            -727379969,
+            232,
             0,
             0});
+            this.frequencyNumericUpDown.Minimum = new decimal(new int[] {
+            -727379969,
+            232,
+            0,
+            -2147483648});
             this.frequencyNumericUpDown.Name = "frequencyNumericUpDown";
             this.frequencyNumericUpDown.Size = new System.Drawing.Size(124, 20);
-            this.frequencyNumericUpDown.TabIndex = 9;
+            this.frequencyNumericUpDown.TabIndex = 2;
             this.frequencyNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.frequencyNumericUpDown.ThousandsSeparator = true;
             this.frequencyNumericUpDown.ValueChanged += new System.EventHandler(this.Control_TextChanged);
@@ -151,10 +156,10 @@
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnOk.Enabled = false;
             this.btnOk.Location = new System.Drawing.Point(149, 212);
-            this.btnOk.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnOk.Margin = new System.Windows.Forms.Padding(2);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(56, 23);
-            this.btnOk.TabIndex = 10;
+            this.btnOk.TabIndex = 5;
             this.btnOk.Text = "O&K";
             this.btnOk.UseVisualStyleBackColor = true;
             this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
@@ -163,10 +168,10 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Location = new System.Drawing.Point(209, 212);
-            this.btnCancel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(2);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(56, 23);
-            this.btnCancel.TabIndex = 11;
+            this.btnCancel.TabIndex = 6;
             this.btnCancel.Text = "&Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
@@ -178,15 +183,20 @@
             0,
             0});
             this.shiftNumericUpDown.Location = new System.Drawing.Point(85, 126);
-            this.shiftNumericUpDown.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.shiftNumericUpDown.Margin = new System.Windows.Forms.Padding(2);
             this.shiftNumericUpDown.Maximum = new decimal(new int[] {
-            1410065407,
-            2,
+            -727379969,
+            232,
             0,
             0});
+            this.shiftNumericUpDown.Minimum = new decimal(new int[] {
+            -727379969,
+            232,
+            0,
+            -2147483648});
             this.shiftNumericUpDown.Name = "shiftNumericUpDown";
             this.shiftNumericUpDown.Size = new System.Drawing.Size(124, 20);
-            this.shiftNumericUpDown.TabIndex = 13;
+            this.shiftNumericUpDown.TabIndex = 3;
             this.shiftNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.shiftNumericUpDown.ThousandsSeparator = true;
             // 
@@ -208,7 +218,7 @@
             0,
             0});
             this.nudFilterBandwidth.Location = new System.Drawing.Point(85, 156);
-            this.nudFilterBandwidth.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.nudFilterBandwidth.Margin = new System.Windows.Forms.Padding(2);
             this.nudFilterBandwidth.Maximum = new decimal(new int[] {
             1410065407,
             2,
@@ -216,7 +226,7 @@
             0});
             this.nudFilterBandwidth.Name = "nudFilterBandwidth";
             this.nudFilterBandwidth.Size = new System.Drawing.Size(124, 20);
-            this.nudFilterBandwidth.TabIndex = 15;
+            this.nudFilterBandwidth.TabIndex = 4;
             this.nudFilterBandwidth.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.nudFilterBandwidth.ThousandsSeparator = true;
             // 
@@ -253,7 +263,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "DialogEntryInfo";

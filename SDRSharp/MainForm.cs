@@ -1247,20 +1247,30 @@ namespace SDRSharp
                 return;
             }
 
-            centerFreqNumericUpDown.Value = e.MemoryEntry.CenterFrequency;
-            if (e.MemoryEntry.Frequency >= frequencyNumericUpDown.Minimum && e.MemoryEntry.Frequency < frequencyNumericUpDown.Maximum)
-            {
-                frequencyNumericUpDown.Value = e.MemoryEntry.Frequency;
-            }
-            DetectorType = e.MemoryEntry.DetectorType;
             filterBandwidthNumericUpDown.Value = e.MemoryEntry.FilterBandwidth;
             frequencyShiftCheckBox.Checked = e.MemoryEntry.Shift != 0;
             if (frequencyShiftCheckBox.Checked)
             {
                 frequencyShiftNumericUpDown.Value = e.MemoryEntry.Shift;
             }
+
+            centerFreqNumericUpDown.Value = e.MemoryEntry.CenterFrequency;
+            if (e.MemoryEntry.Frequency >= frequencyNumericUpDown.Minimum && e.MemoryEntry.Frequency < frequencyNumericUpDown.Maximum)
+            {
+                frequencyNumericUpDown.Value = e.MemoryEntry.Frequency;
+            }
+            DetectorType = e.MemoryEntry.DetectorType;
         }
 
         #endregion
+
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.D)
+            {
+                frequencyManagerPanel.Bookmark();
+                e.Handled = true;
+            }
+        }
     }
 }

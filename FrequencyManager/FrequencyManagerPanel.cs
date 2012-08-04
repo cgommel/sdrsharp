@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using SDRSharp.Radio;
 
 namespace SDRSharp.FrequencyManager
 {
@@ -46,12 +47,7 @@ namespace SDRSharp.FrequencyManager
 
         private void btnNewEntry_Click(object sender, EventArgs e)
         {
-            var memoryEntry = new MemoryEntry();
-            var info = new MemoryInfoEventArgs(memoryEntry);
-            if (MemoryInfoNeeded != null)
-                MemoryInfoNeeded(this, info);
-            if (memoryEntry.Frequency == 0) return;
-            DoEdit(memoryEntry, true);
+            Bookmark();
         }
 
         private void btnEdit_Click(object sender, EventArgs e)
@@ -165,6 +161,43 @@ namespace SDRSharp.FrequencyManager
         {
             btnDelete.Enabled = frequencyDataGridView.SelectedRows.Count > 0;
             btnEdit.Enabled = frequencyDataGridView.SelectedRows.Count > 0;
+        }
+
+        public void Bookmark()
+        {
+            var memoryEntry = new MemoryEntry();
+            var info = new MemoryInfoEventArgs(memoryEntry);
+            if (MemoryInfoNeeded != null)
+                MemoryInfoNeeded(this, info);
+            if (memoryEntry.Frequency == 0) return;
+            memoryEntry.Name = GetFrequencyDisplay(memoryEntry.Frequency);
+            DoEdit(memoryEntry, true);
+        }
+
+        private static string GetFrequencyDisplay(long frequency)
+        {
+            string result;
+            if (frequency == 0)
+            {
+                result = "DC";
+            }
+            else if (Math.Abs(frequency) > 1500000000)
+            {
+                result = string.Format("{0:#,0.000 000} GHz", frequency / 1000000000.0);
+            }
+            else if (Math.Abs(frequency) > 30000000)
+            {
+                result = string.Format("{0:0,0.000#} MHz", frequency / 1000000.0);
+            }
+            else if (Math.Abs(frequency) > 1000)
+            {
+                result = string.Format("{0:#,#.###} kHz", frequency / 1000.0);
+            }
+            else
+            {
+                result = frequency.ToString();
+            }
+            return result;
         }
     }
 }
