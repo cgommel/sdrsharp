@@ -155,6 +155,10 @@
       <Project>{279AE777-D3DE-449A-9501-A83677F2B97A}</Project>
       <Name>SDRSharp.CollapsiblePanel</Name>
     </ProjectReference>
+    <ProjectReference Include="..\FrequencyManager\SDRSharp.FrequencyManager.csproj">
+      <Project>{63F197AA-A7CC-45B5-A0A1-F115CBF89498}</Project>
+      <Name>SDRSharp.FrequencyManager</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PanView\SDRSharp.PanView.csproj">
       <Project>{C9292D31-4761-48FC-BEE0-9035D27F68BC}</Project>
       <Name>SDRSharp.PanView</Name>

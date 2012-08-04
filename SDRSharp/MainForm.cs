@@ -947,6 +947,48 @@ namespace SDRSharp
             }
         }
 
+        public DetectorType DetectorType
+        {
+            get { return _vfo.DetectorType; }
+            set
+            {
+                switch (value)
+                {
+                    case DetectorType.AM:
+                        amRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.CWL:
+                        cwlRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.CWU:
+                        cwuRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.DSB:
+                        dsbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.LSB:
+                        lsbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.USB:
+                        usbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.NFM:
+                        nfmRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.WFM:
+                        wfmRadioButton.Checked = true;
+                        break;
+                }
+            }
+        }
+
         private void fmStereoCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.FmStereo = fmStereoCheckBox.Checked;
@@ -1183,6 +1225,40 @@ namespace SDRSharp
         private void markPeaksCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.MarkPeaks = markPeaksCheckBox.Checked;
+        }
+
+        #endregion
+
+        #region Frequency Manager
+
+        private void frequencyManagerPanel_MemoryInfoNeeded(object sender, FrequencyManager.MemoryInfoEventArgs e)
+        {
+            e.MemoryEntry.CenterFrequency = (long) centerFreqNumericUpDown.Value;
+            e.MemoryEntry.Frequency = (long) frequencyNumericUpDown.Value;
+            e.MemoryEntry.DetectorType = DetectorType;
+            e.MemoryEntry.FilterBandwidth = (long) filterBandwidthNumericUpDown.Value;
+            e.MemoryEntry.Shift = _frequencyShift;
+        }
+
+        private void frequencyManagerPanel_MemoryInfoAvailable(object sender, FrequencyManager.MemoryInfoEventArgs e)
+        {
+            if (!_streamControl.IsPlaying)
+            {
+                return;
+            }
+
+            centerFreqNumericUpDown.Value = e.MemoryEntry.CenterFrequency;
+            if (e.MemoryEntry.Frequency >= frequencyNumericUpDown.Minimum && e.MemoryEntry.Frequency < frequencyNumericUpDown.Maximum)
+            {
+                frequencyNumericUpDown.Value = e.MemoryEntry.Frequency;
+            }
+            DetectorType = e.MemoryEntry.DetectorType;
+            filterBandwidthNumericUpDown.Value = e.MemoryEntry.FilterBandwidth;
+            frequencyShiftCheckBox.Checked = e.MemoryEntry.Shift != 0;
+            if (frequencyShiftCheckBox.Checked)
+            {
+                frequencyShiftNumericUpDown.Value = e.MemoryEntry.Shift;
+            }
         }
 
         #endregion
