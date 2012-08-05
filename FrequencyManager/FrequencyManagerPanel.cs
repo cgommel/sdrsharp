@@ -112,21 +112,14 @@ namespace SDRSharp.FrequencyManager
             if (frequencyDataGridView.Columns[e.ColumnIndex].DataPropertyName == "Frequency" && e.Value != null)
             {
                 var frequency = (long)e.Value;
-                e.Value = frequency.ToString("N0");
-                e.FormattingApplied = true;
+                e.Value = GetFrequencyDisplay(frequency); //frequency.ToString("N0");
+                //e.FormattingApplied = true;
             }
         }
 
         private void frequencyDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex != -1)
-            {
-                var memoryEntry = (MemoryEntry) memoryEntryBindingSource.List[e.RowIndex];
-                if (MemoryInfoAvailable != null)
-                {
-                    MemoryInfoAvailable(this, new MemoryInfoEventArgs(new MemoryEntry(memoryEntry)));
-                }
-            }
+            Navigate();
         }
 
         private void ProcessGroups(String selectedGroupName)
@@ -175,6 +168,19 @@ namespace SDRSharp.FrequencyManager
             DoEdit(memoryEntry, true);
         }
 
+        public void Navigate()
+        {
+            var rowIndex = frequencyDataGridView.SelectedCells.Count > 0 ? frequencyDataGridView.SelectedCells[0].RowIndex : -1;
+            if (rowIndex != -1)
+            {
+                var memoryEntry = (MemoryEntry) memoryEntryBindingSource.List[rowIndex];
+                if (MemoryInfoAvailable != null)
+                {
+                    MemoryInfoAvailable(this, new MemoryInfoEventArgs(new MemoryEntry(memoryEntry)));
+                }
+            }
+        }
+
         private static string GetFrequencyDisplay(long frequency)
         {
             string result;
@@ -199,6 +205,15 @@ namespace SDRSharp.FrequencyManager
                 result = frequency.ToString();
             }
             return result;
+        }
+
+        private void frequencyDataGridView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                Navigate();
+                e.Handled = true;
+            }
         }
     }
 }

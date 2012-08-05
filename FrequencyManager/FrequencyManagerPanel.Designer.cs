@@ -37,11 +37,11 @@
             this.btnDelete = new System.Windows.Forms.ToolStripButton();
             this.label17 = new System.Windows.Forms.Label();
             this.frequencyDataGridView = new System.Windows.Forms.DataGridView();
-            this.comboGroups = new System.Windows.Forms.ComboBox();
-            this.mainImageList = new System.Windows.Forms.ImageList(this.components);
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.frequencyDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.memoryEntryBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.comboGroups = new System.Windows.Forms.ComboBox();
+            this.mainImageList = new System.Windows.Forms.ImageList(this.components);
             this.mainToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyDataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.memoryEntryBindingSource)).BeginInit();
@@ -120,7 +120,7 @@
             this.frequencyDataGridViewTextBoxColumn});
             this.frequencyDataGridView.DataSource = this.memoryEntryBindingSource;
             this.frequencyDataGridView.Location = new System.Drawing.Point(0, 54);
-            this.frequencyDataGridView.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.frequencyDataGridView.Margin = new System.Windows.Forms.Padding(2);
             this.frequencyDataGridView.Name = "frequencyDataGridView";
             this.frequencyDataGridView.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
             this.frequencyDataGridView.RowHeadersVisible = false;
@@ -135,30 +135,7 @@
             this.frequencyDataGridView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.frequencyDataGridView_CellDoubleClick);
             this.frequencyDataGridView.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.frequencyDataGridView_CellFormatting);
             this.frequencyDataGridView.SelectionChanged += new System.EventHandler(this.frequencyDataGridView_SelectionChanged);
-            // 
-            // comboGroups
-            // 
-            this.comboGroups.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboGroups.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.comboGroups.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
-            this.comboGroups.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboGroups.FormattingEnabled = true;
-            this.comboGroups.Location = new System.Drawing.Point(47, 29);
-            this.comboGroups.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.comboGroups.Name = "comboGroups";
-            this.comboGroups.Size = new System.Drawing.Size(189, 21);
-            this.comboGroups.TabIndex = 4;
-            this.comboGroups.SelectedIndexChanged += new System.EventHandler(this.comboGroups_SelectedIndexChanged);
-            // 
-            // mainImageList
-            // 
-            this.mainImageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("mainImageList.ImageStream")));
-            this.mainImageList.TransparentColor = System.Drawing.Color.Transparent;
-            this.mainImageList.Images.SetKeyName(0, "NewDocumentHS.BMP");
-            this.mainImageList.Images.SetKeyName(1, "DeleteHS.bmp");
-            this.mainImageList.Images.SetKeyName(2, "EditInformationHS.BMP");
+            this.frequencyDataGridView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frequencyDataGridView_KeyDown);
             // 
             // nameDataGridViewTextBoxColumn
             // 
@@ -179,6 +156,30 @@
             // 
             this.memoryEntryBindingSource.DataSource = typeof(SDRSharp.FrequencyManager.MemoryEntry);
             // 
+            // comboGroups
+            // 
+            this.comboGroups.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboGroups.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.comboGroups.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.comboGroups.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboGroups.FormattingEnabled = true;
+            this.comboGroups.Location = new System.Drawing.Point(47, 29);
+            this.comboGroups.Margin = new System.Windows.Forms.Padding(2);
+            this.comboGroups.Name = "comboGroups";
+            this.comboGroups.Size = new System.Drawing.Size(189, 21);
+            this.comboGroups.TabIndex = 4;
+            this.comboGroups.SelectedIndexChanged += new System.EventHandler(this.comboGroups_SelectedIndexChanged);
+            // 
+            // mainImageList
+            // 
+            this.mainImageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("mainImageList.ImageStream")));
+            this.mainImageList.TransparentColor = System.Drawing.Color.Transparent;
+            this.mainImageList.Images.SetKeyName(0, "NewDocumentHS.BMP");
+            this.mainImageList.Images.SetKeyName(1, "DeleteHS.bmp");
+            this.mainImageList.Images.SetKeyName(2, "EditInformationHS.BMP");
+            // 
             // FrequencyManagerPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -187,7 +188,7 @@
             this.Controls.Add(this.label17);
             this.Controls.Add(this.frequencyDataGridView);
             this.Controls.Add(this.comboGroups);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "FrequencyManagerPanel";
             this.Size = new System.Drawing.Size(236, 358);
             this.mainToolStrip.ResumeLayout(false);
