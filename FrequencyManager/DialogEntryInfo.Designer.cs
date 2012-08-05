@@ -43,6 +43,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.nudFilterBandwidth = new System.Windows.Forms.NumericUpDown();
             this.label7 = new System.Windows.Forms.Label();
+            this.favouriteCb = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.shiftNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudFilterBandwidth)).BeginInit();
@@ -155,7 +156,7 @@
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnOk.Enabled = false;
-            this.btnOk.Location = new System.Drawing.Point(149, 212);
+            this.btnOk.Location = new System.Drawing.Point(149, 245);
             this.btnOk.Margin = new System.Windows.Forms.Padding(2);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(56, 23);
@@ -167,7 +168,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(209, 212);
+            this.btnCancel.Location = new System.Drawing.Point(209, 245);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(2);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(56, 23);
@@ -240,13 +241,24 @@
             this.label7.TabIndex = 14;
             this.label7.Text = "Filter BW:";
             // 
+            // favouriteCb
+            // 
+            this.favouriteCb.AutoSize = true;
+            this.favouriteCb.Location = new System.Drawing.Point(85, 207);
+            this.favouriteCb.Name = "favouriteCb";
+            this.favouriteCb.Size = new System.Drawing.Size(70, 17);
+            this.favouriteCb.TabIndex = 16;
+            this.favouriteCb.Text = "Favourite";
+            this.favouriteCb.UseVisualStyleBackColor = true;
+            // 
             // DialogEntryInfo
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(276, 246);
+            this.ClientSize = new System.Drawing.Size(276, 279);
+            this.Controls.Add(this.favouriteCb);
             this.Controls.Add(this.nudFilterBandwidth);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.shiftNumericUpDown);
@@ -295,5 +307,6 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.NumericUpDown nudFilterBandwidth;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox favouriteCb;
     }
 }

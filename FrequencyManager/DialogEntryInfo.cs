@@ -25,6 +25,7 @@ namespace SDRSharp.FrequencyManager
             lblMode.Text = memoryEntry.DetectorType.ToString();
             comboGroupName.Items.AddRange(groups.ToArray());
             nudFilterBandwidth.Value = memoryEntry.FilterBandwidth;
+            favouriteCb.Checked = memoryEntry.IsFavourite;
             ValidateForm();
         }
 
@@ -47,6 +48,7 @@ namespace SDRSharp.FrequencyManager
             _memoryEntry.Frequency = (long)frequencyNumericUpDown.Value;
             _memoryEntry.Shift = (long)shiftNumericUpDown.Value;
             _memoryEntry.FilterBandwidth = (long)nudFilterBandwidth.Value;
+            _memoryEntry.IsFavourite = favouriteCb.Checked;
             DialogResult = DialogResult.OK;
         }
     }

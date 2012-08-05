@@ -78,6 +78,7 @@
     </Compile>
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SettingsPersister.cs" />
+    <Compile Include="SortableBindingList.cs" />
     <Service Include="{94E38DFF-614B-4cbd-B67C-F211BB35CE8B}" />
   </ItemGroup>
   <ItemGroup>

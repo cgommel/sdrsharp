@@ -12,6 +12,7 @@ namespace SDRSharp.FrequencyManager
         private long _centerFrequency;
         private String _groupName;
         private long _filterBandwidth;
+        private bool _isFavourite;
 
         public MemoryEntry() { }
 
@@ -24,8 +25,15 @@ namespace SDRSharp.FrequencyManager
             _shift = memoryEntry._shift;
             _centerFrequency = memoryEntry._centerFrequency;
             _filterBandwidth = memoryEntry._filterBandwidth;
+            _isFavourite = memoryEntry._isFavourite;
         }
 
+        public bool IsFavourite
+        {
+            get { return _isFavourite; }
+            set { _isFavourite = value; }
+        }
+               
         public string Name
         {
             get { return _name; }
@@ -67,4 +75,5 @@ namespace SDRSharp.FrequencyManager
             set { _filterBandwidth = value; }
         }
     }
+              
 }
