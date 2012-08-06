@@ -13,7 +13,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
-        private const float DefaultCursorHeight = 32.0f;
+        public const float DefaultCursorHeight = 32.0f;
 
         private readonly static Color _spectrumColor = Utils.GetColorSetting("spectrumAnalyzerColor", Color.DarkGray);
         private readonly static bool _fillSpectrumAnalyzer = Utils.GetBooleanSetting("fillSpectrumAnalyzer");
@@ -513,7 +513,7 @@ namespace SDRSharp.PanView
             #endregion
         }
 
-        private static string GetFrequencyDisplay(long frequency)
+        public static string GetFrequencyDisplay(long frequency)
         {
             string result;
             if (frequency == 0)

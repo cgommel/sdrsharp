@@ -62,6 +62,9 @@ namespace SDRSharp.PanView
         private int _zoom;
         private bool _useSmoothing;
         private bool _useSnap;
+        private float _trackingY;
+        private float _trackingX;
+        private long _trackingFrequency;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
@@ -524,6 +527,7 @@ namespace SDRSharp.PanView
             using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var hotTrackPen = new Pen(Color.Red))
             using (var carrierPen = new Pen(Color.Red))
+            using (var font = new Font("Arial", 12f))
             {
                 carrierPen.Width = CarrierPenWidth;
                 g.SmoothingMode = SmoothingMode.HighSpeed;
@@ -535,6 +539,14 @@ namespace SDRSharp.PanView
                 if (_hotTrackNeeded && _oldX >= AxisMargin && _oldX <= ClientRectangle.Width - AxisMargin)
                 {
                     _graphics2.DrawLine(hotTrackPen, _oldX, 0f, _oldX, ClientRectangle.Height);
+
+                    var fstring = SpectrumAnalyzer.GetFrequencyDisplay(_changingFrequency ? _frequency : _changingBandwidth ? _filterBandwidth : _trackingFrequency);
+                    var stringSize = g.MeasureString(fstring, font);
+                    var xOffset = _trackingX + 15.0f;
+                    var yOffset = _trackingY + (Cursor.Current == null ? SpectrumAnalyzer.DefaultCursorHeight : Cursor.Current.Size.Height) - 8.0f;
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
+                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
+                    g.DrawString(fstring, font, Brushes.White, (int)xOffset, (int)yOffset, StringFormat.GenericTypographic);
                 }
             }
         }
@@ -752,6 +764,15 @@ namespace SDRSharp.PanView
         {
             _hotTrackNeeded = false;
             base.OnMouseMove(e);
+
+            _trackingX = e.X;
+            _trackingY = e.Y;
+            _trackingFrequency = (long)((e.X - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
+            if (_useSnap)
+            {
+                _trackingFrequency = (_trackingFrequency + Math.Sign(_trackingFrequency) * _stepSize / 2) / _stepSize * _stepSize;
+            }
+
             if (_changingFrequency)
             {
                 var f = (long) ((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
