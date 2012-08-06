@@ -354,6 +354,7 @@ namespace SDRSharp.PanView
                     break;
             }
             _upper = _lower + bandpassWidth;
+
             using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var redPen = new Pen(Color.Red))
             using (var graphics = Graphics.FromImage(_buffer))
@@ -408,7 +409,7 @@ namespace SDRSharp.PanView
                     var yOffset = _trackingY + (Cursor.Current == null ? DefaultCursorHeight : Cursor.Current.Size.Height) - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
-                    graphics.DrawString(fstring, font, Brushes.White, (int)xOffset, (int)yOffset, StringFormat.GenericTypographic);
+                    graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
             }
         }
@@ -804,12 +805,12 @@ namespace SDRSharp.PanView
 
             if (_changingFrequency)
             {
-                var f = (long)((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
+                var f = (long) ((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
                 UpdateFrequency(f);
             }
             else if (_changingCenterFrequency)
             {
-                var f = (long)((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
+                var f = (long) ((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
                 UpdateCenterFrequency(f);
             }
             else if (_changingBandwidth)
@@ -829,7 +830,7 @@ namespace SDRSharp.PanView
                         bw = (_oldX > (_lower + _upper) / 2 ? e.X - _oldX : _oldX - e.X) * 2;
                         break;
                 }
-                bw = (int)(bw * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin)) + _oldFilterBandwidth;
+                bw = (int) (bw * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth);
                 UpdateBandwidth(bw);
             }
             else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
