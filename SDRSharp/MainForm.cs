@@ -763,6 +763,10 @@ namespace SDRSharp
             {
                 frequencyNumericUpDown.Value = e.Frequency;
             }
+            else
+            {
+                e.Cancel = true;
+            }
         }
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
@@ -770,6 +774,10 @@ namespace SDRSharp
             if (iqStreamRadioButton.Checked)
             {
                 centerFreqNumericUpDown.Value = e.Frequency - _frequencyShift;
+            }
+            else
+            {
+                e.Cancel = true;
             }
         }
 
