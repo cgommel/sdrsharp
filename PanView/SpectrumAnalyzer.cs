@@ -422,6 +422,7 @@ namespace SDRSharp.PanView
                     var yOffset = _trackingY + (currentCursor == null ? DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
+                    graphics.DrawString(fstring, font, Brushes.Black, (int) xOffset + 1, (int) yOffset + 1, StringFormat.GenericTypographic);
                     graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
                 }
             }
@@ -546,7 +547,7 @@ namespace SDRSharp.PanView
             }
             else
             {
-                result = frequency.ToString();
+                result = string.Format("{0}Hz", frequency);
             }
             return result;
         }
