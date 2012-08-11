@@ -31,12 +31,17 @@ namespace SDRSharp.RTLTCP
         private int _port;
         private uint _gainMode;
         private int _gainVal;
+        private int _fCor;
         private UnsafeBuffer _b;
 
         public const uint GAIN_MODE_AUTO = 0;
         public const uint GAIN_MODE_MANUAL = 1;
 
         private const int BUFFER_SIZE = 16 * 1024;
+
+        private bool _tunePlease = false;
+        private const int MAX_TUNE_RATE = 20; //rtl_tcp seems to be limited to ~25
+        private System.Timers.Timer _retuneTimer = new System.Timers.Timer(1000.0 / MAX_TUNE_RATE);
 
         public string hostName
         {
@@ -92,6 +97,8 @@ namespace SDRSharp.RTLTCP
             _gainMode = GAIN_MODE_AUTO;
             _host = DEFAULT_HOSTNAME;
             _port = DEFAULT_PORT;
+            _retuneTimer.Elapsed += new System.Timers.ElapsedEventHandler(retuneNow);
+            _retuneTimer.Start();
         }
 
         ~RtlTcpIO()
@@ -187,7 +194,7 @@ namespace SDRSharp.RTLTCP
         public long Frequency
         {
             get { return _freq; }
-            set { _freq = value; sendCommand(CMD_SET_FREQ, (uint)_freq); } //Perhaps only change _freq on success? Oh well, the protocol doesn't tell us if it actually *locks* on the frequency anyway
+            set { _freq = value; lock (_retuneTimer) { _tunePlease = true; } }
         }
 
         public int Gain
@@ -200,6 +207,12 @@ namespace SDRSharp.RTLTCP
         {
             get { return _gainMode; }
             set { _gainMode = value; sendCommand(CMD_SET_GAIN_MODE, (uint)_gainMode); }
+        }
+
+        public int FreqCorrection
+        {
+            get { return _fCor; }
+            set { _fCor = value; sendCommand(CMD_SET_FREQ_COR, (int)_fCor); }
         }
 
         private void receiveSamples()
@@ -253,6 +266,18 @@ namespace SDRSharp.RTLTCP
             {
                 if (null == _callback) { return; }
                 _callback(this, bufPtr, sampleCount);
+            }
+        }
+
+        private void retuneNow(object source, System.Timers.ElapsedEventArgs e)
+        {
+            lock (_retuneTimer)
+            {
+                if (_tunePlease)
+                {
+                    sendCommand(CMD_SET_FREQ, (uint)_freq);
+                    _tunePlease = false;
+                }
             }
         }
     }

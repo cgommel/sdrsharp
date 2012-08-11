@@ -32,6 +32,7 @@ namespace SDRSharp.RTLTCP
                 _owner.GainMode = RtlTcpIO.GAIN_MODE_MANUAL;
                 _owner.Gain = Convert.ToInt32(gainBox.Text);
             }
+            _owner.FreqCorrection = Convert.ToInt32(fcBox.Text);
         }
 
         private void RTLTcpSettings_Load(object sender, EventArgs e)
@@ -53,6 +54,7 @@ namespace SDRSharp.RTLTCP
                 manualRB.Checked = true;
                 gainBox.Enabled = true;
             }
+            fcBox.Text = _owner.FreqCorrection.ToString();
         }
 
         void updateRB()

@@ -39,6 +39,8 @@
             this.manualRB = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.gainBox = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.fcBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // hostBox
@@ -64,7 +66,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(133, 183);
+            this.button1.Location = new System.Drawing.Point(133, 213);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(139, 23);
             this.button1.TabIndex = 3;
@@ -139,11 +141,29 @@
             this.gainBox.Size = new System.Drawing.Size(133, 20);
             this.gainBox.TabIndex = 10;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(27, 181);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(108, 13);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Freq Correction (ppm)";
+            // 
+            // fcBox
+            // 
+            this.fcBox.Location = new System.Drawing.Point(139, 181);
+            this.fcBox.Name = "fcBox";
+            this.fcBox.Size = new System.Drawing.Size(133, 20);
+            this.fcBox.TabIndex = 12;
+            // 
             // RTLTcpSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 220);
+            this.ClientSize = new System.Drawing.Size(284, 248);
+            this.Controls.Add(this.fcBox);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.gainBox);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.manualRB);
@@ -181,5 +201,7 @@
         private System.Windows.Forms.RadioButton manualRB;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox gainBox;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox fcBox;
     }
 }
