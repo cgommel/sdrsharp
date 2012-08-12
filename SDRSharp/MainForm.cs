@@ -1072,18 +1072,16 @@ namespace SDRSharp
 
         private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
         {
-            if (e.Bandwidth >= filterBandwidthNumericUpDown.Minimum && e.Bandwidth <= filterBandwidthNumericUpDown.Maximum /*&& !wfmRadioButton.Checked*/)
+            if (e.Bandwidth < filterBandwidthNumericUpDown.Minimum)
             {
-                filterBandwidthNumericUpDown.Value = e.Bandwidth;
-            }
-            else if (e.Bandwidth < filterBandwidthNumericUpDown.Minimum)
-            {
-                filterBandwidthNumericUpDown.Value = filterBandwidthNumericUpDown.Minimum;
+                e.Bandwidth = (int) filterBandwidthNumericUpDown.Minimum;
             }
             else if (e.Bandwidth > filterBandwidthNumericUpDown.Maximum)
             {
-                filterBandwidthNumericUpDown.Value = filterBandwidthNumericUpDown.Maximum;
+                e.Bandwidth = (int) filterBandwidthNumericUpDown.Maximum;
             }
+
+            filterBandwidthNumericUpDown.Value = e.Bandwidth;
         }
 
         private void frontendGuiButton_Click(object sender, EventArgs e)
