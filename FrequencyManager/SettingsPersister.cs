@@ -14,7 +14,7 @@ namespace SDRSharp.FrequencyManager
         public SettingsPersister()
         {
             //_settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SDRSharp");
-            _settingsFolder = Application.ExecutablePath;
+            _settingsFolder = Path.GetDirectoryName(Application.ExecutablePath);
         }
 
         public List<MemoryEntry> ReadStoredFrequencies()
