@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using System.Windows.Forms;
 
 namespace SDRSharp.FrequencyManager
 {
@@ -13,8 +14,7 @@ namespace SDRSharp.FrequencyManager
         public SettingsPersister()
         {
             //_settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SDRSharp");
-            _settingsFolder = @".\";
-            if (!Directory.Exists(_settingsFolder)) Directory.CreateDirectory(_settingsFolder);
+            _settingsFolder = Application.ExecutablePath;
         }
 
         public List<MemoryEntry> ReadStoredFrequencies()
