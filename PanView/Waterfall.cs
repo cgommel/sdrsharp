@@ -66,6 +66,8 @@ namespace SDRSharp.PanView
         private float _trackingY;
         private float _trackingX;
         private long _trackingFrequency;
+        private int _scanlines;
+        private int _timestampInterval = Utils.GetIntSetting("timestampInterval", 100);
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
@@ -106,6 +108,11 @@ namespace SDRSharp.PanView
             if (_drawNeeded)
             {
                 Draw();
+                if (++_scanlines == TimestampInterval)
+                {
+                    _scanlines = 0;
+                    DrawTimestamp();
+                }
             }
             if (_performNeeded || _drawNeeded)
             {
@@ -308,6 +315,12 @@ namespace SDRSharp.PanView
             set { _useSnap = value; }
         }
 
+        public int TimestampInterval
+        {
+            get { return _timestampInterval; }
+            set { _timestampInterval = value; }
+        }
+
         private void ApplyZoom()
         {
             _scale = (float) Math.Pow(10, _zoom * MaxZoom / 100.0f);
@@ -455,6 +468,16 @@ namespace SDRSharp.PanView
                 *ptr++ = _gradientPixels[colorIndex];
             }
             _buffer.UnlockBits(bits);
+        }
+
+        private void DrawTimestamp()
+        {
+            using (var font = new Font("Arial", 12f))
+            using (var graphics = Graphics.FromImage(_buffer))
+            {
+                var timestamp = DateTime.Now.ToString();
+                graphics.DrawString(timestamp, font, Brushes.Yellow, AxisMargin, 0);
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
