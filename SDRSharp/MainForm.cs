@@ -175,6 +175,9 @@ namespace SDRSharp
             waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
             wDecayTrackBar.Value = (int)(waterfall.Decay * wDecayTrackBar.Maximum);
 
+            waterfall.UseTimestamps = Utils.GetBooleanSetting("useTimeMarkers");
+            useTimestampsCheckBox.Checked = waterfall.UseTimestamps;
+
             #endregion
 
             #region Initialize the plugins
@@ -288,6 +291,7 @@ namespace SDRSharp
             Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("waterfallDecay", waterfall.Decay.ToString(CultureInfo.InvariantCulture));
+            Utils.SaveSetting("useTimeMarkers", useTimestampsCheckBox.Checked.ToString());
         }
 
         #endregion
@@ -1231,6 +1235,11 @@ namespace SDRSharp
         private void markPeaksCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.MarkPeaks = markPeaksCheckBox.Checked;
+        }
+
+        private void useTimeStampCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            waterfall.UseTimestamps = useTimestampsCheckBox.Checked;
         }
 
         #endregion

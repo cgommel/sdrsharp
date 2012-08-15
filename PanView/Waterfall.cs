@@ -66,6 +66,7 @@ namespace SDRSharp.PanView
         private float _trackingY;
         private float _trackingX;
         private long _trackingFrequency;
+        private bool _useTimestamps;
         private int _scanlines;
         private int _timestampInterval = Utils.GetIntSetting("timestampInterval", 100);
         private LinearGradientBrush _gradientBrush;
@@ -108,7 +109,7 @@ namespace SDRSharp.PanView
             if (_drawNeeded)
             {
                 Draw();
-                if (++_scanlines == TimestampInterval)
+                if (_useTimestamps && ++_scanlines >= TimestampInterval)
                 {
                     _scanlines = 0;
                     DrawTimestamp();
@@ -315,6 +316,16 @@ namespace SDRSharp.PanView
             set { _useSnap = value; }
         }
 
+        public bool UseTimestamps
+        {
+            get { return _useTimestamps; }
+            set
+            {
+                _useTimestamps = value;
+                _scanlines = 0;
+            }
+        }
+
         public int TimestampInterval
         {
             get { return _timestampInterval; }
@@ -472,7 +483,7 @@ namespace SDRSharp.PanView
 
         private void DrawTimestamp()
         {
-            using (var font = new Font("Arial", 12f))
+            using (var font = new Font("Arial", 10f))
             using (var graphics = Graphics.FromImage(_buffer))
             {
                 var timestamp = DateTime.Now.ToString();
