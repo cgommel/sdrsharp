@@ -10,6 +10,7 @@ namespace SDRSharp.PanView
 {
     public class SpectrumAnalyzer : UserControl
     {
+        private const float TrackingFontSize = 16.0f;
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
@@ -354,7 +355,9 @@ namespace SDRSharp.PanView
             using (var transparentBackground = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var redPen = new Pen(Color.Red))
             using (var graphics = Graphics.FromImage(_buffer))
-            using (var font = new Font("Arial", 12f))
+            using (var fontFamily = new FontFamily("Arial"))
+            using (var path = new GraphicsPath())
+            using (var outlinePen = new Pen(Color.Black))
             {
                 if (cursorWidth < ClientRectangle.Width)
                 {
@@ -416,14 +419,25 @@ namespace SDRSharp.PanView
                     {
                         fstring = string.Format("{0}\r\n{1:0.##}dB", GetFrequencyDisplay(_trackingFrequency), _trackingPower);
                     }
-                    var stringSize = graphics.MeasureString(fstring, font);
+
+                    path.AddString(fstring, fontFamily, (int)FontStyle.Regular, TrackingFontSize, Point.Empty, StringFormat.GenericTypographic);
+                    var stringSize = path.GetBounds();
                     var currentCursor = Cursor.Current;
                     var xOffset = _trackingX + 15.0f;
-                    var yOffset = _trackingY + (currentCursor == null ? DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
-                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
-                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
-                    graphics.DrawString(fstring, font, Brushes.Black, (int) xOffset + 1, (int) yOffset + 1, StringFormat.GenericTypographic);
-                    graphics.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
+                    var yOffset = _trackingY + (currentCursor == null ? SpectrumAnalyzer.DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width - 5);
+                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height - 5);
+                    path.Reset();
+                    path.AddString(fstring, fontFamily, (int)FontStyle.Regular, TrackingFontSize, new Point((int)xOffset, (int)yOffset), StringFormat.GenericTypographic);
+                    var smoothingMode = graphics.SmoothingMode;
+                    var interpolationMode = graphics.InterpolationMode;
+                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    outlinePen.Width = 2;
+                    graphics.DrawPath(outlinePen, path);
+                    graphics.FillPath(Brushes.White, path);
+                    graphics.SmoothingMode = smoothingMode;
+                    graphics.InterpolationMode = interpolationMode;
                 }
             }
         }

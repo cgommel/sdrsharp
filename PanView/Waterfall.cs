@@ -20,6 +20,8 @@ namespace SDRSharp.PanView
 
     public class Waterfall : UserControl
     {
+        private const float TrackingFontSize = 16.0f;
+        private const float TimestampFontSize = 14.0f;
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
 
@@ -483,11 +485,23 @@ namespace SDRSharp.PanView
 
         private void DrawTimestamp()
         {
-            using (var font = new Font("Arial", 10f))
+            using (var fontFamily = new FontFamily("Arial"))
+            using (var path = new GraphicsPath())
+            using (var outlinePen = new Pen(Color.Black))
             using (var graphics = Graphics.FromImage(_buffer))
             {
                 var timestamp = DateTime.Now.ToString();
-                graphics.DrawString(timestamp, font, Brushes.Yellow, AxisMargin, 0);
+
+                path.AddString(timestamp, fontFamily, (int) FontStyle.Regular, TimestampFontSize, new Point(AxisMargin, AxisMargin), StringFormat.GenericTypographic);
+                var smoothingMode = graphics.SmoothingMode;
+                var interpolationMode = graphics.InterpolationMode;
+                graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                outlinePen.Width = 2;
+                graphics.DrawPath(outlinePen, path);
+                graphics.FillPath(Brushes.Yellow, path);
+                graphics.SmoothingMode = smoothingMode;
+                graphics.InterpolationMode = interpolationMode;
             }
         }
 
@@ -542,7 +556,9 @@ namespace SDRSharp.PanView
             using (var transparentBrush = new SolidBrush(Color.FromArgb(80, Color.DarkGray)))
             using (var hotTrackPen = new Pen(Color.Red))
             using (var carrierPen = new Pen(Color.Red))
-            using (var font = new Font("Arial", 12f))
+            using (var fontFamily = new FontFamily("Arial"))
+            using (var path = new GraphicsPath())
+            using (var outlinePen = new Pen(Color.Black))
             {
                 carrierPen.Width = CarrierPenWidth;
                 if (cursorWidth < ClientRectangle.Width)
@@ -559,7 +575,6 @@ namespace SDRSharp.PanView
                     {
                         _graphics2.DrawLine(hotTrackPen, _trackingX, 0f, _trackingX, ClientRectangle.Height);
                     }
-
 
                     string fstring;
                     if (_changingFrequency)
@@ -579,14 +594,24 @@ namespace SDRSharp.PanView
                         fstring = SpectrumAnalyzer.GetFrequencyDisplay(_trackingFrequency);
                     }
 
-                    var stringSize = g.MeasureString(fstring, font);
+                    path.AddString(fstring, fontFamily, (int) FontStyle.Regular, TrackingFontSize, Point.Empty, StringFormat.GenericTypographic);
+                    var stringSize = path.GetBounds();
                     var currentCursor = Cursor.Current;
                     var xOffset = _trackingX + 15.0f;
                     var yOffset = _trackingY + (currentCursor == null ? SpectrumAnalyzer.DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
-                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width + 4);
-                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height + 1);
-                    g.DrawString(fstring, font, Brushes.Black, (int) xOffset + 1, (int) yOffset + 1, StringFormat.GenericTypographic);
-                    g.DrawString(fstring, font, Brushes.White, (int) xOffset, (int) yOffset, StringFormat.GenericTypographic);
+                    xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width - 5);
+                    yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height - 5);
+                    path.Reset();
+                    path.AddString(fstring, fontFamily, (int) FontStyle.Regular, TrackingFontSize, new Point((int) xOffset, (int) yOffset), StringFormat.GenericTypographic);
+                    var smoothingMode = g.SmoothingMode;
+                    var interpolationMode = g.InterpolationMode;
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    outlinePen.Width = 2;
+                    g.DrawPath(outlinePen, path);
+                    g.FillPath(Brushes.White, path);
+                    g.SmoothingMode = smoothingMode;
+                    g.InterpolationMode = interpolationMode;
                 }
             }
         }
