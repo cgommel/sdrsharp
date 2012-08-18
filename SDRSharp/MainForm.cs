@@ -476,6 +476,7 @@ namespace SDRSharp
             if (waveFileRadioButton.Checked)
             {
                 _streamControl.Stop();
+                _iqBalancer.Reset();
                 wavFileTextBox.Enabled = true;
                 fileSelectButton.Enabled = true;
                 playButton.Enabled = true;
@@ -499,6 +500,7 @@ namespace SDRSharp
 
         private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            _iqBalancer.Reset();
             var frontendName = (string) frontEndComboBox.SelectedItem;
             if (frontendName == "Other")
             {
@@ -577,10 +579,14 @@ namespace SDRSharp
         {
             if (openDlg.ShowDialog() == DialogResult.OK)
             {
+                _streamControl.Stop();
+                if (wavFileTextBox.Text != openDlg.FileName)
+                {
+                    _iqBalancer.Reset();
+                }
                 wavFileTextBox.Text = openDlg.FileName;
                 playButton.Enabled = true;
                 stopButton.Enabled = false;
-                _streamControl.Stop();
             }
         }
 
