@@ -37,7 +37,6 @@ namespace SDRSharp.PanView
         private Bitmap _buffer2;
         private Graphics _graphics;
         private Graphics _graphics2;
-        private Graphics _mainGraphics;
         private BandType _bandType;
         private int _filterBandwidth;
         private int _filterOffset;
@@ -78,7 +77,6 @@ namespace SDRSharp.PanView
         {
             _spectrum = new byte[ClientRectangle.Width - 2 * AxisMargin];
             _temp = new byte[_spectrum.Length];
-            _mainGraphics = Graphics.FromHwnd(Handle);
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
@@ -88,6 +86,8 @@ namespace SDRSharp.PanView
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer, false);
             SetStyle(ControlStyles.DoubleBuffer, false);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
         }
 
@@ -102,7 +102,6 @@ namespace SDRSharp.PanView
             _buffer2.Dispose();
             _graphics.Dispose();
             _graphics2.Dispose();
-            _mainGraphics.Dispose();
             _gradientBrush.Dispose();
         }
 
@@ -119,7 +118,7 @@ namespace SDRSharp.PanView
             }
             if (_performNeeded || _drawNeeded)
             {
-                RenderGraphics();
+                Invalidate();
             }
             _drawNeeded = false;
             _performNeeded = false;
@@ -492,14 +491,14 @@ namespace SDRSharp.PanView
             {
                 var timestamp = DateTime.Now.ToString();
 
-                path.AddString(timestamp, fontFamily, (int) FontStyle.Regular, TimestampFontSize, new Point(AxisMargin, AxisMargin), StringFormat.GenericTypographic);
+                path.AddString(timestamp, fontFamily, (int) FontStyle.Regular, TimestampFontSize, new Point(AxisMargin, 0), StringFormat.GenericTypographic);
                 var smoothingMode = graphics.SmoothingMode;
                 var interpolationMode = graphics.InterpolationMode;
                 graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 outlinePen.Width = 2;
                 graphics.DrawPath(outlinePen, path);
-                graphics.FillPath(Brushes.Yellow, path);
+                graphics.FillPath(Brushes.White, path);
                 graphics.SmoothingMode = smoothingMode;
                 graphics.InterpolationMode = interpolationMode;
             }
@@ -507,20 +506,16 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            RenderGraphics();
-        }
-
-        private void RenderGraphics()
-        {
+            SpectrumAnalyzer.ConfigureGraphics(e.Graphics);
             if (_mouseIn)
             {
                 _graphics2.DrawImageUnscaled(_buffer, 0, 0);
                 DrawCursor(_graphics2);
-                _mainGraphics.DrawImageUnscaled(_buffer2, 0, 0);
+                e.Graphics.DrawImageUnscaled(_buffer2, 0, 0);
             }
             else
             {
-                _mainGraphics.DrawImageUnscaled(_buffer, 0, 0);
+                e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
             }
         }
 
@@ -640,11 +635,7 @@ namespace SDRSharp.PanView
             _graphics2.Dispose();
             _graphics2 = Graphics.FromImage(_buffer2);
             SpectrumAnalyzer.ConfigureGraphics(_graphics2);
-
-            _mainGraphics.Dispose();
-            _mainGraphics = Graphics.FromHwnd(Handle);
-            SpectrumAnalyzer.ConfigureGraphics(_mainGraphics);
-
+            
             _graphics.Clear(Color.Black);
             var rect = new Rectangle(AxisMargin, 0, _buffer.Width - 2 * AxisMargin, _buffer.Height);
             _graphics.DrawImage(oldBuffer, rect, AxisMargin, 0, oldBuffer.Width - 2 * AxisMargin, oldBuffer.Height, GraphicsUnit.Pixel);

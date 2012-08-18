@@ -29,7 +29,6 @@ namespace SDRSharp.PanView
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
-        private Graphics _mainGraphics;
         private long _spectrumWidth;
         private long _centerFrequency;
         private long _displayCenterFrequency;
@@ -67,12 +66,13 @@ namespace SDRSharp.PanView
             _bkgBuffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
-            _mainGraphics = Graphics.FromHwnd(Handle);
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
 
             SetStyle(ControlStyles.OptimizedDoubleBuffer, false);
             SetStyle(ControlStyles.DoubleBuffer, false);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
         }
 
@@ -80,7 +80,6 @@ namespace SDRSharp.PanView
         {
             _buffer.Dispose();
             _graphics.Dispose();
-            _mainGraphics.Dispose();
             _gradientBrush.Dispose();
         }
 
@@ -317,7 +316,7 @@ namespace SDRSharp.PanView
             if (_performNeeded || _drawBackgroundNeeded)
             {
                 DrawForeground();
-                RenderGraphics();
+                Invalidate();
             }
             _performNeeded = false;
             _drawBackgroundNeeded = false;
@@ -424,7 +423,7 @@ namespace SDRSharp.PanView
                     var stringSize = path.GetBounds();
                     var currentCursor = Cursor.Current;
                     var xOffset = _trackingX + 15.0f;
-                    var yOffset = _trackingY + (currentCursor == null ? SpectrumAnalyzer.DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
+                    var yOffset = _trackingY + (currentCursor == null ? DefaultCursorHeight : currentCursor.Size.Height) - 8.0f;
                     xOffset = Math.Min(xOffset, ClientRectangle.Width - stringSize.Width - 5);
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height - 5);
                     path.Reset();
@@ -636,12 +635,8 @@ namespace SDRSharp.PanView
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            RenderGraphics();
-        }
-
-        private void RenderGraphics()
-        {
-            _mainGraphics.DrawImageUnscaled(_buffer, 0, 0);
+            ConfigureGraphics(e.Graphics);
+            e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
         }
 
         protected override void OnResize(EventArgs e)
@@ -656,10 +651,6 @@ namespace SDRSharp.PanView
                 
                 _graphics = Graphics.FromImage(_buffer);
                 ConfigureGraphics(_graphics);
-
-                _mainGraphics.Dispose();
-                _mainGraphics = Graphics.FromHwnd(Handle);
-                ConfigureGraphics(_mainGraphics);
 
                 _bkgBuffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
                 var length = ClientRectangle.Width - 2 * AxisMargin;
