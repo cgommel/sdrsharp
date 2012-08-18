@@ -9,6 +9,7 @@
         LSB,
         USB,
         CWL,
-        CWU
+        CWU,
+        RAW
     }
 }

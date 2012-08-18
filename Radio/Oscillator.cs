@@ -2,7 +2,7 @@
 
 namespace SDRSharp.Radio
 {
-    public sealed class Oscillator
+    public sealed unsafe class Oscillator
     {
         private double _sampleRate;
         private double _frequency;
@@ -67,14 +67,31 @@ namespace SDRSharp.Radio
             get { return (float) _outI; }
         }
 
-        public Complex Tick()
+        public void Tick()
         {
             _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
             _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
             double oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
             _vectR = oscGn * _outR;
             _vectI = oscGn * _outI;
-            return Out;
+        }
+
+        public void Mix(float* buffer, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                Tick();
+                buffer[i] *= (float) _outR;
+            }
+        }
+
+        public void Mix(Complex* buffer, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                Tick();
+                buffer[i] *= Out;
+            }
         }
 
         public static implicit operator Complex(Oscillator osc)

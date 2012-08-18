@@ -88,6 +88,11 @@
     <Compile Include="AmDetector.cs" />
     <Compile Include="ExtIO.cs" />
     <Compile Include="ExtIOController.cs" />
+    <Compile Include="Pll.cs" />
+    <Compile Include="RdsDecoder.cs" />
+    <Compile Include="RdsDemod.cs" />
+    <Compile Include="RdsDetectorBank.cs" />
+    <Compile Include="RdsDumpGroups.cs" />
     <Compile Include="StereoDecoder.cs" />
     <Compile Include="StreamControl.cs" />
     <Compile Include="AutomaticGain.cs" />

@@ -24,6 +24,7 @@ namespace SDRSharp.Radio
         private readonly DsbDetector _dsbDetector = new DsbDetector();
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
+        //private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
         private readonly FirFilter _audioFilter = new FirFilter();
         private readonly IQFirFilter _iqFilter = new IQFirFilter();
         private IQDecimator _baseBandDecimator;
@@ -326,6 +327,7 @@ namespace SDRSharp.Radio
             _fmDetector.SquelchThreshold = _squelchThreshold;
             _amDetector.SquelchThreshold = _squelchThreshold;
             _stereoDecoder.Configure(_fmDetector.SampleRate, _audioDecimationStageCount);
+            //_rdsDecoder.SampleRate = _fmDetector.SampleRate;
             _stereoDecoder.ForceMono = !_fmStereo;
             switch (_actualDetectorType)
             {
@@ -417,7 +419,7 @@ namespace SDRSharp.Radio
                 _needConfigure = false;
             }
 
-            DownConvert(iqBuffer, length);
+            _localOscillator.Mix(iqBuffer, length);
 
             if (_baseBandDecimator.StageCount > 0)
             {
@@ -427,12 +429,17 @@ namespace SDRSharp.Radio
 
             _iqFilter.Process(iqBuffer, length);
 
+            if (_actualDetectorType == DetectorType.RAW)
+            {
+                Utils.Memcpy(audioBuffer, iqBuffer, length * sizeof(Complex));
+                return;
+            }
+
             if (_rawAudioBuffer == null || _rawAudioBuffer.Length != length)
             {
                 _rawAudioBuffer = UnsafeBuffer.Create(length, sizeof (float));
                 _rawAudioPtr = (float*) _rawAudioBuffer;
             }
-
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
             if (_filterAudio && _actualDetectorType != DetectorType.WFM)
@@ -452,6 +459,7 @@ namespace SDRSharp.Radio
 
             if (_actualDetectorType == DetectorType.WFM)
             {
+                //_rdsDecoder.Process(_rawAudioPtr, length);
                 _stereoDecoder.Process(_rawAudioPtr, audioBuffer, length);
             }
             else
@@ -466,14 +474,6 @@ namespace SDRSharp.Radio
             {
                 output[i * 2] = input[i];
                 output[i * 2 + 1] = input[i];
-            }
-        }
-
-        private void DownConvert(Complex* iq, int length)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                iq[i] *= _localOscillator.Tick();
             }
         }
 
