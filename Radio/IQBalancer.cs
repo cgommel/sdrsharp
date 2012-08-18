@@ -4,9 +4,10 @@ namespace SDRSharp.Radio
 {
     public unsafe class IQBalancer
     {
-        private const int FFTBins = 512;
+        private const int FFTBins = 1024;
         private const float DcTimeConst = 0.001f;
         private const float BaseIncrement = 0.001f;
+        private const float PowerThreshold = 20.0f; // in dB
 
         private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
         private bool _autoBalanceIQ = true;
@@ -14,6 +15,8 @@ namespace SDRSharp.Radio
         private float _averageQ;
         private float _gain = 1.0f;
         private float _phase;
+        private float _averagePower;
+        private float _powerRange;
         private Complex* _iqPtr;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
@@ -23,7 +26,7 @@ namespace SDRSharp.Radio
         {
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
-            _windowPtr = (float*)_windowBuffer;
+            _windowPtr = (float*) _windowBuffer;
         }
 
         public float Phase
@@ -48,12 +51,20 @@ namespace SDRSharp.Radio
             set { _autoBalanceIQ = value; }
         }
 
+        public void Reset()
+        {
+            _phase = 0.0f;
+            _gain = 1.0f;
+            _averageI = 0.0f;
+            _averageQ = 0.0f;
+        }
+
         public void Process(Complex* iq, int length)
         {
             if (_autoBalanceIQ && length >= FFTBins)
             {
-                _iqPtr = iq;
                 RemoveDC(iq, length);
+                _iqPtr = iq;
                 EstimateImbalance();
                 Adjust(iq, length, _phase, _gain);
             }
@@ -75,6 +86,12 @@ namespace SDRSharp.Radio
 
         private void EstimateImbalance()
         {
+            EstimatePower();
+            if (_powerRange < PowerThreshold)
+            {
+                return;
+            }
+
             var currentUtility = Utility(_phase, _gain);
 
             for (var count = 0; count < _maxAutomaticPasses; count++)
@@ -97,7 +114,7 @@ namespace SDRSharp.Radio
 
         private float GetRandomDirection()
         {
-            return (float)(_rng.NextDouble() - 0.5) * 2.0f;
+            return _rng.NextDouble() > 0.5 ? 1f : -1f;
         }
 
         private float Utility(float phase, float gain)
@@ -111,17 +128,64 @@ namespace SDRSharp.Radio
             Fourier.SpectrumPower(fftPtr, spectrumPtr, FFTBins);
 
             var result = 0.0f;
-            for (var i = 0; i < FFTBins / 2; i++)
+            const int halfBins = FFTBins / 2;
+            for (var i = 0; i < halfBins; i++)
             {
-                var distanceFromCenter = FFTBins / 2 - i;
+                var distanceFromCenter = halfBins - i;
 
-                if (distanceFromCenter > 0.05f * FFTBins / 2)
+                if (distanceFromCenter > 0.05f * halfBins && distanceFromCenter < 0.95f * halfBins)
                 {
-                    result += Math.Abs(spectrumPtr[i] - spectrumPtr[FFTBins - 2 - i]);
+                    var j = FFTBins - 2 - i;
+                    if (spectrumPtr[i] - _averagePower > PowerThreshold || spectrumPtr[j] - _averagePower > PowerThreshold)
+                    {
+                        var distance = spectrumPtr[i] - spectrumPtr[j];
+                        result += distance * distance;
+                    }
                 }
             }
 
             return result;
+        }
+
+        private void EstimatePower()
+        {
+            var fftPtr = stackalloc Complex[FFTBins];
+            var spectrumPtr = stackalloc float[FFTBins];
+            Utils.Memcpy(fftPtr, _iqPtr, FFTBins * sizeof(Complex));
+            Fourier.ApplyFFTWindow(fftPtr, _windowPtr, FFTBins);
+            Fourier.ForwardTransform(fftPtr, FFTBins);
+            Fourier.SpectrumPower(fftPtr, spectrumPtr, FFTBins);
+
+            const int halfBins = FFTBins / 2;
+            var max = float.NegativeInfinity;
+            var avg = 0f;
+            var count = 0;
+            for (var i = 0; i < halfBins; i++)
+            {
+                var distanceFromCenter = halfBins - i;
+
+                if (distanceFromCenter > 0.05f * halfBins && distanceFromCenter < 0.95f * halfBins)
+                {
+                    var j = FFTBins - 2 - i;
+
+                    if (spectrumPtr[i] > max)
+                    {
+                        max = spectrumPtr[i];
+                    }
+
+                    if (spectrumPtr[j] > max)
+                    {
+                        max = spectrumPtr[j];
+                    }
+
+                    avg += spectrumPtr[i] + spectrumPtr[j];
+                    count += 2;
+                }
+            }
+            avg /= count;
+
+            _powerRange = max - avg;
+            _averagePower = avg;
         }
 
 #if ACCURACY_PRIVILEGED
@@ -141,8 +205,7 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                buffer[i].Real += phase * buffer[i].Imag;
-                buffer[i].Imag *= gain;
+                buffer[i].Real = buffer[i].Real * gain + phase * buffer[i].Imag;
             }
         }
 
