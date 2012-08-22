@@ -151,6 +151,7 @@ namespace SDRSharp
             waterfall.Frequency = _vfo.Frequency;
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
             waterfall.BandType = BandType.Center;
+            waterfall.TimestampInterval = Utils.GetIntSetting("timestampInterval", 100);
 
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.Frequency = _vfo.Frequency;

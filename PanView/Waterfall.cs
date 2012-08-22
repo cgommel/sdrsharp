@@ -69,7 +69,7 @@ namespace SDRSharp.PanView
         private long _trackingFrequency;
         private bool _useTimestamps;
         private int _scanlines;
-        private int _timestampInterval = Utils.GetIntSetting("timestampInterval", 100);
+        private int _timestampInterval;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
