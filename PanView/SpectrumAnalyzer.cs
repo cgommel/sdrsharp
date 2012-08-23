@@ -463,8 +463,6 @@ namespace SDRSharp.PanView
 
         private void DrawBackground()
         {
-            #region Draw grid
-
             using (var fontBrush = new SolidBrush(Color.Silver))
             using (var gridPen = new Pen(Color.FromArgb(80, 80, 80)))
             using (var axisPen = new Pen(Color.DarkGray))
@@ -476,10 +474,48 @@ namespace SDRSharp.PanView
                 // Background
                 graphics.Clear(Color.Black);
 
-                // Grid
+                if (_spectrumWidth > 0)
+                {
+                    #region Frequency markers
+
+                    var baseLabelLength = (int)graphics.MeasureString("1,000,000.000kHz", font).Width;
+                    var frequencyStep = (int)(_spectrumWidth / _scale * baseLabelLength / (ClientRectangle.Width - 2 * AxisMargin));
+                    int stepSnap = _stepSize;
+                    frequencyStep = frequencyStep / stepSnap * stepSnap + stepSnap;
+                    var lineCount = (int)(_spectrumWidth / _scale / frequencyStep) + 4;
+                    var xIncrement = (ClientRectangle.Width - 2.0f * AxisMargin) * frequencyStep * _scale / _spectrumWidth;
+                    var centerShift = (int)((_displayCenterFrequency % frequencyStep) * (ClientRectangle.Width - 2.0 * AxisMargin) * _scale / _spectrumWidth);
+                    for (var i = -lineCount / 2; i < lineCount / 2; i++)
+                    {
+                        var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
+                        if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
+                        {
+                            graphics.DrawLine(gridPen, x, AxisMargin, x, ClientRectangle.Height - AxisMargin);
+                        }
+                    }
+
+                    for (var i = -lineCount / 2; i < lineCount / 2; i++)
+                    {
+                        var frequency = _displayCenterFrequency + i * frequencyStep - _displayCenterFrequency % frequencyStep;
+                        var fstring = GetFrequencyDisplay(frequency);
+                        var sizeF = graphics.MeasureString(fstring, font);
+                        var width = sizeF.Width;
+                        var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
+                        if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
+                        {
+                            x -= width / 2f;
+                            graphics.DrawString(fstring, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 8f);
+                        }
+                    }
+
+                    #endregion
+                }
+
+                #region Grid
+
                 gridPen.DashStyle = DashStyle.Dash;
 
-                // Decibels
+                // Power axis
                 var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 13.0f;
                 for (var i = 1; i <= 13; i++)
                 {
@@ -498,45 +534,8 @@ namespace SDRSharp.PanView
                 graphics.DrawLine(axisPen, AxisMargin, AxisMargin, AxisMargin, ClientRectangle.Height - AxisMargin);
                 graphics.DrawLine(axisPen, AxisMargin, ClientRectangle.Height - AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin);
 
-                if (_spectrumWidth <= 0)
-                {
-                    return;
-                }
-
-                // Frequencies
-                var baseLabelLength = (int) graphics.MeasureString("1,000,000.000kHz", font).Width;
-                var frequencyStep = (int) (_spectrumWidth / _scale * baseLabelLength / (ClientRectangle.Width - 2 * AxisMargin));
-                int stepSnap = _stepSize;
-                frequencyStep = frequencyStep / stepSnap * stepSnap + stepSnap;
-                var lineCount = (int) (_spectrumWidth / _scale / frequencyStep) + 4;
-                var xIncrement = (ClientRectangle.Width - 2.0f * AxisMargin) * frequencyStep * _scale / _spectrumWidth;
-                var centerShift = (int)((_displayCenterFrequency % frequencyStep) * (ClientRectangle.Width - 2.0 * AxisMargin) * _scale / _spectrumWidth);
-                for (var i = -lineCount / 2; i < lineCount / 2; i++)
-                {
-                    var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
-                    if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
-                    {
-                        graphics.DrawLine(gridPen, x, AxisMargin, x, ClientRectangle.Height - AxisMargin);
-                    }
-                }
-
-                // Frequency line
-                for (var i = -lineCount / 2; i < lineCount / 2; i++)
-                {
-                    var frequency = _displayCenterFrequency + i * frequencyStep - _displayCenterFrequency % frequencyStep;
-                    var fstring = GetFrequencyDisplay(frequency);
-                    var sizeF = graphics.MeasureString(fstring, font);
-                    var width = sizeF.Width;
-                    var x = (ClientRectangle.Width - 2 * AxisMargin) / 2 + AxisMargin + xIncrement * i - centerShift;
-                    if (x >= AxisMargin && x <= ClientRectangle.Width - AxisMargin)
-                    {
-                        x -= width / 2f;
-                        graphics.DrawString(fstring, font, fontBrush, x, ClientRectangle.Height - AxisMargin + 8f);
-                    }
-                }
+                #endregion
             }
-
-            #endregion
         }
 
         public static string GetFrequencyDisplay(long frequency)
@@ -898,7 +897,7 @@ namespace SDRSharp.PanView
             {
                 Cursor = Cursors.Default;
             }
-            _drawBackgroundNeeded = true;
+            _performNeeded = true;
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -911,7 +910,7 @@ namespace SDRSharp.PanView
         {
             base.OnMouseLeave(e);
             _hotTrackNeeded = false;
-            _drawBackgroundNeeded = true;
+            _performNeeded = true;
         }
 
         protected override void  OnMouseEnter(EventArgs e)
