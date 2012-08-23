@@ -4,10 +4,10 @@ namespace SDRSharp.Radio
 {
     public unsafe sealed class StereoDecoder
     {
-        private const int PllDefaultFrequency = 19000;
+        private const int DefaultPilotFrequency = 19000;
         private const int PllRange = 20;
         private const int PllBandwith = 10;
-        private const double PllThreshold = 3.2;
+        private const double PllThreshold = 1.0;
         private const double PllLockTime = 0.5; // sec
         private const double PllZeta = 0.707;
         private const double PllPhaseAdjM = -7.267e-6f;
@@ -17,6 +17,7 @@ namespace SDRSharp.Radio
 
         private readonly Pll _pll = new Pll();
 
+        private IirFilter _pilotFilter;
         private UnsafeBuffer _channelABuffer;
         private UnsafeBuffer _channelBBuffer;
         private float* _channelAPtr;
@@ -138,8 +139,9 @@ namespace SDRSharp.Radio
             
             for (var i = 0; i < length; i++)
             {
-                _pll.Process(baseBand[i]);
-                _channelBPtr[i] = baseBand[i] * (float) Math.Sin(_pll.AdjustedPhase * 2.0f);
+                var pilot = _pilotFilter.Process(baseBand[i]);
+                _pll.Process(pilot);
+                _channelBPtr[i] = baseBand[i] * (float) Math.Sin(_pll.AdjustedPhase * 2.0);
             }
 
             if (!_pll.IsLocked)
@@ -210,8 +212,10 @@ namespace SDRSharp.Radio
             {
                 _sampleRate = sampleRate;
 
+                _pilotFilter = new IirFilter(IirFilterType.BandPass, DefaultPilotFrequency, _sampleRate, 500);
+
                 _pll.SampleRate = _sampleRate;
-                _pll.DefaultFrequency = PllDefaultFrequency;
+                _pll.DefaultFrequency = DefaultPilotFrequency;
                 _pll.Range = PllRange;
                 _pll.Bandwidth = PllBandwith;
                 _pll.Zeta = PllZeta;

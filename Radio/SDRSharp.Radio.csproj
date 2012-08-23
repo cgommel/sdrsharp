@@ -88,6 +88,7 @@
     <Compile Include="AmDetector.cs" />
     <Compile Include="ExtIO.cs" />
     <Compile Include="ExtIOController.cs" />
+    <Compile Include="IirFilter.cs" />
     <Compile Include="Pll.cs" />
     <Compile Include="RdsDecoder.cs" />
     <Compile Include="RdsDemod.cs" />
