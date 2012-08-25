@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.RTLTCP", "RTLTCP\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.FrequencyManager", "FrequencyManager\SDRSharp.FrequencyManager.csproj", "{63F197AA-A7CC-45B5-A0A1-F115CBF89498}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.RTL283X", "RTL283X\SDRSharp.RTL283X.csproj", "{C249DEB8-DA83-4C75-B3A6-C4802F7DFE16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.Common", "Common\SDRSharp.Common.csproj", "{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -60,6 +64,14 @@ Global
 		{63F197AA-A7CC-45B5-A0A1-F115CBF89498}.Debug|x86.Build.0 = Debug|x86
 		{63F197AA-A7CC-45B5-A0A1-F115CBF89498}.Release|x86.ActiveCfg = Release|x86
 		{63F197AA-A7CC-45B5-A0A1-F115CBF89498}.Release|x86.Build.0 = Release|x86
+		{C249DEB8-DA83-4C75-B3A6-C4802F7DFE16}.Debug|x86.ActiveCfg = Debug|x86
+		{C249DEB8-DA83-4C75-B3A6-C4802F7DFE16}.Debug|x86.Build.0 = Debug|x86
+		{C249DEB8-DA83-4C75-B3A6-C4802F7DFE16}.Release|x86.ActiveCfg = Release|x86
+		{C249DEB8-DA83-4C75-B3A6-C4802F7DFE16}.Release|x86.Build.0 = Release|x86
+		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Debug|x86.ActiveCfg = Debug|x86
+		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Debug|x86.Build.0 = Debug|x86
+		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Release|x86.ActiveCfg = Release|x86
+		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

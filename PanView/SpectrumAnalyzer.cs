@@ -447,7 +447,7 @@ namespace SDRSharp.PanView
             var offset = (int)((length - scaledLength) / 2.0 + length * (double) (_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
             if (_useSmoothing)
             {
-                Waterfall.SmoothCopy(spectrum, _temp, length, _scale, offset);
+                Fourier.SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
@@ -456,7 +456,7 @@ namespace SDRSharp.PanView
             }
             else
             {
-                Waterfall.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
+                Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
             _performNeeded = true;
         }
@@ -658,7 +658,7 @@ namespace SDRSharp.PanView
                 _peaks = new bool[length];
                 if (oldSpectrum != null)
                 {
-                    Waterfall.SmoothCopy(oldSpectrum, _spectrum, oldSpectrum.Length, 1, 0);
+                    Fourier.SmoothCopy(oldSpectrum, _spectrum, oldSpectrum.Length, 1, 0);
                 }
                 else
                 {

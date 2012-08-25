@@ -141,6 +141,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SharpControlProxy.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -155,9 +156,9 @@
       <Project>{279AE777-D3DE-449A-9501-A83677F2B97A}</Project>
       <Name>SDRSharp.CollapsiblePanel</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FrequencyManager\SDRSharp.FrequencyManager.csproj">
-      <Project>{63F197AA-A7CC-45B5-A0A1-F115CBF89498}</Project>
-      <Name>SDRSharp.FrequencyManager</Name>
+    <ProjectReference Include="..\Common\SDRSharp.Common.csproj">
+      <Project>{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}</Project>
+      <Name>SDRSharp.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\PanView\SDRSharp.PanView.csproj">
       <Project>{C9292D31-4761-48FC-BEE0-9035D27F68BC}</Project>
@@ -172,7 +173,9 @@
     <Content Include="mixer.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

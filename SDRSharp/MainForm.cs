@@ -10,14 +10,15 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using System.Runtime.CompilerServices;
+using SDRSharp.Common;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
-using System.Runtime.CompilerServices;
 
 namespace SDRSharp
 {
-    public unsafe partial class MainForm : Form
+    public unsafe partial class MainForm : Form, ISharpControl
     {
         #region Private fields
 
@@ -59,6 +60,216 @@ namespace SDRSharp
         private long _frequencySet;
         private long _frequencyShift;
 
+        private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
+        private readonly SharpControlProxy _sharpControlProxy;
+        #endregion
+
+        #region Public Properties
+
+        public DetectorType DetectorType
+        {
+            get { return _vfo.DetectorType; }
+            set
+            {
+                switch (value)
+                {
+                    case DetectorType.AM:
+                        amRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.CWL:
+                        cwlRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.CWU:
+                        cwuRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.DSB:
+                        dsbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.LSB:
+                        lsbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.USB:
+                        usbRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.NFM:
+                        nfmRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.WFM:
+                        wfmRadioButton.Checked = true;
+                        break;
+                }
+            }
+        }
+
+        public WindowType FilterType
+        {
+            get { return (WindowType)filterTypeComboBox.SelectedIndex + 1; }
+            set { filterTypeComboBox.SelectedIndex = (int)value - 1; }
+        }
+
+        public bool IsPlaying
+        {
+            get { return _streamControl.IsPlaying; }
+        }
+        
+        public long Frequency
+        {
+            get { return (long)frequencyNumericUpDown.Value; }
+            set { frequencyNumericUpDown.Value = value; }
+        }
+
+        public long CenterFrequency
+        {
+            get { return (long)centerFreqNumericUpDown.Value; }
+            set { centerFreqNumericUpDown.Value = value; }
+        }
+
+        public long FrequencyShift
+        {
+            get { return (long)frequencyShiftNumericUpDown.Value; }
+            set { frequencyShiftNumericUpDown.Value = value; }
+        }
+
+        public bool FrequencyShiftEnabled
+        {
+            get { return frequencyShiftCheckBox.Checked; }
+            set { frequencyShiftCheckBox.Checked = value; }
+        }
+
+        public int FilterBandwidth
+        {
+            get { return (int)filterBandwidthNumericUpDown.Value; }
+            set { filterBandwidthNumericUpDown.Value = value; }
+        }
+
+        public int FilterOrder
+        {
+            get { return (int)filterOrderNumericUpDown.Value; }
+            set { filterOrderNumericUpDown.Value = value; }
+        }
+
+        public bool SquelchEnabled
+        {
+            get { return useSquelchCheckBox.Checked; }
+            set { useSquelchCheckBox.Checked = value; }
+        }
+
+        public int SquelchThreshold
+        {
+            get { return (int)squelchNumericUpDown.Value; }
+            set { squelchNumericUpDown.Value = value; }
+        }
+
+        public int CWShift
+        {
+            get { return (int)cwShiftNumericUpDown.Value; }
+            set { cwShiftNumericUpDown.Value = value; }
+        }
+
+        public bool SnapToGrid
+        {
+            get { return snapFrequencyCheckBox.Checked; }
+            set { snapFrequencyCheckBox.Checked = value; }
+        }
+
+        public bool SwapIq
+        {
+            get { return swapInQCheckBox.Checked; }
+            set { swapInQCheckBox.Checked = value; }
+        }
+
+        public bool FmStereo
+        {
+            get { return fmStereoCheckBox.Checked; }
+            set { fmStereoCheckBox.Checked = value; }
+        }
+
+        public bool MarkPeaks
+        {
+            get { return markPeaksCheckBox.Checked; }
+            set { markPeaksCheckBox.Checked = value; }
+        }
+
+        public int AudioGain
+        {
+            get { return audioGainTrackBar.Value; }
+            set { audioGainTrackBar.Value = value; }
+        }
+
+        public bool FilterAudio
+        {
+            get { return filterAudioCheckBox.Checked; }
+            set { filterAudioCheckBox.Checked = value; }
+        }
+
+        public bool UseAgc
+        {
+            get { return agcCheckBox.Checked; }
+            set { agcCheckBox.Checked = value; }
+        }
+
+        public bool UseHang
+        {
+            get { return agcUseHangCheckBox.Checked; }
+            set { agcUseHangCheckBox.Checked = value; }
+        }
+
+
+        public int AgcThreshold
+        {
+            get { return (int)agcThresholdNumericUpDown.Value; }
+            set { agcThresholdNumericUpDown.Value = value; }
+        }
+
+        public int AgcDecay
+        {
+            get { return (int)agcDecayNumericUpDown.Value; }
+            set { agcDecayNumericUpDown.Value = value; }
+        }
+
+        public int AgcSlope
+        {
+            get { return (int)agcSlopeNumericUpDown.Value; }
+            set { agcSlopeNumericUpDown.Value = value; }
+        }
+
+        public int SAttack
+        {
+            get { return sAttackTrackBar.Value; }
+            set { sAttackTrackBar.Value = value; }
+        }
+
+        public int SDecay
+        {
+            get { return sDecayTrackBar.Value; }
+            set { sDecayTrackBar.Value = value; }
+        }
+
+        public int WAttack
+        {
+            get { return wAttackTrackBar.Value; }
+            set { wAttackTrackBar.Value = value; }
+        }
+
+        public int WDecay
+        {
+            get { return wDecayTrackBar.Value; }
+            set { wDecayTrackBar.Value = value; }
+        }
+
+        public bool UseTimeMarkers
+        {
+            get { return useTimestampsCheckBox.Checked; }
+            set { useTimestampsCheckBox.Checked = value; }
+        }
+        
         #endregion
 
         #region Initialization and Termination
@@ -74,6 +285,8 @@ namespace SDRSharp
                 _fftQueue.AdvanceWrite();
                 _fftQueue.Head = new byte[FFTOverlapLimit];
             }
+
+            _sharpControlProxy = new SharpControlProxy(this);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -151,7 +364,6 @@ namespace SDRSharp
             waterfall.Frequency = _vfo.Frequency;
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
             waterfall.BandType = BandType.Center;
-            waterfall.TimestampInterval = Utils.GetIntSetting("timestampInterval", 100);
 
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.Frequency = _vfo.Frequency;
@@ -244,6 +456,12 @@ namespace SDRSharp
             frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
 
             #endregion
+
+            #region Initialise ISharpPlugins
+
+            InitialiseSharpPlugins();
+            
+            #endregion
         }
 
         private void ExtIO_LOFreqChanged(int frequency)
@@ -288,6 +506,15 @@ namespace SDRSharp
                 _frontendController = null;
             }
 
+            #region ISharpPlugin Teardown
+            
+            foreach(var plugin in _sharpPlugins.Values)
+            {
+                plugin.Closing();                
+            }
+            
+            #endregion
+
             Utils.SaveSetting("spectrumAnalyzerAttack", spectrumAnalyzer.Attack.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
@@ -307,7 +534,7 @@ namespace SDRSharp
             _vfo.ProcessBuffer(iqBuffer, audioBuffer, length);
         }
 
-        private void ProcessFFT()
+        private void ProcessFFT(object parameter)
         {
             while (_streamControl.IsPlaying || _extioChangingSamplerate)
             {
@@ -677,18 +904,9 @@ namespace SDRSharp
 
         private void playButton_Click(object sender, EventArgs e)
         {
-            Open();
             try
             {
-                _streamControl.Play();
-                new Thread(ProcessFFT).Start();
-                playButton.Enabled = false;
-                stopButton.Enabled = true;
-                sampleRateComboBox.Enabled = false;
-                inputDeviceComboBox.Enabled = false;
-                outputDeviceComboBox.Enabled = false;
-                latencyNumericUpDown.Enabled = false;
-                frontEndComboBox.Enabled = false;
+                StartRadio();
             }
             catch (Exception ex)
             {
@@ -698,18 +916,7 @@ namespace SDRSharp
 
         private void stopButton_Click(object sender, EventArgs e)
         {
-            _streamControl.Stop();
-            _fftStream.Flush();
-            playButton.Enabled = true;
-            stopButton.Enabled = false;
-            if (iqStreamRadioButton.Checked)
-            {
-                inputDeviceComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
-                sampleRateComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
-                frontEndComboBox.Enabled = true;
-            }
-            outputDeviceComboBox.Enabled = true;
-            latencyNumericUpDown.Enabled = true;
+            StopRadio();
         }
 
         #endregion
@@ -965,49 +1172,7 @@ namespace SDRSharp
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
         }
-
-        public DetectorType DetectorType
-        {
-            get { return _vfo.DetectorType; }
-            set
-            {
-                switch (value)
-                {
-                    case DetectorType.AM:
-                        amRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.CWL:
-                        cwlRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.CWU:
-                        cwuRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.DSB:
-                        dsbRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.LSB:
-                        lsbRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.USB:
-                        usbRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.NFM:
-                        nfmRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.WFM:
-                        wfmRadioButton.Checked = true;
-                        break;
-                }
-            }
-        }
-
+        
         private void fmStereoCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.FmStereo = fmStereoCheckBox.Checked;
@@ -1250,49 +1415,111 @@ namespace SDRSharp
         }
 
         #endregion
+        
+        #region Plugin Methods
 
-        #region Frequency Manager
-
-        private void frequencyManagerPanel_MemoryInfoNeeded(object sender, FrequencyManager.MemoryInfoEventArgs e)
+        private void InitialiseSharpPlugins()
         {
-            e.MemoryEntry.CenterFrequency = (long) centerFreqNumericUpDown.Value;
-            e.MemoryEntry.Frequency = (long) frequencyNumericUpDown.Value;
-            e.MemoryEntry.DetectorType = DetectorType;
-            e.MemoryEntry.FilterBandwidth = (long) filterBandwidthNumericUpDown.Value;
-            e.MemoryEntry.Shift = _frequencyShift;
+            var sharpPlugins = (Hashtable)ConfigurationManager.GetSection("sharpPlugins");
+
+            foreach (string key in sharpPlugins.Keys)
+            {
+                try
+                {
+                    var fullyQualifiedTypeName = (string)sharpPlugins[key];
+                    var patterns = fullyQualifiedTypeName.Split(',');
+                    var typeName = patterns[0];
+                    var assemblyName = patterns[1];
+                    var objectHandle = Activator.CreateInstance(assemblyName, typeName);
+                    var plugin = (ISharpPlugin)objectHandle.Unwrap();
+
+                    _sharpPlugins.Add(key, plugin);
+
+                    plugin.Initialise(_sharpControlProxy);
+                    if (plugin.HasGui)
+                    {
+                        CreatePluginCollapsiblePanel(plugin);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading '" + sharpPlugins[key] + "' - " + ex.Message);
+                }
+            }
         }
 
-        private void frequencyManagerPanel_MemoryInfoAvailable(object sender, FrequencyManager.MemoryInfoEventArgs e)
+        private void CreatePluginCollapsiblePanel(ISharpPlugin plugin)
         {
-            if (!_streamControl.IsPlaying)
-            {
-                return;
-            }
+            var panelContents = plugin.GuiControl;
 
-            filterBandwidthNumericUpDown.Value = e.MemoryEntry.FilterBandwidth;
-            frequencyShiftCheckBox.Checked = e.MemoryEntry.Shift != 0;
-            if (frequencyShiftCheckBox.Checked)
+            if (panelContents != null)
             {
-                frequencyShiftNumericUpDown.Value = e.MemoryEntry.Shift;
-            }
+                panelContents.Padding = new Padding(0, 20, 0, 0);
 
-            centerFreqNumericUpDown.Value = e.MemoryEntry.CenterFrequency;
-            if (e.MemoryEntry.Frequency >= frequencyNumericUpDown.Minimum && e.MemoryEntry.Frequency < frequencyNumericUpDown.Maximum)
-            {
-                frequencyNumericUpDown.Value = e.MemoryEntry.Frequency;
+                var newPanel = new CollapsiblePanel.CollapsiblePanel();
+                newPanel.PanelTitle = plugin.DisplayName + " (Plugin)";
+
+                newPanel.PanelState = CollapsiblePanel.PanelStateOptions.Collapsed;
+                newPanel.Controls.Add(panelContents);
+
+                if (displayCollapsiblePanel.NextPanel == null)
+                {
+                    displayCollapsiblePanel.NextPanel = newPanel;
+                }
+                else
+                {
+                    newPanel.NextPanel = displayCollapsiblePanel.NextPanel;
+                    displayCollapsiblePanel.NextPanel = newPanel;
+                }
+
+                newPanel.Width = displayCollapsiblePanel.Width;
+                newPanel.ExpandedHeight = panelContents.Height;
+
+                panelContents.Width = newPanel.Width;
+
+                controlPanel.Controls.Add(newPanel);
             }
-            DetectorType = e.MemoryEntry.DetectorType;
+        }
+
+        public void StartRadio()
+        {
+            Open();
+            _streamControl.Play();
+            ThreadPool.QueueUserWorkItem(ProcessFFT);
+            playButton.Enabled = false;
+            stopButton.Enabled = true;
+            sampleRateComboBox.Enabled = false;
+            inputDeviceComboBox.Enabled = false;
+            outputDeviceComboBox.Enabled = false;
+            latencyNumericUpDown.Enabled = false;
+            frontEndComboBox.Enabled = false;
+        }
+
+        public void StopRadio()
+        {
+            _streamControl.Stop();
+            _fftStream.Flush();
+            playButton.Enabled = true;
+            stopButton.Enabled = false;
+            if (iqStreamRadioButton.Checked)
+            {
+                inputDeviceComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
+                sampleRateComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
+                frontEndComboBox.Enabled = true;
+            }
+            outputDeviceComboBox.Enabled = true;
+            latencyNumericUpDown.Enabled = true;
+        }
+
+        public void GetSpectrumSnapshot(byte[] destArray)
+        {
+            lock (_fftQueue)
+            {
+                Fourier.SmoothCopy(_fftQueue.Tail, destArray, _fftBins, 1.0f, 0);
+            }
         }
 
         #endregion
-
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Control && e.KeyCode == Keys.D)
-            {
-                frequencyManagerPanel.Bookmark();
-                e.Handled = true;
-            }
-        }
     }
 }

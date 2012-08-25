@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using SDRSharp.Radio;
+using SDRSharp.Common;
 
 namespace SDRSharp.FrequencyManager
 {
@@ -13,9 +14,7 @@ namespace SDRSharp.FrequencyManager
     [Category("SDRSharp")]
     [Description("RF Memory Management Panel")]
     public partial class FrequencyManagerPanel : UserControl
-    {
-        public event RadioInfo MemoryInfoNeeded;
-        public event RadioInfo MemoryInfoAvailable;
+    {       
         private readonly SortableBindingList<MemoryEntry> _displayedEntries = new SortableBindingList<MemoryEntry>();
         private readonly List<MemoryEntry> _entries;
         private readonly SettingsPersister _settingsPersister;
@@ -23,9 +22,14 @@ namespace SDRSharp.FrequencyManager
         private const string AllGroups = "[All Groups]";
         private const string FavouriteGroup = "[Favourites]";
 
-        public FrequencyManagerPanel()
+        private ISharpControl _controlInterface;
+
+        public FrequencyManagerPanel(ISharpControl control)
         {
             InitializeComponent();
+
+            _controlInterface = control;
+
             if (LicenseManager.UsageMode==LicenseUsageMode.Runtime)
             {
                 _settingsPersister = new SettingsPersister();
@@ -34,9 +38,7 @@ namespace SDRSharp.FrequencyManager
                 ProcessGroups(null);
             }
 
-            memoryEntryBindingSource.DataSource = _displayedEntries;
-
-            
+            memoryEntryBindingSource.DataSource = _displayedEntries;            
         }
 
         public String SelectedGroup
@@ -170,27 +172,40 @@ namespace SDRSharp.FrequencyManager
 
         public void Bookmark()
         {
+            
+            //if (_controlInterface.Frequency == 0) return;
+            if (!_controlInterface.IsPlaying) return;
+
             var memoryEntry = new MemoryEntry();
-            var info = new MemoryInfoEventArgs(memoryEntry);
-            if (MemoryInfoNeeded != null)
-                MemoryInfoNeeded(this, info);
-            if (memoryEntry.Frequency == 0) return;
+
+            memoryEntry.DetectorType = _controlInterface.DetectorType;
+            memoryEntry.CenterFrequency = _controlInterface.CenterFrequency;
+            memoryEntry.Frequency = _controlInterface.Frequency;
+            memoryEntry.FilterBandwidth = _controlInterface.FilterBandwidth;
+            memoryEntry.Shift = _controlInterface.CWShift;            
+            
             memoryEntry.GroupName = "Misc";
-            memoryEntry.Name = GetFrequencyDisplay(memoryEntry.Frequency) + " " + memoryEntry.DetectorType;
+            memoryEntry.Name = GetFrequencyDisplay(_controlInterface.Frequency)+ " " + memoryEntry.DetectorType;
             memoryEntry.IsFavourite = true;
             DoEdit(memoryEntry, true);
         }
 
         public void Navigate()
-        {
+        {            
+            //if (_controlInterface.Frequency == 0) return;
+            if (!_controlInterface.IsPlaying) return;
+
+
             var rowIndex = frequencyDataGridView.SelectedCells.Count > 0 ? frequencyDataGridView.SelectedCells[0].RowIndex : -1;
             if (rowIndex != -1)
             {
                 var memoryEntry = (MemoryEntry)memoryEntryBindingSource.List[rowIndex];
-                if (MemoryInfoAvailable != null)
-                {
-                    MemoryInfoAvailable(this, new MemoryInfoEventArgs(new MemoryEntry(memoryEntry)));
-                }
+
+                _controlInterface.DetectorType = memoryEntry.DetectorType;
+                _controlInterface.CenterFrequency = memoryEntry.CenterFrequency;
+                _controlInterface.Frequency = (long)memoryEntry.Frequency;
+                _controlInterface.FilterBandwidth = (int)memoryEntry.FilterBandwidth;                
+                               
             }
         }
 

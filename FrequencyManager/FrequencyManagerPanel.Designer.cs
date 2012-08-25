@@ -61,7 +61,7 @@
             this.mainToolStrip.Location = new System.Drawing.Point(1, 3);
             this.mainToolStrip.MinimumSize = new System.Drawing.Size(205, 0);
             this.mainToolStrip.Name = "mainToolStrip";
-            this.mainToolStrip.Size = new System.Drawing.Size(234, 22);
+            this.mainToolStrip.Size = new System.Drawing.Size(230, 22);
             this.mainToolStrip.Stretch = true;
             this.mainToolStrip.TabIndex = 7;
             this.mainToolStrip.Text = "toolStrip1";
@@ -71,7 +71,7 @@
             this.btnNewEntry.Image = ((System.Drawing.Image)(resources.GetObject("btnNewEntry.Image")));
             this.btnNewEntry.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnNewEntry.Name = "btnNewEntry";
-            this.btnNewEntry.Size = new System.Drawing.Size(48, 19);
+            this.btnNewEntry.Size = new System.Drawing.Size(51, 19);
             this.btnNewEntry.Text = "New";
             this.btnNewEntry.Click += new System.EventHandler(this.btnNewEntry_Click);
             // 
@@ -80,7 +80,7 @@
             this.btnEdit.Image = ((System.Drawing.Image)(resources.GetObject("btnEdit.Image")));
             this.btnEdit.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnEdit.Name = "btnEdit";
-            this.btnEdit.Size = new System.Drawing.Size(45, 19);
+            this.btnEdit.Size = new System.Drawing.Size(47, 19);
             this.btnEdit.Text = "Edit";
             this.btnEdit.Click += new System.EventHandler(this.btnEdit_Click);
             // 
@@ -89,7 +89,7 @@
             this.btnDelete.Image = ((System.Drawing.Image)(resources.GetObject("btnDelete.Image")));
             this.btnDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(58, 19);
+            this.btnDelete.Size = new System.Drawing.Size(60, 19);
             this.btnDelete.Text = "Delete";
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 

@@ -372,47 +372,6 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public unsafe static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
-        {
-            fixed (byte* srcPtr = source)
-            fixed (byte* dstPtr = destination)
-            {
-                var r = sourceLength / scale / destination.Length;
-                if (r > 1.0f)
-                {
-                    var n = (int)Math.Ceiling(r);
-                    for (var i = 0; i < destination.Length; i++)
-                    {
-                        var k = (int)(i * r - n / 2.0f);
-                        var max = (byte)0;
-                        for (var j = 0; j < n; j++)
-                        {
-                            var index = k + j + offset;
-                            if (index >= 0 && index < sourceLength)
-                            {
-                                if (max < srcPtr[index])
-                                {
-                                    max = srcPtr[index];
-                                }
-                            }
-                        }
-                        dstPtr[i] = max;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < destination.Length; i++)
-                    {
-                        var index = (int)(r * i + offset);
-                        if (index >= 0 && index < sourceLength)
-                        {
-                            dstPtr[i] = srcPtr[index];
-                        }
-                    }
-                }
-            }
-        }
-
         public void Render(byte[] spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
@@ -420,7 +379,7 @@ namespace SDRSharp.PanView
 
             if (_useSmoothing)
             {
-                SmoothCopy(spectrum, _temp, length, _scale, offset);
+                Fourier.SmoothCopy(spectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
@@ -429,7 +388,7 @@ namespace SDRSharp.PanView
             }
             else
             {
-                SmoothCopy(spectrum, _spectrum, length, _scale, offset);
+                Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
             _drawNeeded = true;
         }
@@ -619,7 +578,7 @@ namespace SDRSharp.PanView
                 return;
             }
             var temp = new byte[ClientRectangle.Width - 2 * AxisMargin];
-            SmoothCopy(_spectrum, temp, _spectrum.Length, (_temp.Length + temp.Length) / (float) _temp.Length, 0);
+            Fourier.SmoothCopy(_spectrum, temp, _spectrum.Length, (_temp.Length + temp.Length) / (float)_temp.Length, 0);
             _spectrum = temp;
             _temp = new byte[_spectrum.Length];
             
