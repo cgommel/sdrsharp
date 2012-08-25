@@ -10,10 +10,10 @@ namespace SDRSharp.Radio
         private const double PllThreshold = 1.0;
         private const double PllLockTime = 0.5; // sec
         private const double PllZeta = 0.707;
-        private const double PllPhaseAdjM = -7.267e-6f;
-        private const double PllPhaseAdjB = 3.677f;
 
-        private const float DeemphasisTime = 50e-6f; //75e-6f
+        private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
+        private static readonly double _pllPhaseAdjM = Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
+        private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", 0.0f);
 
         private readonly Pll _pll = new Pll();
 
@@ -219,8 +219,8 @@ namespace SDRSharp.Radio
                 _pll.Range = PllRange;
                 _pll.Bandwidth = PllBandwith;
                 _pll.Zeta = PllZeta;
-                _pll.PhaseAdjM = PllPhaseAdjM;
-                _pll.PhaseAdjB = PllPhaseAdjB;
+                _pll.PhaseAdjM = _pllPhaseAdjM;
+                _pll.PhaseAdjB = _pllPhaseAdjB;
                 _pll.LockTime = PllLockTime;
                 _pll.LockThreshold = PllThreshold;
                 
@@ -229,7 +229,7 @@ namespace SDRSharp.Radio
                 _channelAFilter = new FirFilter(coefficients);
                 _channelBFilter = new FirFilter(coefficients);
 
-                _deemphasisAlpha = (float) (1.0 - Math.Exp(-1.0 / (outputSampleRate * DeemphasisTime)));
+                _deemphasisAlpha = (float) (1.0 - Math.Exp(-1.0 / (outputSampleRate * _deemphasisTime)));
                 _deemphasisAvgL = 0;
                 _deemphasisAvgR = 0;
             }
