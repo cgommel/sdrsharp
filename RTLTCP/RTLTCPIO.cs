@@ -142,6 +142,7 @@ namespace SDRSharp.RTLTCP
             sendCommand(CMD_SET_GAIN_MODE, (uint)_gainMode);
             sendCommand(CMD_SET_SAMPLE_RATE, (uint)_sr);
             sendCommand(CMD_SET_FREQ, (uint)_freq);
+            sendCommand(CMD_SET_FREQ_COR, (int)_fCor);
         }
 
         public void Stop()
