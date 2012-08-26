@@ -1420,18 +1420,26 @@ namespace SDRSharp
 
         private void InitialiseSharpPlugins()
         {
-            var sharpPlugins = (Hashtable)ConfigurationManager.GetSection("sharpPlugins");
+            var sharpPlugins = (Hashtable) ConfigurationManager.GetSection("sharpPlugins");
+
+            if (sharpPlugins == null)
+            {
+                MessageBox.Show(
+                    "Configuration section 'sharpPlugins' was not found. Please check 'SDRSharp.exe.config'.", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
 
             foreach (string key in sharpPlugins.Keys)
             {
                 try
                 {
-                    var fullyQualifiedTypeName = (string)sharpPlugins[key];
+                    var fullyQualifiedTypeName = (string) sharpPlugins[key];
                     var patterns = fullyQualifiedTypeName.Split(',');
                     var typeName = patterns[0];
                     var assemblyName = patterns[1];
                     var objectHandle = Activator.CreateInstance(assemblyName, typeName);
-                    var plugin = (ISharpPlugin)objectHandle.Unwrap();
+                    var plugin = (ISharpPlugin) objectHandle.Unwrap();
 
                     _sharpPlugins.Add(key, plugin);
 
@@ -1440,7 +1448,6 @@ namespace SDRSharp
                     {
                         CreatePluginCollapsiblePanel(plugin);
                     }
-
                 }
                 catch (Exception ex)
                 {
