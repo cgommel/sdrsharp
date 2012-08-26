@@ -58,6 +58,7 @@ namespace SDRSharp.PanView
         private bool _useSnap;
         private bool _markPeaks;
         private float _trackingPower;
+        private string _statusText;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
@@ -208,6 +209,16 @@ namespace SDRSharp.PanView
         {
             get { return _useSmoothing; }
             set { _useSmoothing = value; }
+        }
+
+        public string StatusText
+        {
+            get { return _statusText; }
+            set
+            {
+                _statusText = value;
+                _performNeeded = true;
+            }
         }
 
         [Browsable(false)]
@@ -584,6 +595,8 @@ namespace SDRSharp.PanView
 
             DrawSpectrum();
 
+            DrawStatusText();
+
             DrawCursor();
         }
 
@@ -629,6 +642,18 @@ namespace SDRSharp.PanView
                 _points[0] = _points[1];
                 _points[_points.Length - 1] = _points[_points.Length - 2];
                 _graphics.DrawLines(spectrumPen, _points);
+            }
+        }
+
+        private void DrawStatusText()
+        {
+            if (string.IsNullOrEmpty(_statusText))
+            {
+                return;
+            }
+            using (var font = new Font("Lucida Console", 9))
+            {
+                _graphics.DrawString(_statusText, font, Brushes.White, AxisMargin, 10);
             }
         }
 

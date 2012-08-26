@@ -24,7 +24,7 @@ namespace SDRSharp.Radio
         private readonly DsbDetector _dsbDetector = new DsbDetector();
         private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
-        //private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
+        private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
         private readonly FirFilter _audioFilter = new FirFilter();
         private readonly IQFirFilter _iqFilter = new IQFirFilter();
         private IQDecimator _baseBandDecimator;
@@ -279,6 +279,16 @@ namespace SDRSharp.Radio
             get { return _actualDetectorType == DetectorType.WFM && _fmStereo && _stereoDecoder.IsPllLocked; }
         }
 
+        public string RdsStationName
+        {
+            get { return _rdsDecoder.ProgramService; }
+        }
+
+        public string RdsStationText
+        {
+            get { return _rdsDecoder.RadioText; }
+        }
+
         public bool FilterAudio
         {
             get { return _filterAudio; }
@@ -327,7 +337,7 @@ namespace SDRSharp.Radio
             _fmDetector.SquelchThreshold = _squelchThreshold;
             _amDetector.SquelchThreshold = _squelchThreshold;
             _stereoDecoder.Configure(_fmDetector.SampleRate, _audioDecimationStageCount);
-            //_rdsDecoder.SampleRate = _fmDetector.SampleRate;
+            _rdsDecoder.SampleRate = _fmDetector.SampleRate;
             _stereoDecoder.ForceMono = !_fmStereo;
             switch (_actualDetectorType)
             {
@@ -459,7 +469,7 @@ namespace SDRSharp.Radio
 
             if (_actualDetectorType == DetectorType.WFM)
             {
-                //_rdsDecoder.Process(_rawAudioPtr, length);
+                _rdsDecoder.Process(_rawAudioPtr, length);
                 _stereoDecoder.Process(_rawAudioPtr, audioBuffer, length);
             }
             else

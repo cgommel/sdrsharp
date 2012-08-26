@@ -1,54 +1,89 @@
-﻿namespace SDRSharp.Radio
-{
-    using System;
-    public delegate void BlockDelegate(GroupSequencer g);
+﻿using System;
 
+namespace SDRSharp.Radio
+{
     public class RdsDetectorBank
     {
         private readonly SyndromeDetector[] _detectors = new SyndromeDetector[26];
+        private string _radioText;
+        private string _programService;
 
-        public RdsDetectorBank(BlockDelegate rs)
+        public string RadioText
         {
-            for (int x = 0; x < _detectors.Length; x++)
+            get { return _radioText; }
+        }
+
+        public string ProgramService
+        {
+            get { return _programService; }
+        }
+
+        public RdsDetectorBank()
+        {
+            for (var i = 0; i < _detectors.Length; i++)
             {
-                _detectors[x] = new SyndromeDetector(x) { _blockDelegate = rs };
+                _detectors[i] = new SyndromeDetector(i);
             }
         }
 
-        public void ProcessBitStream(bool b)
+        public void Process(bool b)
         {
-            foreach (SyndromeDetector t in _detectors)
+            for (var i = 0; i < _detectors.Length; i++)
             {
-                t.Clock(b);
+                if (_detectors[i].Clock(b))
+                {
+                    _programService = _detectors[i].ProgramService.Trim();
+                    _radioText = _detectors[i].RadioText.Trim();
+                }
             }
+        }
+
+        public void Reset()
+        {
+            for (var i = 0; i < _detectors.Length; i++)
+            {
+                _detectors[i].Reset();
+            }
+            _programService = string.Empty;
+            _radioText = string.Empty;
         }
     }
-    
 
     public class SyndromeDetector : GroupSequencer
     {
-        public BlockDelegate _blockDelegate;
-
         private UInt16 _syndrome;
-
         private int _state;
+        private readonly RdsDumpGroups _dumpGroups = new RdsDumpGroups();
 
         public SyndromeDetector(int state)
         {
             _state = state;
         }
 
-        public void Clock(bool b)
+        public string RadioText
         {
+            get { return _dumpGroups.RadioText; }
+        }
+
+        public string ProgramService
+        {
+            get { return _dumpGroups.ProgramService; }
+        }
+
+        public void Reset()
+        {
+            _dumpGroups.Reset();
+        }
+
+        public bool Clock(bool b)
+        {
+            var result = false;
             _state++;
             if (_state == 26)
             {
                 if (Sequence(_syndrome) == BlockSequence.Live)
                 {
-                    if (_blockDelegate != null)
-                    {
-                        _blockDelegate(this);
-                    }
+                    result = _dumpGroups.AnalyseFrames(Block1, Block2, Block3, Block4);
                 }
                 _syndrome = 0;
                 _state = 0;
@@ -71,6 +106,8 @@
                 int gateB = ((_syndrome & 0x200) != 0) ^ b ? 1 : 0;
                 _syndrome = (UInt16)((_syndrome << 1) ^ gateB);
             }
+
+            return result;
         }
 
         public override string ToString()
@@ -78,7 +115,6 @@
             return string.Format("st {0:d02} sy {1:x04} r {2:x08}", _state, _syndrome, _raw);
         }
     }
-
 
     public class GroupSequencer 
     {

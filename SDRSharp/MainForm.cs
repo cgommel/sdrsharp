@@ -664,6 +664,19 @@ namespace SDRSharp
             {
                 Text += " ((( stereo )))";
             }
+
+            spectrumAnalyzer.StatusText = string.Empty;
+            if (_vfo.DetectorType == DetectorType.WFM)
+            {
+                if (!string.IsNullOrEmpty(_vfo.RdsStationName))
+                {
+                    spectrumAnalyzer.StatusText = _vfo.RdsStationName.PadRight(8);
+                }
+                if (!string.IsNullOrEmpty(spectrumAnalyzer.StatusText) && !string.IsNullOrEmpty(_vfo.RdsStationText))
+                {
+                    spectrumAnalyzer.StatusText += " [ " + _vfo.RdsStationText + " ]";
+                }
+            }
         }
 
         private void BuildFFTWindow()

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 
 namespace SDRSharp.Radio
 {
@@ -9,22 +7,31 @@ namespace SDRSharp.Radio
         private const int PllDefaultFrequency = 57000;
         private const int PllRange = 12;
         private const int PllBandwith = 1;
+        private const double PllLockThreshold = 3.0;
         private const double RdsBitRate = 1187.5;
 
         private readonly Pll _pll = new Pll();
         private readonly Oscillator _osc = new Oscillator();
         private readonly IQFirFilter _baseBandFilter = new IQFirFilter();
         private readonly FirFilter _matchedFilter = new FirFilter();
-        private readonly RdsDemod _demodulator = new RdsDemod();
+        private readonly RdsDetectorBank _bitDecoder = new RdsDetectorBank();
+        private IirFilter _syncFilter;
 
         private UnsafeBuffer _rawBuffer;
         private Complex* _rawPtr;
         private UnsafeBuffer _magBuffer;
         private float* _magPtr;
+        private UnsafeBuffer _dataBuffer;
+        private float* _dataPtr;
         private IQDecimator _decimator;
         private double _sampleRate;
         private double _demodulationSampleRate;
         private int _decimationFactor;
+
+        private float _lastSync;
+        private float _lastData;
+        private float _lastSyncSlope;
+        private bool _lastBit;
 
         public double SampleRate
         {
@@ -37,6 +44,16 @@ namespace SDRSharp.Radio
                     Configure();
                 }
             }
+        }
+
+        public string RadioText
+        {
+            get { return _bitDecoder.RadioText; }
+        }
+
+        public string ProgramService
+        {
+            get { return _bitDecoder.ProgramService; }
         }
 
         private void Configure()
@@ -57,12 +74,11 @@ namespace SDRSharp.Radio
             var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 400, 2400, WindowType.BlackmanHarris);
             _baseBandFilter.SetCoefficients(coefficients);
 
-            _demodulator.SampleRate = _demodulationSampleRate;
-
             _pll.SampleRate = _demodulationSampleRate;
             _pll.DefaultFrequency = 0;
             _pll.Range = PllRange;
             _pll.Bandwidth = PllBandwith;
+            _pll.LockThreshold = PllLockThreshold;
 
             var matchedFilterLength = (int) (_demodulationSampleRate / RdsBitRate);
             coefficients = new float[matchedFilterLength * 2 + 1];
@@ -75,10 +91,14 @@ namespace SDRSharp.Radio
                 coefficients[matchedFilterLength - i] = (float) (-.75 * Math.Cos(2.0 * 2.0 * Math.PI * x) * ((1.0 / (1.0 / x - x64)) - (1.0 / (9.0 / x - x64))));
             }
             _matchedFilter.SetCoefficients(coefficients);
+
+            _syncFilter = new IirFilter(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
         }
 
         public void Process(float* baseBand, int length)
         {
+            #region Initialize buffers
+
             if (_rawBuffer == null || _rawBuffer.Length != length)
             {
                 _rawBuffer = UnsafeBuffer.Create(length, sizeof(Complex));
@@ -90,6 +110,14 @@ namespace SDRSharp.Radio
                 _magBuffer = UnsafeBuffer.Create(length, sizeof(float));
                 _magPtr = (float*) _magBuffer;
             }
+
+            if (_dataBuffer == null || _dataBuffer.Length != length)
+            {
+                _dataBuffer = UnsafeBuffer.Create(length, sizeof(float));
+                _dataPtr = (float*) _dataBuffer;
+            }
+
+            #endregion
 
             // Downconvert
             for (var i = 0; i < length; i++)
@@ -108,28 +136,43 @@ namespace SDRSharp.Radio
             // PLL
             for (var i = 0; i < length; i++)
             {
-                _magPtr[i] = _pll.Process(_rawPtr[i]).Imag;
+                _dataPtr[i] = _pll.Process(_rawPtr[i]).Imag;
             }
-            //Console.WriteLine(_pll.IsLocked);
+
+            if (!_pll.IsLocked)
+            {
+                _bitDecoder.Reset();
+                return;
+            }
 
             // Matched filter
-            _matchedFilter.Process(_magPtr, length);
+            _matchedFilter.Process(_dataPtr, length);
 
-            // Square
+            // Recover signal energy
             for (var i = 0; i < length; i++)
             {
-                _magPtr[i] = _magPtr[i] * _magPtr[i];
+                _magPtr[i] = _dataPtr[i] * _dataPtr[i];
             }
 
-            //var sb = new StringBuilder();
-            //for (var i = 0; i < length; i++)
-            //{
-            //    sb.Append(_magPtr[i]);
-            //    sb.AppendLine();
-            //}
-            //File.WriteAllText(@"c:\test.csv", sb.ToString());
+            // Synchronize to RDS bitrate
+            _syncFilter.Process(_magPtr, length);
 
-            // To be continued
+            // Detect RDS bits
+            for (int i = 0; i < length; i++)
+            {
+                var data = _dataPtr[i];
+                var syncVal = _magPtr[i];
+                var slope = syncVal - _lastSync;
+                _lastSync = syncVal;
+                if (slope < 0.0f && _lastSyncSlope * slope < 0.0f)
+                {
+                    bool bit = _lastData > 0;
+                    _bitDecoder.Process(bit ^ _lastBit);
+                    _lastBit = bit;
+                }
+                _lastData = data;
+                _lastSyncSlope = slope;
+            }
         }
     }
 }

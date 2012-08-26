@@ -1,22 +1,39 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace SDRSharp.Radio
 {
-    static class RdsDumpGroups
+    public class RdsDumpGroups
     {
-        private static readonly StringBuilder _radioText = new StringBuilder("                                                                        ");
-        private static readonly StringBuilder _programmeService = new StringBuilder("                                                                        ");
-        
-        public static void AnalyseFrames(ushort groupA, ushort groupB, ushort groupC, ushort groupD)
+        private StringBuilder _radioText = new StringBuilder("                                                                        ");
+        private StringBuilder _programService = new StringBuilder("                                                                        ");
+
+        public string RadioText
         {
-            if ((groupB & 0xf800) == 0x4000) // 2a group radio text
-            {
-                string messageTime = Dump4A(groupB, groupC, groupD);
-                Console.WriteLine(messageTime);
-            }
+            get { return _radioText.ToString(); }
+        }
+
+        public string ProgramService
+        {
+            get { return _programService.ToString(); }
+        }
+
+        public void Reset()
+        {
+            _radioText = new StringBuilder("                                                                        ");
+            _programService = new StringBuilder("                                                                        ");
+        }
+
+        public bool AnalyseFrames(ushort groupA, ushort groupB, ushort groupC, ushort groupD)
+        {
+            var result = false;
+
+            //if ((groupB & 0xf800) == 0x4000) // 2a group radio text
+            //{
+            //    string messageTime = Dump4A(groupB, groupC, groupD);
+            //    Console.WriteLine(messageTime);
+            //}
 
             if ((groupB & 0xf800) == 0x2000) // 2a group radio text
             {
@@ -29,13 +46,15 @@ namespace SDRSharp.Radio
                 sb.Append((char)(groupD & 0xff));
                 if (sb.ToString().Any(ch => (ch < ' ') || (ch > 0x7f)))
                 {
-                    return; // ignore garbage
+                    return false; // ignore garbage
                 }
 
                 _radioText.Remove(index, 4);
                 _radioText.Insert(index, sb.ToString());
 
-                Console.WriteLine(_radioText.ToString());
+                result = true;
+
+                //Console.WriteLine(_radioText.ToString());
             }
 
             if ((groupB & 0xf800) == 0x0000) // 0a group radio text
@@ -48,16 +67,20 @@ namespace SDRSharp.Radio
                 sb.Append((char)(groupD & 0xff));
                 if (sb.ToString().Any(ch => (ch < ' ') || (ch > 0x7f)))
                 {
-                    return; // ignore garbage
+                    return false; // ignore garbage
                 }
 
-                _programmeService.Remove(index, 2);
-                _programmeService.Insert(index, sb.ToString());
+                _programService.Remove(index, 2);
+                _programService.Insert(index, sb.ToString());
 
-                Console.WriteLine(_programmeService.ToString());
+                result = true;
 
-                Console.WriteLine("" + ((groupC >> 8) / 10.0 + 87.5) + " " + ((groupC & 0xff) / 10.0 + 87.5));
+                //Console.WriteLine(_programService.ToString());
+
+                //Console.WriteLine("" + ((groupC >> 8) / 10.0 + 87.5) + " " + ((groupC & 0xff) / 10.0 + 87.5));
             }
+
+            return result;
         }
 
         private static string Dump4A(ushort blockB, ushort block3, ushort block4)
