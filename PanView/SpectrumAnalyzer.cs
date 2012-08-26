@@ -362,7 +362,7 @@ namespace SDRSharp.PanView
                 {
                     var carrierPen = redPen;
                     carrierPen.Width = CarrierPenWidth;
-                    graphics.FillRectangle(transparentBackground, (int) _lower, 0, (int) bandpassWidth, ClientRectangle.Height);
+                    graphics.FillRectangle(transparentBackground, (int) _lower + 1, 0, (int) bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
                         graphics.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
