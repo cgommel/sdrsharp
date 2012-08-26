@@ -31,7 +31,7 @@ namespace SDRSharp.PanView
 
         private double _attack;
         private double _decay;
-        private bool _drawNeeded;
+        private bool _drawNewLineNeeded;
         private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
@@ -107,20 +107,12 @@ namespace SDRSharp.PanView
 
         public void Perform()
         {
-            if (_drawNeeded)
+            if (_performNeeded || _drawNewLineNeeded)
             {
                 Draw();
-                if (_useTimestamps && ++_scanlines >= TimestampInterval)
-                {
-                    _scanlines = 0;
-                    DrawTimestamp();
-                }
-            }
-            if (_performNeeded || _drawNeeded)
-            {
                 Invalidate();
             }
-            _drawNeeded = false;
+            _drawNewLineNeeded = false;
             _performNeeded = false;
         }
 
@@ -390,10 +382,10 @@ namespace SDRSharp.PanView
             {
                 Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
-            _drawNeeded = true;
+            _drawNewLineNeeded = true;
         }
 
-        private unsafe void Draw()
+        private void Draw()
         {
             #region Draw only if needed
 
@@ -404,22 +396,54 @@ namespace SDRSharp.PanView
 
             #endregion
 
-            #region Shift image
+            if (_drawNewLineNeeded)
+            {
+                #region Shift image
 
-            var bmpData = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
-            var ptr = (void*) ((long)bmpData.Scan0 + bmpData.Width * 4);
-            Utils.Memcpy(ptr, (void*) bmpData.Scan0, (bmpData.Height - 1) * bmpData.Width * 4);
-            _buffer.UnlockBits(bmpData);
+                ShiftImage();
+
+                #endregion
+
+                #region Draw Spectrum
+
+                DrawSpectrum();
+
+                #endregion
+
+                #region Timestamps
+
+                if (_useTimestamps && ++_scanlines >= TimestampInterval)
+                {
+                    _scanlines = 0;
+                    DrawTimestamp();
+                }
+
+                #endregion
+            }
+
+            #region Draw gradient
 
             DrawGradient();
 
             #endregion
 
-            #region Draw Spectrum
+            #region Draw cursor
 
-            DrawSpectrum();
+            if (_mouseIn)
+            {
+                CopyMainBufferBuffer();
+                DrawCursor();
+            }
 
             #endregion
+        }
+
+        private unsafe void ShiftImage()
+        {
+            var bmpData = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
+            var ptr = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
+            Utils.Memcpy(ptr, (void*) bmpData.Scan0, (bmpData.Height - 1) * bmpData.Width * 4);
+            _buffer.UnlockBits(bmpData);
         }
 
         private unsafe void DrawSpectrum()
@@ -446,39 +470,23 @@ namespace SDRSharp.PanView
             using (var fontFamily = new FontFamily("Arial"))
             using (var path = new GraphicsPath())
             using (var outlinePen = new Pen(Color.Black))
-            using (var graphics = Graphics.FromImage(_buffer))
             {
                 var timestamp = DateTime.Now.ToString();
 
                 path.AddString(timestamp, fontFamily, (int) FontStyle.Regular, TimestampFontSize, new Point(AxisMargin, 0), StringFormat.GenericTypographic);
-                var smoothingMode = graphics.SmoothingMode;
-                var interpolationMode = graphics.InterpolationMode;
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                var smoothingMode = _graphics.SmoothingMode;
+                var interpolationMode = _graphics.InterpolationMode;
+                _graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                _graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 outlinePen.Width = 2;
-                graphics.DrawPath(outlinePen, path);
-                graphics.FillPath(Brushes.White, path);
-                graphics.SmoothingMode = smoothingMode;
-                graphics.InterpolationMode = interpolationMode;
+                _graphics.DrawPath(outlinePen, path);
+                _graphics.FillPath(Brushes.White, path);
+                _graphics.SmoothingMode = smoothingMode;
+                _graphics.InterpolationMode = interpolationMode;
             }
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            SpectrumAnalyzer.ConfigureGraphics(e.Graphics);
-            if (_mouseIn)
-            {
-                _graphics2.DrawImageUnscaled(_buffer, 0, 0);
-                DrawCursor(_graphics2);
-                e.Graphics.DrawImageUnscaled(_buffer2, 0, 0);
-            }
-            else
-            {
-                e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
-            }
-        }
-
-        private void DrawCursor(Graphics g)
+        private void DrawCursor()
         {
             _lower = 0f;
             float bandpassOffset;
@@ -517,17 +525,17 @@ namespace SDRSharp.PanView
                 carrierPen.Width = CarrierPenWidth;
                 if (cursorWidth < ClientRectangle.Width)
                 {
-                    g.FillRectangle(transparentBrush, _lower, 0, bandpassWidth, ClientRectangle.Height);
+                    _graphics2.FillRectangle(transparentBrush, (int) _lower, 0, (int) bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
-                        g.DrawLine(carrierPen, xCarrier, 0f, xCarrier, ClientRectangle.Height);
+                        _graphics2.DrawLine(carrierPen, (int) xCarrier, 0, (int) xCarrier, ClientRectangle.Height);
                     }
                 }
                 if (_trackingX >= AxisMargin && _trackingX <= ClientRectangle.Width - AxisMargin)
                 {
                     if (!_changingFrequency && !_changingCenterFrequency && !_changingBandwidth)
                     {
-                        _graphics2.DrawLine(hotTrackPen, _trackingX, 0f, _trackingX, ClientRectangle.Height);
+                        _graphics2.DrawLine(hotTrackPen, (int) _trackingX, 0, (int) _trackingX, ClientRectangle.Height);
                     }
 
                     string fstring;
@@ -557,17 +565,32 @@ namespace SDRSharp.PanView
                     yOffset = Math.Min(yOffset, ClientRectangle.Height - stringSize.Height - 5);
                     path.Reset();
                     path.AddString(fstring, fontFamily, (int) FontStyle.Regular, TrackingFontSize, new Point((int) xOffset, (int) yOffset), StringFormat.GenericTypographic);
-                    var smoothingMode = g.SmoothingMode;
-                    var interpolationMode = g.InterpolationMode;
-                    g.SmoothingMode = SmoothingMode.AntiAlias;
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    var smoothingMode = _graphics2.SmoothingMode;
+                    var interpolationMode = _graphics2.InterpolationMode;
+                    _graphics2.SmoothingMode = SmoothingMode.AntiAlias;
+                    _graphics2.InterpolationMode = InterpolationMode.HighQualityBicubic;
                     outlinePen.Width = 2;
-                    g.DrawPath(outlinePen, path);
-                    g.FillPath(Brushes.White, path);
-                    g.SmoothingMode = smoothingMode;
-                    g.InterpolationMode = interpolationMode;
+                    _graphics2.DrawPath(outlinePen, path);
+                    _graphics2.FillPath(Brushes.White, path);
+                    _graphics2.SmoothingMode = smoothingMode;
+                    _graphics2.InterpolationMode = interpolationMode;
                 }
             }
+        }
+
+        private unsafe void CopyMainBufferBuffer()
+        {
+            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
+            var data2 = _buffer2.LockBits(ClientRectangle, ImageLockMode.ReadOnly, _buffer2.PixelFormat);
+            Utils.Memcpy((void*) data2.Scan0, (void*) data1.Scan0, data1.Width * data1.Height * 4);
+            _buffer.UnlockBits(data1);
+            _buffer2.UnlockBits(data2);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            SpectrumAnalyzer.ConfigureGraphics(e.Graphics);
+            e.Graphics.DrawImageUnscaled(_mouseIn ? _buffer2 : _buffer, 0, 0);
         }
 
         protected override void OnResize(EventArgs e)
@@ -861,6 +884,7 @@ namespace SDRSharp.PanView
             base.OnMouseEnter(e);
             _mouseIn = true;
             _performNeeded = true;
+            CopyMainBufferBuffer();
         }
 
         protected override void OnMouseLeave(EventArgs e)
