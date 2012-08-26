@@ -7,7 +7,7 @@ namespace SDRSharp.Radio
         private const int PllDefaultFrequency = 57000;
         private const int PllRange = 12;
         private const int PllBandwith = 1;
-        private const double PllLockThreshold = 3.0;
+        private const double PllLockThreshold = 3.2;
         private const double RdsBitRate = 1187.5;
 
         private readonly Pll _pll = new Pll();
