@@ -4,25 +4,24 @@ namespace SDRSharp.Radio
 {
     public class RdsDetectorBank
     {
+        private readonly RdsDumpGroups _dumpGroups = new RdsDumpGroups();
         private readonly SyndromeDetector[] _detectors = new SyndromeDetector[26];
-        private string _radioText;
-        private string _programService;
 
         public string RadioText
         {
-            get { return _radioText; }
+            get { return _dumpGroups.RadioText.Trim(); }
         }
 
         public string ProgramService
         {
-            get { return _programService; }
+            get { return _dumpGroups.ProgramService.Substring(0, 8); }
         }
 
         public RdsDetectorBank()
         {
             for (var i = 0; i < _detectors.Length; i++)
             {
-                _detectors[i] = new SyndromeDetector(i);
+                _detectors[i] = new SyndromeDetector(i, _dumpGroups);
             }
         }
 
@@ -30,49 +29,26 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < _detectors.Length; i++)
             {
-                if (_detectors[i].Clock(b))
-                {
-                    _programService = _detectors[i].ProgramService.Trim();
-                    _radioText = _detectors[i].RadioText.Trim();
-                }
+                _detectors[i].Clock(b);
             }
-        }
-
-        public void Reset()
-        {
-            for (var i = 0; i < _detectors.Length; i++)
-            {
-                _detectors[i].Reset();
-            }
-            _programService = string.Empty;
-            _radioText = string.Empty;
-        }
-    }
-
-    public class SyndromeDetector : GroupSequencer
-    {
-        private UInt16 _syndrome;
-        private int _state;
-        private readonly RdsDumpGroups _dumpGroups = new RdsDumpGroups();
-
-        public SyndromeDetector(int state)
-        {
-            _state = state;
-        }
-
-        public string RadioText
-        {
-            get { return _dumpGroups.RadioText; }
-        }
-
-        public string ProgramService
-        {
-            get { return _dumpGroups.ProgramService; }
         }
 
         public void Reset()
         {
             _dumpGroups.Reset();
+        }
+    }
+
+    public class SyndromeDetector : GroupSequencer
+    {
+        private readonly RdsDumpGroups _dumpGroups;
+        private UInt16 _syndrome;
+        private int _state;
+
+        public SyndromeDetector(int state, RdsDumpGroups dumpGroups)
+        {
+            _state = state;
+            _dumpGroups = dumpGroups;
         }
 
         public bool Clock(bool b)

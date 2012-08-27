@@ -668,9 +668,9 @@ namespace SDRSharp
             spectrumAnalyzer.StatusText = string.Empty;
             if (_vfo.DetectorType == DetectorType.WFM)
             {
-                if (!string.IsNullOrEmpty(_vfo.RdsStationName))
+                if (!string.IsNullOrEmpty(_vfo.RdsStationName.Trim()))
                 {
-                    spectrumAnalyzer.StatusText = _vfo.RdsStationName.PadRight(8);
+                    spectrumAnalyzer.StatusText = _vfo.RdsStationName;
                 }
                 if (!string.IsNullOrEmpty(spectrumAnalyzer.StatusText) && !string.IsNullOrEmpty(_vfo.RdsStationText))
                 {
