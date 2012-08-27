@@ -672,7 +672,7 @@ namespace SDRSharp
                 {
                     spectrumAnalyzer.StatusText = _vfo.RdsStationName;
                 }
-                if (!string.IsNullOrEmpty(spectrumAnalyzer.StatusText) && !string.IsNullOrEmpty(_vfo.RdsStationText))
+                if (!string.IsNullOrEmpty(_vfo.RdsStationText))
                 {
                     spectrumAnalyzer.StatusText += " [ " + _vfo.RdsStationText + " ]";
                 }
