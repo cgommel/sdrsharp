@@ -7,6 +7,7 @@ namespace SDRSharp.Radio
         private const int PllDefaultFrequency = 57000;
         private const int PllRange = 12;
         private const int PllBandwith = 1;
+        private const double PllLockTime = 0.5;
         private const double PllLockThreshold = 3.2;
         private const double RdsBitRate = 1187.5;
 
@@ -78,6 +79,7 @@ namespace SDRSharp.Radio
             _pll.DefaultFrequency = 0;
             _pll.Range = PllRange;
             _pll.Bandwidth = PllBandwith;
+            _pll.LockTime = PllLockTime;
             _pll.LockThreshold = PllLockThreshold;
 
             var matchedFilterLength = (int) (_demodulationSampleRate / RdsBitRate);
@@ -93,6 +95,11 @@ namespace SDRSharp.Radio
             _matchedFilter.SetCoefficients(coefficients);
 
             _syncFilter = new IirFilter(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
+        }
+
+        public void Reset()
+        {
+            _bitDecoder.Reset();
         }
 
         public void Process(float* baseBand, int length)

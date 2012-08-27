@@ -295,6 +295,11 @@ namespace SDRSharp.Radio
             set { _filterAudio = value; }
         }
 
+        public void RdsReset()
+        {
+            _rdsDecoder.Reset();
+        }
+
         private void Configure()
         {
             _actualDetectorType = _detectorType;

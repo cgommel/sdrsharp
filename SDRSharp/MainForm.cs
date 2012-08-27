@@ -943,6 +943,10 @@ namespace SDRSharp
             waterfall.Frequency = (long) frequencyNumericUpDown.Value;
             spectrumAnalyzer.Frequency = (long) frequencyNumericUpDown.Value;
             _vfo.Frequency = (int) (waterfall.Frequency - (long) centerFreqNumericUpDown.Value - _frequencyShift);
+            if (_vfo.DetectorType == DetectorType.WFM)
+            {
+                _vfo.RdsReset();
+            }
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -969,6 +973,11 @@ namespace SDRSharp
                 {
                     _frequencyToSet = newCenterFreq;
                 }
+            }
+
+            if (_vfo.DetectorType == DetectorType.WFM)
+            {
+                _vfo.RdsReset();
             }
         }
 

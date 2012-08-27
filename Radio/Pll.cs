@@ -174,7 +174,7 @@ namespace SDRSharp.Radio
             _alpha = 2.0 * _zeta * _bandwidth * norm;
             _beta = (_alpha * _alpha) / (4.0 * _zeta * _zeta);
             _phaseAdj = _phaseAdjM * _sampleRate + _phaseAdjB;
-            _lockAlpha = 1.0 - Math.Exp(-1.0 / (_sampleRate * LockTime));
+            _lockAlpha = 1.0 - Math.Exp(-1.0 / (_sampleRate * _lockTime));
         }
 
         public Complex Process(float sample)
