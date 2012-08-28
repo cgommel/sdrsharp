@@ -9,12 +9,12 @@ namespace SDRSharp.Radio
 
         public string RadioText
         {
-            get { return _dumpGroups.RadioText.Trim(); }
+            get { return _dumpGroups.RadioText; }
         }
 
         public string ProgramService
         {
-            get { return _dumpGroups.ProgramService.Substring(0, 8); }
+            get { return _dumpGroups.ProgramService; }
         }
 
         public RdsDetectorBank()

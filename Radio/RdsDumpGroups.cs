@@ -6,23 +6,30 @@ namespace SDRSharp.Radio
 {
     public class RdsDumpGroups
     {
-        private StringBuilder _radioText = new StringBuilder("                                                                        ");
-        private StringBuilder _programService = new StringBuilder("                                                                        ");
+        private StringBuilder _radioTextSB = new StringBuilder("                                                                        ");
+        private StringBuilder _programServiceSB = new StringBuilder("                                                                        ");
+        private string _radioText = string.Empty;
+        private string _programService = string.Empty;
 
         public string RadioText
         {
-            get { return _radioText.ToString(); }
+            get { return _radioText; }
         }
 
         public string ProgramService
         {
-            get { return _programService.ToString(); }
+            get { return _programService; }
         }
 
         public void Reset()
         {
-            _radioText = new StringBuilder("                                                                        ");
-            _programService = new StringBuilder("                                                                        ");
+            lock (this)
+            {
+                _radioTextSB = new StringBuilder("                                                                        ");
+                _programServiceSB = new StringBuilder("                                                                        ");
+                _radioText = string.Empty;
+                _programService = string.Empty;
+            }
         }
 
         public bool AnalyseFrames(ushort groupA, ushort groupB, ushort groupC, ushort groupD)
@@ -49,8 +56,12 @@ namespace SDRSharp.Radio
                     return false; // ignore garbage
                 }
 
-                _radioText.Remove(index, 4);
-                _radioText.Insert(index, sb.ToString());
+                lock (this)
+                {
+                    _radioTextSB.Remove(index, 4);
+                    _radioTextSB.Insert(index, sb.ToString());
+                    _radioText = _radioTextSB.ToString().Trim();
+                }
 
                 result = true;
 
@@ -70,8 +81,12 @@ namespace SDRSharp.Radio
                     return false; // ignore garbage
                 }
 
-                _programService.Remove(index, 2);
-                _programService.Insert(index, sb.ToString());
+                lock (this)
+                {
+                    _programServiceSB.Remove(index, 2);
+                    _programServiceSB.Insert(index, sb.ToString());
+                    _programService = _programServiceSB.ToString().Substring(0, 8);
+                }
 
                 result = true;
 
