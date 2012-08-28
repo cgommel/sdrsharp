@@ -471,7 +471,7 @@ namespace SDRSharp.PanView
             }
             else
             {
-                ptr = (int*) bits.Scan0 + 4 * bits.Width * (bits.Height - 1) + AxisMargin;
+                ptr = (int*) ((long) bits.Scan0 + 4 * bits.Width * (bits.Height - 1)) + AxisMargin;
             }
             for (var i = 0; i < _spectrum.Length; i++)
             {
