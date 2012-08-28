@@ -439,18 +439,27 @@ namespace SDRSharp.Radio
         public static IFilter[] GetIQFilters(int stageCount, double samplerate, bool useFastFilters)
         {
             var filters = new IFilter[stageCount];
-            int i = 0;
-            while (i < stageCount && samplerate >= 500000)
+
+            if (useFastFilters)
             {
-                filters[i++] = new CicFilter();
-                samplerate /= 2;
+                for (var i = 0; i < stageCount; i++)
+                {
+                    filters[i] = new CicFilter();
+                }
             }
-
-            var kernel = useFastFilters ? _kernel11 : _kernel23;
-
-            while (i < stageCount)
+            else
             {
-                filters[i++] = new IQFirFilter(kernel);
+                int i = 0;
+                while (i < stageCount && samplerate >= 500000)
+                {
+                    filters[i++] = new CicFilter();
+                    samplerate /= 2;
+                }
+
+                while (i < stageCount)
+                {
+                    filters[i++] = new IQFirFilter(_kernel23);
+                }
             }
 
             return filters;
