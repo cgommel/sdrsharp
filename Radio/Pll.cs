@@ -184,7 +184,7 @@ namespace SDRSharp.Radio
             osc.Imag = (float) Math.Sin(_phase);
 
             osc *= sample;
-            var phaseError = -osc.Argument();
+            var phaseError = -osc.FastArgument();
 
             ProcessPhaseError(phaseError);
 
@@ -198,7 +198,7 @@ namespace SDRSharp.Radio
             osc.Imag = (float) Math.Sin(_phase);
 
             osc *= sample;
-            var phaseError = -osc.Argument();
+            var phaseError = -osc.FastArgument();
 
             ProcessPhaseError(phaseError);
 

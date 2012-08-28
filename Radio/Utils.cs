@@ -3,11 +3,65 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System;
 
 namespace SDRSharp.Radio
 {
     public unsafe static class Utils
     {
+        public static float FastSin(float x)
+        {
+            const float B = (float) (4.0 / Math.PI);
+            const float C = (float) (-4.0 / (Math.PI * Math.PI));
+
+            // First iteration
+            var y = B * x + C * x * Math.Abs(x);
+
+            // Second iteration
+            y = 0.225f * (y * Math.Abs(y) - y) + y;
+
+            return y;
+        }
+
+        public static float FastCos(float x)
+        {
+            return FastSin(x + (float) (Math.PI / 2));
+        }
+
+        public static float FastAtan2(float y, float x)
+        {
+            const float PI = (float) Math.PI;
+            const float PI2 = (float) (Math.PI / 2.0);
+
+            float angle;
+            if (x == 0.0)
+            {
+                if (y > 0.0)
+                    return PI2;
+                if (y == 0.0)
+                    return 0.0f;
+                return -PI2;
+            }
+            float z = y / x;
+            if (Math.Abs(z) < 1.0)
+            {
+                angle = z / (1.0f + 0.2854f * z * z);
+                if (x < 0.0)
+                {
+                    if (y < 0.0)
+                        return angle - PI;
+                    return angle + PI;
+                }
+            }
+            else
+            {
+                angle = PI2 - z / (z * z + 0.2854f);
+                if (y < 0.0)
+                    return angle - PI;
+            }
+            return angle;
+        }
+
         public static void ManagedMemcpy(void* dest, void* src, int len)
         {
             var d = (byte*) dest;
