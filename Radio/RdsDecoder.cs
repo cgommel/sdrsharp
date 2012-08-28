@@ -68,11 +68,11 @@ namespace SDRSharp.Radio
                 decimationStageCount++;
             }
 
-            _decimator = new IQDecimator(decimationStageCount, _sampleRate);
+            _decimator = new IQDecimator(decimationStageCount, _sampleRate, true);
             _decimationFactor = (int) Math.Pow(2.0, decimationStageCount);
             _demodulationSampleRate = _sampleRate / _decimationFactor;
 
-            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 400, 2400, WindowType.BlackmanHarris);
+            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2400, WindowType.BlackmanHarris);
             _baseBandFilter.SetCoefficients(coefficients);
 
             _pll.SampleRate = _demodulationSampleRate;

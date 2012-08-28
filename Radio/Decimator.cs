@@ -436,7 +436,7 @@ namespace SDRSharp.Radio
 
         #endregion
 
-        public static IFilter[] GetIQFilters(int stageCount, double samplerate)
+        public static IFilter[] GetIQFilters(int stageCount, double samplerate, bool useFastFilters)
         {
             var filters = new IFilter[stageCount];
             int i = 0;
@@ -445,9 +445,12 @@ namespace SDRSharp.Radio
                 filters[i++] = new CicFilter();
                 samplerate /= 2;
             }
+
+            var kernel = useFastFilters ? _kernel11 : _kernel23;
+
             while (i < stageCount)
             {
-                filters[i++] = new IQFirFilter(_kernel23);
+                filters[i++] = new IQFirFilter(kernel);
             }
 
             return filters;
@@ -475,9 +478,13 @@ namespace SDRSharp.Radio
     {
         private readonly IFilter[] _filters;
 
-        public IQDecimator(int stageCount, double samplerate)
+        public IQDecimator(int stageCount, double samplerate, bool useFastFilters)
         {
-            _filters = DecimationKernels.GetIQFilters(stageCount, samplerate);
+            _filters = DecimationKernels.GetIQFilters(stageCount, samplerate, useFastFilters);
+        }
+
+        public IQDecimator(int stageCount, double samplerate) : this(stageCount, samplerate, false)
+        {
         }
 
         ~IQDecimator()
