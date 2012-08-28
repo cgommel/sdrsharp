@@ -446,14 +446,14 @@ namespace SDRSharp.PanView
             if (bmpData.Stride > 0)
             {
                 src = (void*) bmpData.Scan0;
-                dest = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
+                dest = (void*) ((long) bmpData.Scan0 + bmpData.Stride);
             }
             else
             {
                 dest = (void*) bmpData.Scan0;
-                src = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
+                src = (void*) ((long) bmpData.Scan0 - bmpData.Stride);
             }
-            Utils.Memcpy(dest, src, (bmpData.Height - 1) * bmpData.Width * 4);
+            Utils.Memcpy(dest, src, (bmpData.Height - 1) * Math.Abs(bmpData.Stride));
             _buffer.UnlockBits(bmpData);
         }
 
@@ -471,7 +471,7 @@ namespace SDRSharp.PanView
             }
             else
             {
-                ptr = (int*) ((long) bits.Scan0 + 4 * bits.Width * (bits.Height - 1)) + AxisMargin;
+                ptr = (int*) ((long) bits.Scan0 - bits.Stride * (bits.Height - 1)) + AxisMargin;
             }
             for (var i = 0; i < _spectrum.Length; i++)
             {
@@ -599,9 +599,9 @@ namespace SDRSharp.PanView
 
         private unsafe void CopyMainBufferBuffer()
         {
-            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
+            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.WriteOnly, _buffer.PixelFormat);
             var data2 = _buffer2.LockBits(ClientRectangle, ImageLockMode.ReadOnly, _buffer2.PixelFormat);
-            Utils.Memcpy((void*) data2.Scan0, (void*) data1.Scan0, data1.Width * data1.Height * 4);
+            Utils.Memcpy((void*) data2.Scan0, (void*) data1.Scan0, Math.Abs(data1.Stride) * data1.Height);
             _buffer.UnlockBits(data1);
             _buffer2.UnlockBits(data2);
         }

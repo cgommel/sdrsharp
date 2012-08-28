@@ -602,9 +602,9 @@ namespace SDRSharp.PanView
 
         private unsafe void CopyBackground()
         {
-            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
+            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.WriteOnly, _buffer.PixelFormat);
             var data2 = _bkgBuffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, _bkgBuffer.PixelFormat);
-            Utils.Memcpy((void*) data1.Scan0, (void*) data2.Scan0, data1.Width * data1.Height * 4);
+            Utils.Memcpy((void*) data1.Scan0, (void*) data2.Scan0, Math.Abs(data1.Stride) * data1.Height);
             _buffer.UnlockBits(data1);
             _bkgBuffer.UnlockBits(data2);
         }
