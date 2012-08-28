@@ -441,8 +441,19 @@ namespace SDRSharp.PanView
         private unsafe void ShiftImage()
         {
             var bmpData = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
-            var ptr = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
-            Utils.Memcpy(ptr, (void*) bmpData.Scan0, (bmpData.Height - 1) * bmpData.Width * 4);
+            void* src;
+            void* dest;
+            if (bmpData.Stride > 0)
+            {
+                src = (void*) bmpData.Scan0;
+                dest = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
+            }
+            else
+            {
+                dest = (void*) bmpData.Scan0;
+                src = (void*) ((long) bmpData.Scan0 + bmpData.Width * 4);
+            }
+            Utils.Memcpy(dest, src, (bmpData.Height - 1) * bmpData.Width * 4);
             _buffer.UnlockBits(bmpData);
         }
 
@@ -453,7 +464,15 @@ namespace SDRSharp.PanView
                 return;
             }
             var bits = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadWrite, _buffer.PixelFormat);
-            var ptr = (int*) bits.Scan0 + AxisMargin;
+            int* ptr;
+            if (bits.Stride > 0)
+            {
+                ptr = (int*) bits.Scan0 + AxisMargin;
+            }
+            else
+            {
+                ptr = (int*) bits.Scan0 + 4 * bits.Width * (bits.Height - 1) + AxisMargin;
+            }
             for (var i = 0; i < _spectrum.Length; i++)
             {
                 var colorIndex = (int)((_spectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / byte.MaxValue);
