@@ -182,7 +182,7 @@ namespace SDRSharp.FrequencyManager
             memoryEntry.CenterFrequency = _controlInterface.CenterFrequency;
             memoryEntry.Frequency = _controlInterface.Frequency;
             memoryEntry.FilterBandwidth = _controlInterface.FilterBandwidth;
-            memoryEntry.Shift = _controlInterface.CWShift;            
+            memoryEntry.Shift = _controlInterface.FrequencyShiftEnabled ? _controlInterface.FrequencyShift : 0;
             
             memoryEntry.GroupName = "Misc";
             if (_controlInterface.DetectorType == DetectorType.WFM)
@@ -219,9 +219,10 @@ namespace SDRSharp.FrequencyManager
 
                 _controlInterface.DetectorType = memoryEntry.DetectorType;
                 _controlInterface.CenterFrequency = memoryEntry.CenterFrequency;
-                _controlInterface.Frequency = (long)memoryEntry.Frequency;
-                _controlInterface.FilterBandwidth = (int)memoryEntry.FilterBandwidth;                
-                               
+                _controlInterface.Frequency = memoryEntry.Frequency;
+                _controlInterface.FilterBandwidth = (int) memoryEntry.FilterBandwidth;
+                _controlInterface.FrequencyShiftEnabled = memoryEntry.Shift != 0;
+                _controlInterface.FrequencyShift = memoryEntry.Shift;
             }
         }
 
