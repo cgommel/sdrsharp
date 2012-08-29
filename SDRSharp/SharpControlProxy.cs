@@ -403,6 +403,16 @@ namespace SDRSharp
             }
         }
 
+        public string RdsProgramService
+        {
+            get { return _owner.RdsProgramService; }
+        }
+
+        public string RdsRadioText
+        {
+            get { return _owner.RdsRadioText; }
+        }
+
         public void GetSpectrumSnapshot(byte[] destArray)
         {
 

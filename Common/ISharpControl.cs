@@ -31,6 +31,9 @@ namespace SDRSharp.Common
         int SDecay { get; set; }
         int WAttack { get; set; }
         int WDecay { get; set; }
+
+        string RdsProgramService { get; }
+        string RdsRadioText { get; }
         
         void GetSpectrumSnapshot(byte[] destArray);
 

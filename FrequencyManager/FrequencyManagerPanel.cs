@@ -185,7 +185,23 @@ namespace SDRSharp.FrequencyManager
             memoryEntry.Shift = _controlInterface.CWShift;            
             
             memoryEntry.GroupName = "Misc";
-            memoryEntry.Name = GetFrequencyDisplay(_controlInterface.Frequency)+ " " + memoryEntry.DetectorType;
+            if (_controlInterface.DetectorType == DetectorType.WFM)
+            {
+                var stationName = _controlInterface.RdsProgramService.Trim();
+                memoryEntry.Name = string.Empty;
+                if (!string.IsNullOrEmpty(stationName))
+                {
+                    memoryEntry.Name = stationName;
+                }
+                else
+                {
+                    memoryEntry.Name = GetFrequencyDisplay(_controlInterface.Frequency) + " " + memoryEntry.DetectorType;
+                }
+            }
+            else
+            {
+                memoryEntry.Name = GetFrequencyDisplay(_controlInterface.Frequency) + " " + memoryEntry.DetectorType;
+            }
             memoryEntry.IsFavourite = true;
             DoEdit(memoryEntry, true);
         }

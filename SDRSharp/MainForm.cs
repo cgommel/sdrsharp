@@ -269,6 +269,16 @@ namespace SDRSharp
             get { return useTimestampsCheckBox.Checked; }
             set { useTimestampsCheckBox.Checked = value; }
         }
+
+        public string RdsProgramService
+        {
+            get { return _vfo.RdsStationName; }
+        }
+
+        public string RdsRadioText
+        {
+            get { return _vfo.RdsStationText; }
+        }
         
         #endregion
 
