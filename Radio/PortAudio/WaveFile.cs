@@ -134,35 +134,47 @@ namespace SDRSharp.Radio.PortAudio
             {
                 if (_blockAlign == 6)
                 {
-                    for (int i = 0; i < length; i++)
+                    const float scale = InputGain / 8388608.0f;
+                    var ptr = (Int24*) _tempPtr;
+                    for (var i = 0; i < length; i++)
                     {
-                        iqPtr[i].Real = *(Int24*) (_tempPtr + i * 6) / 8388608.0f * InputGain;
-                        iqPtr[i].Imag = *(Int24*) (_tempPtr + i * 6 + 3) / 8388608.0f * InputGain;
+                        iqPtr->Real = *ptr++ * scale;
+                        iqPtr->Imag = *ptr++ * scale;
+                        iqPtr++;
                     }
                 }
                 else if (_blockAlign == 4)
                 {
-                    for (int i = 0; i < length; i++)
+                    const float scale = InputGain / 32767.0f;
+                    var ptr = (Int16*) _tempPtr;
+                    for (var i = 0; i < length; i++)
                     {
-                        iqPtr[i].Real = *(Int16*) (_tempPtr + i * 4) / 32767.0f * InputGain;
-                        iqPtr[i].Imag = *(Int16*) (_tempPtr + i * 4 + 2) / 32767.0f * InputGain;
+                        iqPtr->Real = *ptr++ * scale;
+                        iqPtr->Imag = *ptr++ * scale;
+                        iqPtr++;
                     }
                 }
                 else if (_blockAlign == 2)
                 {
-                    for (int i = 0; i < length; i++)
+                    const float scale = InputGain / 128.0f;
+                    var ptr = (sbyte*) _tempPtr;
+                    for (var i = 0; i < length; i++)
                     {
-                        iqPtr[i].Real = *(sbyte*) (_tempPtr + i * 2) / 128.0f * InputGain;
-                        iqPtr[i].Imag = *(sbyte*) (_tempPtr + i * 2 + 1) / 128.0f * InputGain;
+                        iqPtr->Real = *ptr++ * scale;
+                        iqPtr->Imag = *ptr++ * scale;
+                        iqPtr++;
                     }
                 }
             }
             else
             {
-                for (int i = 0; i < length; i++)
+                const float scale = InputGain;
+                var ptr = (float*) _tempPtr;
+                for (var i = 0; i < length; i++)
                 {
-                    iqPtr[i].Real = *(float*) (_tempPtr + i * 8) * InputGain;
-                    iqPtr[i].Imag = *(float*) (_tempPtr + i * 8 + 4) * InputGain;
+                    iqPtr->Real = *ptr++ * scale;
+                    iqPtr->Imag = *ptr++ * scale;
+                    iqPtr++;
                 }
             }
         }

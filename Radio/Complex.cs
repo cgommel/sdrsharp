@@ -101,14 +101,16 @@ namespace SDRSharp.Radio
         public static Complex operator /(Complex a, Complex b)
         {
             var dn = b.Real * b.Real + b.Imag * b.Imag;
-            var re = (a.Real * b.Real + a.Imag * b.Imag) / dn;
-            var im = (a.Imag * b.Real - a.Real * b.Imag) / dn;
+            dn = 1.0f / dn;
+            var re = (a.Real * b.Real + a.Imag * b.Imag) * dn;
+            var im = (a.Imag * b.Real - a.Real * b.Imag) * dn;
             return new Complex(re, im);
         }
 
         public static Complex operator /(Complex a, float b)
         {
-            return new Complex(a.Real / b, a.Imag / b);
+            b = 1f / b;
+            return new Complex(a.Real * b, a.Imag * b);
         }
 
         public static Complex operator ~(Complex a)

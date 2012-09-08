@@ -487,8 +487,9 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < inputLength; i++)
             {
-                output[i * 2] = input[i];
-                output[i * 2 + 1] = input[i];
+                *output++ = *input;
+                *output++ = *input;
+                input++;
             }
         }
 

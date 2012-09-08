@@ -57,7 +57,7 @@ namespace SDRSharp.Radio
 
             // Limiting
             var m = f.Modulus();
-            if (m > 0.0)
+            if (m > 0.0f)
             {
                 f /= m;
             }
@@ -132,7 +132,7 @@ namespace SDRSharp.Radio
                 if (_squelchThreshold != value)
                 {
                     _squelchThreshold = value;
-                    _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold/100.0)*HissFactor;
+                    _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold/100.0) * HissFactor;
                 }
             }
         }
