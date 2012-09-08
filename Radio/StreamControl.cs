@@ -207,7 +207,7 @@ namespace SDRSharp.Radio
                 {
                     if (_iqStream.Length < _inputBufferSize * 4)
                     {
-                        _waveFile.Read(waveInBuffer, waveInBuffer.Length);
+                        _waveFile.Read(waveInPtr, waveInBuffer.Length);
                         _iqStream.Write(waveInPtr, waveInBuffer.Length);
                     }
                     else

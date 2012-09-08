@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio.PortAudio
 {
-	public class WaveFile : IDisposable
+	public sealed unsafe class WaveFile : IDisposable
 	{
 	    private const float InputGain = 0.01f;
 
@@ -17,7 +17,9 @@ namespace SDRSharp.Radio.PortAudio
 	    private int _length;
 	    private short _blockAlign;
         private short _bitsPerSample;
-        private byte[] _tempBuffer;
+        private UnsafeBuffer _tempBuffer;
+        private byte[] _temp;
+        private byte* _tempPtr;
 
         ~WaveFile()
         {
@@ -103,18 +105,20 @@ namespace SDRSharp.Radio.PortAudio
             _dataPos = _stream.Position;
 		}
 
-        public void Read(Complex[] iqBuffer, int length)
+        public void Read(Complex* iqBuffer, int length)
         {
-            if (_tempBuffer == null || _tempBuffer.Length != length)
+            if (_temp == null || _temp.Length != _blockAlign * length)
             {
-                _tempBuffer = new byte[_blockAlign * length];
+                _temp = new byte[_blockAlign * length];
+                _tempBuffer = UnsafeBuffer.Create(_temp);
+                _tempPtr = (byte*) _tempBuffer;
             }
             var pos = 0;
             var size = _tempBuffer.Length;
             while (pos < size)
             {
                 int toget = size - pos;
-                int got = _stream.Read(_tempBuffer, pos, toget);
+                int got = _stream.Read(_temp, pos, toget);
                 if (got < toget)
                     _stream.Position = _dataPos; // loop if the file ends
                 if (got <= 0)
@@ -124,47 +128,41 @@ namespace SDRSharp.Radio.PortAudio
             FillIQ(iqBuffer, length);
         }
 
-        private unsafe void FillIQ(Complex[] iqBuffer, int length)
+        private void FillIQ(Complex* iqPtr, int length)
         {
-            var numReads = length;
-
-            fixed (Complex* iqPtr = iqBuffer)
-            fixed (byte* rawPtr = _tempBuffer)
+            if (_isPCM)
             {
-                if (_isPCM)
+                if (_blockAlign == 6)
                 {
-                    if (_blockAlign == 6)
+                    for (int i = 0; i < length; i++)
                     {
-                        for (int i = 0; i < numReads; i++)
-                        {
-                            iqPtr[i].Real = *(Int24*)(rawPtr + i * 6) / 8388608.0f * InputGain;
-                            iqPtr[i].Imag = *(Int24*)(rawPtr + i * 6 + 3) / 8388608.0f * InputGain;
-                        }
-                    }
-                    else if (_blockAlign == 4)
-                    {
-                        for (int i = 0; i < numReads; i++)
-                        {
-                            iqPtr[i].Real = *(Int16*)(rawPtr + i * 4) / 32767.0f * InputGain;
-                            iqPtr[i].Imag = *(Int16*)(rawPtr + i * 4 + 2) / 32767.0f * InputGain;
-                        }
-                    }
-                    else if (_blockAlign == 2)
-                    {
-                        for (int i = 0; i < numReads; i++)
-                        {
-                            iqPtr[i].Real = *(sbyte*)(rawPtr + i * 2) / 128.0f * InputGain;
-                            iqPtr[i].Imag = *(sbyte*)(rawPtr + i * 2 + 1) / 128.0f * InputGain;
-                        }
+                        iqPtr[i].Real = *(Int24*) (_tempPtr + i * 6) / 8388608.0f * InputGain;
+                        iqPtr[i].Imag = *(Int24*) (_tempPtr + i * 6 + 3) / 8388608.0f * InputGain;
                     }
                 }
-                else
+                else if (_blockAlign == 4)
                 {
-                    for (int i = 0; i < numReads; i++)
+                    for (int i = 0; i < length; i++)
                     {
-                        iqPtr[i].Real = *(float*)(rawPtr + i * 8) * InputGain;
-                        iqPtr[i].Imag = *(float*)(rawPtr + i * 8 + 4) * InputGain;
+                        iqPtr[i].Real = *(Int16*) (_tempPtr + i * 4) / 32767.0f * InputGain;
+                        iqPtr[i].Imag = *(Int16*) (_tempPtr + i * 4 + 2) / 32767.0f * InputGain;
                     }
+                }
+                else if (_blockAlign == 2)
+                {
+                    for (int i = 0; i < length; i++)
+                    {
+                        iqPtr[i].Real = *(sbyte*) (_tempPtr + i * 2) / 128.0f * InputGain;
+                        iqPtr[i].Imag = *(sbyte*) (_tempPtr + i * 2 + 1) / 128.0f * InputGain;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    iqPtr[i].Real = *(float*) (_tempPtr + i * 8) * InputGain;
+                    iqPtr[i].Imag = *(float*) (_tempPtr + i * 8 + 4) * InputGain;
                 }
             }
         }
