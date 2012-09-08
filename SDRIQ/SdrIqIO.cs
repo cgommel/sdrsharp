@@ -1,73 +1,144 @@
 ﻿using System;
-using SDR14XLib;
 using SDRSharp.Radio;
 
 namespace SDRSharp.SDRIQ
 {
-    public class SdrIqIO : IFrontendController, IDisposable
+    public unsafe class SdrIqIO : IFrontendController, IDisposable
     {
-        private SDR14X _device; 
+        private SdrIqDevice _device;
+        private readonly SDRIQControllerDialog _gui;
+        private Radio.SamplesAvailableDelegate _callback;
 
-        public void Open()
+        public SdrIqIO()        
         {
-            _device = new SDR14X();
+            
+            NativeMethods.sdriq_initialise();
+
+            _gui = new SDRIQControllerDialog(this);            
         }
 
-        public void Start(SamplesAvailableDelegate callback)
+        ~SdrIqIO()
         {
-            throw new NotImplementedException();
-        }
-
-        public void Stop()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Close()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsSoundCardBased
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public string SoundCardHint
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public double Samplerate
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public long Frequency
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public void ShowSettingGUI(System.Windows.Forms.IWin32Window parent)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void HideSettingGUI()
-        {
-            throw new NotImplementedException();
+            Dispose();
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            NativeMethods.sdriq_destroy();
+            if (_gui != null)
+            {
+                _gui.Dispose();
+            }
+            GC.SuppressFinalize(this);
+        }
+
+        public void Open()
+        {
+            var devices = DeviceDisplay.GetActiveDevices();
+            foreach (var device in devices)
+            {
+                try
+                {
+                    SelectDevice(device.Index);
+                    return;
+                }
+                catch (ApplicationException)
+                {
+                    // Just ignore it
+                }
+            }
+            if (devices.Length > 0)
+            {
+                throw new ApplicationException(devices.Length + " compatible devices have been found but are all busy");
+            }
+            throw new ApplicationException("No compatible devices found");
+        }
+
+        public void SelectDevice(uint index)
+        {
+            if (_device != null && _device.Index == index)
+            {
+                return;
+            }
+            Close();
+            _device = new SdrIqDevice(index);
+            _device.SamplesAvailable += sdriqDevice_SamplesAvailable;
+            _gui.ConfigureGUI();
+            _gui.ConfigureDevice();
+        }
+
+        public void Start(SDRSharp.Radio.SamplesAvailableDelegate callback)
+        {
+            if (_device == null)
+            {
+                throw new ApplicationException("No device selected");
+            }
+            _callback = callback;
+            
+            _device.Start();
+        }
+
+        public void Stop()
+        {
+            _device.Stop();
+        }
+
+        public void Close()
+        {
+            if (_device != null)
+            {
+                _device.Stop();
+                _device.SamplesAvailable -= sdriqDevice_SamplesAvailable;
+                _device.Dispose();
+                _device = null;
+            }
+        }
+
+        public bool IsSoundCardBased
+        {
+            get { return false; }           
+        }
+
+        public string SoundCardHint
+        {
+            get { return string.Empty; }            
+        }
+
+        public double Samplerate
+        {
+            get { return _device == null ? 0.0 : _device.Samplerate; }           
+        }
+
+        public long Frequency
+        {
+            get { return _device == null ? 0 : _device.Frequency; }
+            set
+            {
+                if (_device != null)
+                {
+                    _device.Frequency = (uint)value;
+                }
+            }
+        }
+
+        public SdrIqDevice Device
+        {
+            get { return _device; }
+        }
+
+        public void ShowSettingGUI(System.Windows.Forms.IWin32Window parent)
+        {
+            _gui.Show();
+        }
+
+        public void HideSettingGUI()
+        {
+            _gui.Hide();
+        }
+      
+        private void sdriqDevice_SamplesAvailable(object sender, SamplesAvailableEventArgs e)
+        {
+            _callback(this, e.Buffer, e.Length);
         }
     }
 }

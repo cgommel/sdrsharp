@@ -34,6 +34,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -78,22 +80,27 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="SDRIQControllerDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SDRIQControllerDialog.Designer.cs">
+      <DependentUpon>SDRIQControllerDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SdrIqDevice.cs" />
     <Compile Include="SdrIqIO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Radio\SDRSharp.Radio.csproj">
-      <Project>{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}</Project>
-      <Name>SDRSharp.Radio</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -113,15 +120,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="SDR14XLib">
-      <Guid>{20A1E001-3338-451B-BAE8-E244CDBF5526}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
+    <EmbeddedResource Include="SDRIQControllerDialog.resx">
+      <DependentUpon>SDRIQControllerDialog.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Radio\SDRSharp.Radio.csproj">
+      <Project>{1E08E7FD-5A13-454D-ADBD-C1A0B75ECF2D}</Project>
+      <Name>SDRSharp.Radio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

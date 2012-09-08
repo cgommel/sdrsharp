@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.RTL283X", "RTL283X
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.Common", "Common\SDRSharp.Common.csproj", "{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.SDRIQ", "SDRIQ\SDRSharp.SDRIQ.csproj", "{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -72,6 +74,10 @@ Global
 		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Debug|x86.Build.0 = Debug|x86
 		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Release|x86.ActiveCfg = Release|x86
 		{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}.Release|x86.Build.0 = Release|x86
+		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Debug|x86.ActiveCfg = Debug|x86
+		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Debug|x86.Build.0 = Debug|x86
+		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Release|x86.ActiveCfg = Release|x86
+		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
