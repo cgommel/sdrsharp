@@ -31,15 +31,6 @@ namespace SDRSharp
         private const int DefaultSSBBandwidth = 2400;
         private const int DefaultCWBandwidth = 300;
         private const int MaxFFTBins = 1024 * 1024 * 4;
-        private const int MaxFFTQueue = 3;
-        private const int FFTOverlapLimit = 65536 / 2;
-
-        private int _fftBins;
-        private int _fftFillPosition;
-        private bool _fftOverlap;
-        private bool _fftSpectrumAvailable;
-        private bool _extioChangingFrequency;
-        private bool _extioChangingSamplerate;
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -47,21 +38,31 @@ namespace SDRSharp
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
         private readonly StreamControl _streamControl = new StreamControl();
-        private readonly ComplexFifoStream _fftStream = new ComplexFifoStream();
+        private readonly ComplexFifoStream _fftStream = new ComplexFifoStream(true);
         private readonly Complex[] _iqBuffer = new Complex[MaxFFTBins];
         private readonly Complex[] _fftBuffer = new Complex[MaxFFTBins];
         private readonly float[] _fftWindow = new float[MaxFFTBins];
         private readonly float[] _fftSpectrum = new float[MaxFFTBins];
         private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
-        private readonly Pipe<byte[]> _fftQueue = new Pipe<byte[]>(MaxFFTQueue);
+        private readonly AutoResetEvent _fftEvent = new AutoResetEvent(false);
         private readonly System.Windows.Forms.Timer _fftTimer;
         private readonly System.Threading.Timer _tuneTimer;
+        private int _fftSamplesPerFrame;
+        private int _maxIQBuffer;
         private long _frequencyToSet;
         private long _frequencySet;
         private long _frequencyShift;
+        private int _fftBins;
+        private int _actualFftBins;
+        private int _fftSpectrumSamples;
+        private bool _fftSpectrumAvailable;
+        private bool _fftBufferIsWaiting;
+        private bool _extioChangingFrequency;
+        private bool _extioChangingSamplerate;
 
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private readonly SharpControlProxy _sharpControlProxy;
+
         #endregion
 
         #region Public Properties
@@ -267,7 +268,10 @@ namespace SDRSharp
         public bool UseTimeMarkers
         {
             get { return useTimestampsCheckBox.Checked; }
-            set { useTimestampsCheckBox.Checked = value; }
+            set
+            {
+                useTimestampsCheckBox.Checked = value;
+            }
         }
 
         public string RdsProgramService
@@ -289,13 +293,6 @@ namespace SDRSharp
             InitializeComponent();
             _fftTimer = new System.Windows.Forms.Timer(components);
             _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 10);
-
-            for (var i = 0; i < MaxFFTQueue; i++)
-            {
-                _fftQueue.AdvanceWrite();
-                _fftQueue.Head = new byte[FFTOverlapLimit];
-            }
-
             _sharpControlProxy = new SharpControlProxy(this);
         }
 
@@ -358,7 +355,6 @@ namespace SDRSharp
             #region Initialize FFT display
 
             _fftBins = 4096;
-            _fftOverlap = true;
 
             viewComboBox.SelectedIndex = 2;
             fftResolutionComboBox.SelectedIndex = 3;
@@ -510,6 +506,7 @@ namespace SDRSharp
         {
             _tuneTimer.Dispose();
             _streamControl.Stop();
+            _fftEvent.Set();
             if (_frontendController != null)
             {
                 _frontendController.Close();
@@ -539,8 +536,10 @@ namespace SDRSharp
         private void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
         {
             _iqBalancer.Process(iqBuffer, length);
-            if (_fftStream.Length < _fftBins || _fftOverlap)
+            if (_fftStream.Length < _maxIQBuffer * 5)
+            {
                 _fftStream.Write(iqBuffer, length);
+            }
             _vfo.ProcessBuffer(iqBuffer, audioBuffer, length);
         }
 
@@ -548,80 +547,72 @@ namespace SDRSharp
         {
             while (_streamControl.IsPlaying || _extioChangingSamplerate)
             {
-                // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
-                var fftGain = (float) (10.0 * Math.Log10((double) _fftBins / 2));
-                var compensation = 24.0f - fftGain;
-
-                while (_streamControl.IsPlaying)
+                if (_actualFftBins < _fftBins)
                 {
-                    if (_fftOverlap)
+                    for (var i = _actualFftBins; i < _fftBins; i++)
                     {
-                        var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
-                        var overlapRatio = _streamControl.SampleRate / fftRate;
-
-                        var bytes = (int)(_fftBins * overlapRatio);
-
-                        if (_fftStream.Length < bytes)
-                        {
-                            break;
-                        }
-
-                        if (bytes > _fftBins)
-                        {
-                            _fftStream.Advance(bytes - _fftBins);
-                        }
-
-                        var toRead = Math.Min(bytes, _fftBins);
-                        Array.Copy(_iqBuffer, toRead, _iqBuffer, 0, _fftBins - toRead);
-
-                        var total = 0;
-                        while (_streamControl.IsPlaying && total < toRead)
-                        {
-                            var len = Math.Max(1000, _fftStream.Length);
-                            len = Math.Min(len, toRead - total);
-                            total += _fftStream.Read(_iqBuffer, _fftBins - toRead + total, len);
-                        }
-
-                        Array.Copy(_iqBuffer, _fftBuffer, _fftBins);
-                        Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-                        Fourier.ForwardTransform(_fftBuffer, _fftBins);
-                        Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _fftBins, compensation);
-
-                        lock (_fftQueue)
-                        {
-                            if (_fftQueue.Head.Length >= _fftBins)
-                            {
-                                Fourier.ScaleFFT(_fftSpectrum, _fftQueue.Head, _fftBins);
-                                _fftQueue.AdvanceWrite();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var len = Math.Min(_fftBins - _fftFillPosition, _fftStream.Length);
-                        _fftFillPosition += _fftStream.Read(_fftBuffer, _fftFillPosition, len);
-
-                        if (_fftFillPosition < _fftBins)
-                        {
-                            break;
-                        }
-                        _fftFillPosition = 0;
-
-                        Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _fftBins);
-                        Fourier.ForwardTransform(_fftBuffer, _fftBins);
-                        Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _fftBins, compensation);
-                        lock (_scaledFFTSpectrum)
-                        {
-                            if (_scaledFFTSpectrum.Length >= _fftBins)
-                            {
-                                Fourier.ScaleFFT(_fftSpectrum, _scaledFFTSpectrum, _fftBins);
-                                _fftSpectrumAvailable = true;
-                            }
-                        }
+                        _iqBuffer[i] = 0;
                     }
                 }
+                _actualFftBins = _fftBins;
+                var fftRate = _actualFftBins / (_fftTimer.Interval * 0.001);
+                var overlapRatio = _streamControl.SampleRate / fftRate;
+                var bytes = (int) (_actualFftBins * overlapRatio);
+                _fftSamplesPerFrame = Math.Min(bytes, _actualFftBins);
+                var framesPerIQBuffer = _streamControl.BufferSizeInMs / (float) _fftTimer.Interval;
+                _maxIQBuffer = (int) (_fftSamplesPerFrame * framesPerIQBuffer);
 
-                Thread.Sleep(10);
+                #region Shift data for overlapped mode
+
+                if (_fftSamplesPerFrame < _actualFftBins)
+                {
+                    Array.Copy(_iqBuffer, _fftSamplesPerFrame, _iqBuffer, 0, _actualFftBins - _fftSamplesPerFrame);
+                }
+
+                #endregion
+
+                #region Read IQ data
+
+                var total = 0;
+                while (_streamControl.IsPlaying && total < _fftSamplesPerFrame)
+                {
+                    var len = Math.Max(1024, _fftStream.Length);
+                    len = Math.Min(len, _fftSamplesPerFrame - total);
+                    len = Math.Min(len, _iqBuffer.Length);
+                    total += _fftStream.Read(_iqBuffer, _actualFftBins - _fftSamplesPerFrame + total, len);
+                }
+
+                #endregion
+
+                if (!_fftSpectrumAvailable)
+                {
+                    #region Process FFT gain
+
+                    // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
+                    var fftGain = (float)(10.0 * Math.Log10((double) _actualFftBins / 2));
+                    var compensation = 24.0f - fftGain;
+
+                    #endregion
+
+                    #region Calculate and scale FFT
+
+                    Array.Copy(_iqBuffer, _fftBuffer, _actualFftBins);
+                    Fourier.ApplyFFTWindow(_fftBuffer, _fftWindow, _actualFftBins);
+                    Fourier.ForwardTransform(_fftBuffer, _actualFftBins);
+                    Fourier.SpectrumPower(_fftBuffer, _fftSpectrum, _actualFftBins, compensation);
+                    Fourier.ScaleFFT(_fftSpectrum, _scaledFFTSpectrum, _actualFftBins);
+
+                    #endregion
+
+                    _fftSpectrumSamples = _actualFftBins;
+                    _fftSpectrumAvailable = true;
+                }
+
+                if (_fftStream.Length < _maxIQBuffer)
+                {
+                    _fftBufferIsWaiting = true;
+                    _fftEvent.WaitOne();
+                }
             }
             _fftStream.Flush();
         }
@@ -630,36 +621,22 @@ namespace SDRSharp
         {
             if (_streamControl.IsPlaying)
             {
-                if (_fftOverlap)
+                if (_fftSpectrumAvailable)
                 {
-                    lock (_fftQueue)
-                    {
-                        Array.Copy(_fftQueue.Tail, _scaledFFTSpectrum, _fftBins);
-                        _fftQueue.AdvanceRead();
-                    }
                     if (!panSplitContainer.Panel1Collapsed)
                     {
-                        spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftBins);
+                        spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
                     }
                     if (!panSplitContainer.Panel2Collapsed)
                     {
-                        waterfall.Render(_scaledFFTSpectrum, _fftBins);
+                        waterfall.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
                     }
+                    _fftSpectrumAvailable = false;
                 }
-                else if (_fftSpectrumAvailable)
+                if (_fftBufferIsWaiting)
                 {
-                    lock (_scaledFFTSpectrum)
-                    {
-                        if (!panSplitContainer.Panel1Collapsed)
-                        {
-                            spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftBins);
-                        }
-                        if (!panSplitContainer.Panel2Collapsed)
-                        {
-                            waterfall.Render(_scaledFFTSpectrum, _fftBins);
-                        }
-                        _fftSpectrumAvailable = false;
-                    }
+                    _fftBufferIsWaiting = false;
+                    _fftEvent.Set();
                 }
             }
 
@@ -1368,14 +1345,6 @@ namespace SDRSharp
         private void fftResolutionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
-            var overlap = _fftBins <= FFTOverlapLimit;
-            if (_fftOverlap != overlap)
-            {
-                _fftFillPosition = 0;
-            }
-            _fftOverlap = overlap;
-            waterfall.UseSmoothing = overlap;
-            spectrumAnalyzer.UseSmoothing = overlap;
             BuildFFTWindow();
         }
 
@@ -1549,13 +1518,14 @@ namespace SDRSharp
             }
             outputDeviceComboBox.Enabled = true;
             latencyNumericUpDown.Enabled = true;
+            _fftEvent.Set();
         }
 
         public void GetSpectrumSnapshot(byte[] destArray)
         {
-            lock (_fftQueue)
+            lock (_fftSpectrum)
             {
-                Fourier.SmoothCopy(_fftQueue.Tail, destArray, _fftBins, 1.0f, 0);
+                Fourier.SmoothCopy(_scaledFFTSpectrum, destArray, _fftSpectrumSamples, 1.0f, 0);
             }
         }
 
