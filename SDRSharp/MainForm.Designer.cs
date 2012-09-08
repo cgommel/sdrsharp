@@ -239,9 +239,10 @@ namespace SDRSharp
             this.spectrumAnalyzer.Name = "spectrumAnalyzer";
             this.spectrumAnalyzer.Size = new System.Drawing.Size(642, 213);
             this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.StatusText = null;
             this.spectrumAnalyzer.StepSize = 1000;
             this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = false;
+            this.spectrumAnalyzer.UseSmoothing = true;
             this.spectrumAnalyzer.UseSnap = false;
             this.spectrumAnalyzer.Zoom = 0;
             this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
@@ -266,7 +267,7 @@ namespace SDRSharp
             this.waterfall.StepSize = 0;
             this.waterfall.TabIndex = 0;
             this.waterfall.TimestampInterval = 100;
-            this.waterfall.UseSmoothing = false;
+            this.waterfall.UseSmoothing = true;
             this.waterfall.UseSnap = false;
             this.waterfall.UseTimestamps = false;
             this.waterfall.Zoom = 0;
