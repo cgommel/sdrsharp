@@ -211,18 +211,44 @@ namespace SDRSharp.FrequencyManager
             //if (_controlInterface.Frequency == 0) return;
             if (!_controlInterface.IsPlaying) return;
 
-
             var rowIndex = frequencyDataGridView.SelectedCells.Count > 0 ? frequencyDataGridView.SelectedCells[0].RowIndex : -1;
             if (rowIndex != -1)
             {
-                var memoryEntry = (MemoryEntry)memoryEntryBindingSource.List[rowIndex];
+                try
+                {
+                    var memoryEntry = (MemoryEntry) memoryEntryBindingSource.List[rowIndex];
 
-                _controlInterface.DetectorType = memoryEntry.DetectorType;
-                _controlInterface.CenterFrequency = memoryEntry.CenterFrequency;
-                _controlInterface.Frequency = memoryEntry.Frequency;
-                _controlInterface.FilterBandwidth = (int) memoryEntry.FilterBandwidth;
-                _controlInterface.FrequencyShiftEnabled = memoryEntry.Shift != 0;
-                _controlInterface.FrequencyShift = memoryEntry.Shift;
+                    _controlInterface.FrequencyShift = memoryEntry.Shift;
+                    _controlInterface.FrequencyShiftEnabled = memoryEntry.Shift != 0;
+
+                    if (Math.Abs(memoryEntry.Frequency - memoryEntry.CenterFrequency - _controlInterface.FrequencyShift) < _controlInterface.RFBandwidth / 2)
+                    {
+                        _controlInterface.CenterFrequency = memoryEntry.CenterFrequency;
+                        _controlInterface.Frequency = memoryEntry.Frequency;
+                    }
+                    else
+                    {
+                        var newCenter = memoryEntry.Frequency - memoryEntry.Shift + _controlInterface.FilterBandwidth / 2 + 5000;
+
+                        if (Math.Abs(memoryEntry.Frequency - newCenter - memoryEntry.Shift) < _controlInterface.RFBandwidth / 2)
+                        {
+                            _controlInterface.CenterFrequency = newCenter;
+                            _controlInterface.Frequency = memoryEntry.Frequency;
+                        }
+                        else
+                        {
+                            _controlInterface.CenterFrequency = memoryEntry.Frequency - _controlInterface.FrequencyShift;
+                            _controlInterface.Frequency = memoryEntry.Frequency;
+                        }
+                    }
+
+                    _controlInterface.DetectorType = memoryEntry.DetectorType;
+                    _controlInterface.FilterBandwidth = (int) memoryEntry.FilterBandwidth;
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(this, e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

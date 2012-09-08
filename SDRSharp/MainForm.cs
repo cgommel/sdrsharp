@@ -128,8 +128,15 @@ namespace SDRSharp
 
         public long CenterFrequency
         {
-            get { return (long)centerFreqNumericUpDown.Value; }
-            set { centerFreqNumericUpDown.Value = value; }
+            get { return (long) centerFreqNumericUpDown.Value; }
+            set
+            {
+                if (_frontendController == null)
+                {
+                    throw new ApplicationException("Cannot set the center frequency when no front end is connected");
+                }
+                centerFreqNumericUpDown.Value = value;
+            }
         }
 
         public long FrequencyShift
@@ -282,6 +289,11 @@ namespace SDRSharp
         public string RdsRadioText
         {
             get { return _vfo.RdsStationText; }
+        }
+
+        public int RFBandwidth
+        {
+            get { return (int) _vfo.SampleRate; }
         }
         
         #endregion

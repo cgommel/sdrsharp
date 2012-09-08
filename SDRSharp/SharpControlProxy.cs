@@ -413,6 +413,11 @@ namespace SDRSharp
             get { return _owner.RdsRadioText; }
         }
 
+        public int RFBandwidth
+        {
+            get { return _owner.RFBandwidth; }
+        }
+
         public void GetSpectrumSnapshot(byte[] destArray)
         {
 

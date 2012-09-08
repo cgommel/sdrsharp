@@ -39,5 +39,7 @@ namespace SDRSharp.Common
 
         void StartRadio();
         void StopRadio();
+
+        int RFBandwidth { get; }
     }
 }
