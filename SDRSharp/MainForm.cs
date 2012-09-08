@@ -731,10 +731,10 @@ namespace SDRSharp
                 frequencyShiftCheckBox.Enabled = false;
                 frequencyShiftNumericUpDown.Enabled = false;
 
+                frequencyShiftNumericUpDown.Value = 0;
+                frequencyShiftCheckBox.Checked = false;
                 centerFreqNumericUpDown.Value = 0;
-                centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = 0;
-                frequencyNumericUpDown_ValueChanged(null, null);
             }
         }
 
