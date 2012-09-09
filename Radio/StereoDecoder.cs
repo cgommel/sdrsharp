@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -16,6 +17,7 @@ namespace SDRSharp.Radio
         private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", 0.0f);
 
         private readonly Pll _pll = new Pll();
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         private IirFilter _pilotFilter;
         private UnsafeBuffer _channelABuffer;
@@ -129,9 +131,14 @@ namespace SDRSharp.Radio
 
             var audioLength = length / _audioDecimationFactor;
 
-            Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));
-            _channelADecimator.Process(_channelAPtr, length);
-            _channelAFilter.Process(_channelAPtr, audioLength);
+            ThreadPool.QueueUserWorkItem(
+                delegate
+                    {
+                        Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));
+                        _channelADecimator.Process(_channelAPtr, length);
+                        _channelAFilter.Process(_channelAPtr, audioLength);
+                        _event.Set();
+                    });
 
             #endregion
 
@@ -146,6 +153,8 @@ namespace SDRSharp.Radio
 
             if (!_pll.IsLocked)
             {
+                _event.WaitOne();
+
                 #region Process mono deemphasis
 
                 for (var i = 0; i < audioLength; i++)
@@ -179,6 +188,8 @@ namespace SDRSharp.Radio
             #endregion
 
             #region Recover L and R audio channels
+
+            _event.WaitOne();
 
             for (var i = 0; i < audioLength; i++)
             {

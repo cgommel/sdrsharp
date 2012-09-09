@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -21,6 +22,7 @@ namespace SDRSharp.Radio
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
         private readonly Random _rng = new Random();
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         public IQBalancer()
         {
@@ -72,16 +74,26 @@ namespace SDRSharp.Radio
 
         private void RemoveDC(Complex* iq, int length)
         {
+            ThreadPool.QueueUserWorkItem(
+                delegate
+                {
+                    // I branch
+                    for (var i = 0; i < length; i++)
+                    {
+                        _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                        iq[i].Real -= _averageI;
+                    }
+                    _event.Set();
+                });
+
+            // Q branch
             for (var i = 0; i < length; i++)
             {
-                // I branch
-                _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
-                iq[i].Real -= _averageI;
-
-                // Q branch
                 _averageQ = _averageQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
                 iq[i].Imag -= _averageQ;
             }
+
+            _event.WaitOne();
         }
 
         private void EstimateImbalance()
