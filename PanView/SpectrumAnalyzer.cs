@@ -262,8 +262,12 @@ namespace SDRSharp.PanView
             get { return _stepSize; }
             set
             {
-                _stepSize = value;
-                _performNeeded = true;
+                if (_stepSize != value)
+                {
+                    _stepSize = value;
+                    _drawBackgroundNeeded = true;
+                    _performNeeded = true;
+                }
             }
         }
 
