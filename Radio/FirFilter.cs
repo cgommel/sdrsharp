@@ -2,7 +2,13 @@
 
 namespace SDRSharp.Radio
 {
-    public unsafe sealed class FirFilter : IDisposable
+    public unsafe interface IFilter
+    {
+        void Process(float* buffer, int length);
+        void ProcessInterleaved(float* buffer, int length);
+    }
+
+    public unsafe sealed class FirFilter : IDisposable, IFilter
     {
         private const double Epsilon = 1e-6;
         private const int CircularBufferSize = 4;

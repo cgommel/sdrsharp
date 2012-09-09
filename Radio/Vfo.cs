@@ -323,10 +323,6 @@ namespace SDRSharp.Radio
                     _baseBandDecimationStageCount = _decimationStageCount;
                     _audioDecimationStageCount = 0;
                 }
-                if (_baseBandDecimator != null)
-                {
-                    _baseBandDecimator.Dispose();
-                }
                 _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate);
                 _needNewFilters = true;
             }

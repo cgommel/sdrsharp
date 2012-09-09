@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading;
 
 namespace SDRSharp.Radio
 {
-    public unsafe sealed class IQFirFilter : IFilter
+    public unsafe sealed class IQFirFilter
     {
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         public IQFirFilter() : this(new float[0])
         {
@@ -32,8 +34,16 @@ namespace SDRSharp.Radio
         public void Process(Complex* iq, int length)
         {
             var ptr = (float*) iq;
-            _rFilter.ProcessInterleaved(ptr, length);
+
+            ThreadPool.QueueUserWorkItem(
+                delegate
+                {
+                    _rFilter.ProcessInterleaved(ptr, length);
+                    _event.Set();
+                });
+
             _iFilter.ProcessInterleaved(ptr + 1, length);
+            _event.WaitOne();
         }
 
         public void SetCoefficients(float[] coefficients)

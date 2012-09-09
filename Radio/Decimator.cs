@@ -1,7 +1,14 @@
-﻿using System;
+﻿using System.Threading;
 
 namespace SDRSharp.Radio
 {
+    public enum DecimationFilterType
+    {
+        Cic3,
+        Baseband,
+        Audio
+    }
+
     public static class DecimationKernels
     {
         #region Constants
@@ -436,120 +443,97 @@ namespace SDRSharp.Radio
 
         #endregion
 
-        public static IFilter[] GetIQFilters(int stageCount, double samplerate, bool useFastFilters)
+        public static IFilter[] GetFilters(int stageCount, double samplerate, DecimationFilterType filterType)
         {
             var filters = new IFilter[stageCount];
 
-            if (useFastFilters)
+            switch (filterType)
             {
-                for (var i = 0; i < stageCount; i++)
-                {
-                    filters[i] = new CicFilter();
-                }
+                case DecimationFilterType.Cic3:
+                    for (var i = 0; i < stageCount; i++)
+                    {
+                        filters[i] = new CicFilter();
+                    }
+                    break;
+
+                case DecimationFilterType.Audio:
+                    for (var i = 0; i < stageCount; i++)
+                    {
+                        filters[i] = new FirFilter(_kernel47);
+                    }
+                    break;
+
+                case DecimationFilterType.Baseband:
+                    {
+                        int i = 0;
+                        while (i < stageCount && samplerate >= 500000)
+                        {
+                            filters[i++] = new CicFilter();
+                            samplerate /= 2;
+                        }
+
+                        while (i < stageCount)
+                        {
+                            filters[i++] = new FirFilter(_kernel23);
+                        }
+                    }
+                    break;
             }
-            else
-            {
-                int i = 0;
-                while (i < stageCount && samplerate >= 500000)
-                {
-                    filters[i++] = new CicFilter();
-                    samplerate /= 2;
-                }
-
-                while (i < stageCount)
-                {
-                    filters[i++] = new IQFirFilter(_kernel23);
-                }
-            }
-
-            return filters;
-        }
-
-        public static FirFilter[] GetFloatFilters(int stageCount)
-        {
-            var filters = new FirFilter[stageCount];
-
-            for (var i = 0; i < stageCount; i++)
-            {
-                filters[i] = new FirFilter(_kernel47);
-            }
-
             return filters;
         }
     }
 
-    public unsafe interface IFilter : IDisposable
+    public unsafe sealed class IQDecimator
     {
-        void Process(Complex* buffer, int length);
-    }
-
-    public unsafe sealed class IQDecimator : IFilter
-    {
-        private readonly IFilter[] _filters;
+        private readonly FloatDecimator _rDecimator;
+        private readonly FloatDecimator _iDecimator;
+        private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
         public IQDecimator(int stageCount, double samplerate, bool useFastFilters)
         {
-            _filters = DecimationKernels.GetIQFilters(stageCount, samplerate, useFastFilters);
+            _rDecimator = new FloatDecimator(stageCount, samplerate, useFastFilters ? DecimationFilterType.Cic3 : DecimationFilterType.Baseband);
+            _iDecimator = new FloatDecimator(stageCount, samplerate, useFastFilters ? DecimationFilterType.Cic3 : DecimationFilterType.Baseband);
         }
 
         public IQDecimator(int stageCount, double samplerate) : this(stageCount, samplerate, false)
         {
         }
 
-        ~IQDecimator()
-        {
-            Dispose();
-        }
-
-        public void Dispose()
-        {
-            for (var i = 0; i < _filters.Length; i++)
-            {
-                _filters[i].Dispose();
-            }
-            GC.SuppressFinalize(this);
-        }
-
         public void Process(Complex* buffer, int length)
         {
-            for (var n = 0; n < _filters.Length; n++)
-            {
-                _filters[n].Process(buffer, length);
-                length /= 2;
-                for (int i = 0, j = 0; i < length; i++, j += 2)
-                {
-                    buffer[i] = buffer[j];
-                }
-            }
+            var rPtr = (float*) buffer;
+            var iPtr = rPtr + 1;
+
+            ThreadPool.QueueUserWorkItem(
+                delegate
+                    {
+                        _rDecimator.ProcessInterleaved(rPtr, length);
+                        _event.Set();
+                    });
+
+            _iDecimator.ProcessInterleaved(iPtr, length);
+
+            _event.WaitOne();
         }
 
         public int StageCount
         {
-            get { return _filters.Length; }
+            get { return _rDecimator.StageCount; }
         }
     }
 
-    public unsafe sealed class FloatDecimator : IDisposable
+    public unsafe sealed class FloatDecimator
     {
-        private readonly FirFilter[] _filters;
+        private readonly IFilter[] _filters;
 
         public FloatDecimator(int stageCount)
         {
-            _filters = DecimationKernels.GetFloatFilters(stageCount);
+            _filters = DecimationKernels.GetFilters(stageCount, 0, DecimationFilterType.Audio);
         }
 
-        ~FloatDecimator()
+        public FloatDecimator(int stageCount, double samplerate, DecimationFilterType filterType)
         {
-            Dispose();
-        }
-
-        public void Dispose()
-        {
-            for (var n = 0; n < _filters.Length; n++)
-            {
-                _filters[n].Dispose();
-            }
-            GC.SuppressFinalize(this);
+            _filters = DecimationKernels.GetFilters(stageCount, samplerate, filterType);
         }
 
         public void Process(float* buffer, int length)
@@ -565,6 +549,19 @@ namespace SDRSharp.Radio
             }
         }
 
+        public void ProcessInterleaved(float* buffer, int length)
+        {
+            for (var n = 0; n < _filters.Length; n++)
+            {
+                _filters[n].ProcessInterleaved(buffer, length);
+                for (int i = 0, j = 0; i < length; i += 2, j += 4)
+                {
+                    buffer[i] = buffer[j];
+                }
+                length /= 2;
+            }
+        }
+
         public int StageCount
         {
             get { return _filters.Length; }
@@ -573,27 +570,32 @@ namespace SDRSharp.Radio
 
     public unsafe sealed class CicFilter : IFilter
     {
-        private Complex _xOdd;
-        private Complex _xEven;
+        private float _xOdd;
+        private float _xEven;
 
-        public void Process(Complex* buffer, int length)
+        public void Process(float* buffer, int length)
         {
-            int i;
-            Complex even, odd;
-            for (i = 0; i < length; i += 2)
+            for (var i = 0; i < length; i += 2)
             {
-                even = buffer[i];
-                odd = buffer[i + 1];
-                buffer[i].Real = (float) (0.125 * (odd.Real + _xEven.Real + 3.0 * (_xOdd.Real + even.Real)));
-                buffer[i].Imag = (float) (0.125 * (odd.Imag + _xEven.Imag + 3.0 * (_xOdd.Imag + even.Imag)));
+                var even = buffer[i];
+                var odd = buffer[i + 1];
+                buffer[i] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
                 _xOdd = odd;
                 _xEven = even;
             }
         }
 
-        public void Dispose()
+        public void ProcessInterleaved(float* buffer, int length)
         {
-            GC.SuppressFinalize(this);
+            length *= 2;
+            for (var i = 0; i < length; i += 4)
+            {
+                var even = buffer[i];
+                var odd = buffer[i + 2];
+                buffer[i] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
+                _xOdd = odd;
+                _xEven = even;
+            }
         }
     }
 }

@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using System.Runtime.CompilerServices;
 using SDRSharp.Common;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
@@ -46,7 +45,6 @@ namespace SDRSharp
         private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
         private readonly AutoResetEvent _fftEvent = new AutoResetEvent(false);
         private readonly System.Windows.Forms.Timer _fftTimer;
-        private readonly System.Threading.Timer _tuneTimer;
         private int _fftSamplesPerFrame;
         private int _maxIQBuffer;
         private long _frequencyToSet;
@@ -59,6 +57,7 @@ namespace SDRSharp
         private bool _fftBufferIsWaiting;
         private bool _extioChangingFrequency;
         private bool _extioChangingSamplerate;
+        private bool _terminated;
 
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private readonly SharpControlProxy _sharpControlProxy;
@@ -304,8 +303,9 @@ namespace SDRSharp
         {
             InitializeComponent();
             _fftTimer = new System.Windows.Forms.Timer(components);
-            _tuneTimer = new System.Threading.Timer(tuneTimer_Callback, null, 0, 10);
             _sharpControlProxy = new SharpControlProxy(this);
+            _terminated = false;
+            ThreadPool.QueueUserWorkItem(TuneThreadProc);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -516,7 +516,6 @@ namespace SDRSharp
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
-            _tuneTimer.Dispose();
             _streamControl.Stop();
             _fftEvent.Set();
             if (_frontendController != null)
@@ -539,6 +538,8 @@ namespace SDRSharp
             Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("waterfallDecay", waterfall.Decay.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("useTimeMarkers", useTimestampsCheckBox.Checked.ToString());
+
+            _terminated = true;
         }
 
         #endregion
@@ -968,7 +969,7 @@ namespace SDRSharp
 
             if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
             {
-                lock (_tuneTimer)
+                lock (this)
                 {
                     _frequencyToSet = newCenterFreq;
                 }
@@ -980,18 +981,21 @@ namespace SDRSharp
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        private void tuneTimer_Callback(object state)
+        private void TuneThreadProc(object state)
         {
-            long copyOfFrequencyToSet;
-            lock (_tuneTimer)
+            while (!_terminated)
             {
-                copyOfFrequencyToSet = _frequencyToSet;
-            }
-            if (_frontendController != null  && _frequencySet != copyOfFrequencyToSet)
-            {
-                _frequencySet = copyOfFrequencyToSet;
-                _frontendController.Frequency = copyOfFrequencyToSet;
+                long copyOfFrequencyToSet;
+                lock (this)
+                {
+                    copyOfFrequencyToSet = _frequencyToSet;
+                }
+                if (_frontendController != null && _frequencySet != copyOfFrequencyToSet)
+                {
+                    _frequencySet = copyOfFrequencyToSet;
+                    _frontendController.Frequency = copyOfFrequencyToSet;
+                }
+                Thread.Sleep(1);
             }
         }
 
@@ -1535,10 +1539,7 @@ namespace SDRSharp
 
         public void GetSpectrumSnapshot(byte[] destArray)
         {
-            lock (_fftSpectrum)
-            {
-                Fourier.SmoothCopy(_scaledFFTSpectrum, destArray, _fftSpectrumSamples, 1.0f, 0);
-            }
+            Fourier.SmoothCopy(_scaledFFTSpectrum, destArray, _fftSpectrumSamples, 1.0f, 0);
         }
 
         #endregion
