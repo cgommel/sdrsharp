@@ -13,7 +13,7 @@ namespace SDRSharp.Radio
 
         private readonly Pll _pll = new Pll();
         private readonly Oscillator _osc = new Oscillator();
-        private readonly IQFirFilter _baseBandFilter = new IQFirFilter();
+        private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false);
         private readonly FirFilter _matchedFilter = new FirFilter();
         private readonly RdsDetectorBank _bitDecoder = new RdsDetectorBank();
         private IirFilter _syncFilter;

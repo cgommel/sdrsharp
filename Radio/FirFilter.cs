@@ -54,6 +54,11 @@ namespace SDRSharp.Radio
 
         public void SetCoefficients(float[] coefficients)
         {
+            if (coefficients == null)
+            {
+                return;
+            }
+
             if (_coeffBuffer == null || coefficients.Length != _queueSize)
             {
                 _queueSize = coefficients.Length;

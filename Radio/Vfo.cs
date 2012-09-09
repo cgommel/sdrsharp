@@ -26,7 +26,7 @@ namespace SDRSharp.Radio
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
         private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
         private readonly FirFilter _audioFilter = new FirFilter();
-        private readonly IQFirFilter _iqFilter = new IQFirFilter();
+        private IQFirFilter _iqFilter;
         private IQDecimator _baseBandDecimator;
         private DetectorType _detectorType;
         private DetectorType _actualDetectorType;
@@ -40,6 +40,7 @@ namespace SDRSharp.Radio
         private int _baseBandDecimationStageCount;
         private int _audioDecimationStageCount;
         private bool _needNewDecimators;
+        private bool _decimationModeHasChanged;
         private int _cwToneShift;
         private bool _needConfigure;
         private bool _useAgc;
@@ -70,8 +71,9 @@ namespace SDRSharp.Radio
             {
                 if (value != _detectorType)
                 {
-                    _needNewDecimators = (_detectorType == DetectorType.WFM && value != DetectorType.WFM) ||
+                    _decimationModeHasChanged = (_detectorType == DetectorType.WFM && value != DetectorType.WFM) ||
                                          (_detectorType != DetectorType.WFM && value == DetectorType.WFM);
+                    _needNewDecimators = _decimationModeHasChanged;
                     _detectorType = value;
                     _needConfigure = true;
                 }
@@ -376,6 +378,8 @@ namespace SDRSharp.Radio
             _agc.Slope = _agcSlope;
             _agc.Threshold = _agcThreshold;
             _agc.UseHang = _agcUseHang;
+
+            _decimationModeHasChanged = false;
         }
 
         private void InitFilters()
@@ -383,10 +387,18 @@ namespace SDRSharp.Radio
             int cutoff1 = 0;
             int cutoff2 = 10000;
             var iqBW = _bandwidth / 2;
-            int iqOrder = _actualDetectorType == DetectorType.WFM ? 30 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
+            int iqOrder = _actualDetectorType == DetectorType.WFM ? 50 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
             
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
-            _iqFilter.SetCoefficients(coeffs);
+
+            if (_iqFilter == null || _decimationModeHasChanged)
+            {
+                _iqFilter = new IQFirFilter(coeffs, _actualDetectorType == DetectorType.WFM);
+            }
+            else
+            {
+                _iqFilter.SetCoefficients(coeffs);
+            }
 
             switch (_actualDetectorType)
             {

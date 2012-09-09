@@ -5,18 +5,20 @@ namespace SDRSharp.Radio
 {
     public unsafe sealed class IQFirFilter
     {
+        private readonly bool _isMultiThteaded;
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
+        private readonly AutoResetEvent _event;
 
-        public IQFirFilter() : this(new float[0])
-        {
-        }
-
-        public IQFirFilter(float[] coefficients)
+        public IQFirFilter(float[] coefficients, bool isMultiThteaded)
         {
             _rFilter = new FirFilter(coefficients);
             _iFilter = new FirFilter(coefficients);
+            _isMultiThteaded = isMultiThteaded;
+            if (_isMultiThteaded)
+            {
+                _event = new AutoResetEvent(false);
+            }
         }
 
         ~IQFirFilter()
@@ -35,15 +37,26 @@ namespace SDRSharp.Radio
         {
             var ptr = (float*) iq;
 
-            ThreadPool.QueueUserWorkItem(
-                delegate
-                {
-                    _rFilter.ProcessInterleaved(ptr, length);
-                    _event.Set();
-                });
+            if (_isMultiThteaded)
+            {
+                ThreadPool.QueueUserWorkItem(
+                    delegate
+                    {
+                        _rFilter.ProcessInterleaved(ptr, length);
+                        _event.Set();
+                    });
+            }
+            else
+            {
+                _rFilter.ProcessInterleaved(ptr, length);
+            }
 
             _iFilter.ProcessInterleaved(ptr + 1, length);
-            _event.WaitOne();
+
+            if (_isMultiThteaded)
+            {
+                _event.WaitOne();
+            }
         }
 
         public void SetCoefficients(float[] coefficients)
