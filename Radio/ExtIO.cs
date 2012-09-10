@@ -435,49 +435,58 @@ namespace SDRSharp.Radio
                 
                 /* Convert samples to double */
 
+                var len = _iqBuffer.Length;
+
                 /* 16 bit integer samples */
                 if (_hwType == HWTypes.Aud16BInt || _hwType == HWTypes.Sdr14)
                 {
-                    for (var i = 0; i < _iqBuffer.Length; i++)
+                    const float scale = InputGain / 32767.0f;
+                    var input = (Int16*) dataPtr;
+                    for (var i = 0; i < len; i++)
                     {
-                        _iqPtr[i].Real = *(Int16*)(dataPtr + i * 4 + 2) / 32767.0f * InputGain;
-                        _iqPtr[i].Imag = *(Int16*)(dataPtr + i * 4) / 32767.0f * InputGain;
+                        _iqPtr[i].Imag = *input++ * scale;
+                        _iqPtr[i].Real = *input++ * scale;
                     }
                 }
 
                 /* 24 bit integer samples */
                 else if (_hwType == HWTypes.Aud24BInt)
                 {
-                    for (int i = 0; i < _iqBuffer.Length; i++)
+                    const float scale = InputGain / 8388608.0f;
+                    var input = (Int24*) dataPtr;
+                    for (var i = 0; i < len; i++)
                     {
-                        _iqPtr[i].Real = *(Int24*)(dataPtr + i * 6 + 3) / 8388608.0f * InputGain;
-                        _iqPtr[i].Imag = *(Int24*)(dataPtr + i * 6) / 8388608.0f * InputGain;
+                        _iqPtr[i].Imag = *input++ * scale;
+                        _iqPtr[i].Real = *input++ * scale;
                     }
                 }
 
                 /* 32 bit integer samples */
                 else if (_hwType == HWTypes.Aud32BInt)
                 {
-                    for (int i = 0; i < _iqBuffer.Length; i++)
+                    const float scale = InputGain / 2147483648.0f;
+                    var input = (Int32*) dataPtr;
+                    for (var i = 0; i < len; i++)
                     {
-                        _iqPtr[i].Real = *(Int32*)(dataPtr + i * 8 + 4) / 2147483648.0f * InputGain;
-                        _iqPtr[i].Imag = *(Int32*)(dataPtr + i * 8) / 2147483648.0f * InputGain;
+                        _iqPtr[i].Imag = *input++ * scale;
+                        _iqPtr[i].Real = *input++ * scale;
                     }
                 }
 
                 /* 32 bit float samples */
                 else if (_hwType == HWTypes.Aud32BFloat)
                 {
-                    for (int i = 0; i < _iqBuffer.Length; i++)
+                    var input = (float*) dataPtr;
+                    for (var i = 0; i < len; i++)
                     {
-                        _iqPtr[i].Real = *(float*)(dataPtr + i * 8 + 4) * InputGain;
-                        _iqPtr[i].Imag = *(float*)(dataPtr + i * 8) * InputGain;
+                        _iqPtr[i].Imag = *input++ * InputGain;
+                        _iqPtr[i].Real = *input++ * InputGain;
                     }
                 }
 
                 if (SamplesAvailable != null)
                 {
-                    SamplesAvailable(null, _iqPtr, _iqBuffer.Length);
+                    SamplesAvailable(null, _iqPtr, len);
                 }
             }
             else
