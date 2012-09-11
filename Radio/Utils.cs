@@ -11,21 +11,57 @@ namespace SDRSharp.Radio
     {
         public static float FastSin(float x)
         {
-            const float B = (float) (4.0 / Math.PI);
-            const float C = (float) (-4.0 / (Math.PI * Math.PI));
+            float sin;
 
-            // First iteration
-            var y = B * x + C * x * Math.Abs(x);
+            if (x < 0)
+            {
+                sin = 1.27323954f * x + .405284735f * x * x;
 
-            // Second iteration
-            y = 0.225f * (y * Math.Abs(y) - y) + y;
+                if (sin < 0)
+                    sin = .225f * (sin * -sin - sin) + sin;
+                else
+                    sin = .225f * (sin * sin - sin) + sin;
+            }
+            else
+            {
+                sin = 1.27323954f * x - 0.405284735f * x * x;
 
-            return y;
+                if (sin < 0)
+                    sin = .225f * (sin * -sin - sin) + sin;
+                else
+                    sin = .225f * (sin * sin - sin) + sin;
+            }
+
+            return sin;
         }
 
         public static float FastCos(float x)
         {
-            return FastSin(x + (float) (Math.PI / 2));
+            float cos;
+            x += 1.57079632f;
+            if (x > 3.14159265f)
+                x -= 6.28318531f;
+
+            if (x < 0)
+            {
+                cos = 1.27323954f * x + 0.405284735f * x * x;
+
+                if (cos < 0)
+                    cos = .225f * (cos * -cos - cos) + cos;
+                else
+                    cos = .225f * (cos * cos - cos) + cos;
+            }
+            else
+            {
+                cos = 1.27323954f * x - 0.405284735f * x * x;
+
+                if (cos < 0)
+                    cos = .225f * (cos * -cos - cos) + cos;
+                else
+                    cos = .225f * (cos * cos - cos) + cos;
+            }
+
+            return cos;
         }
 
         public static float FastAtan2(float y, float x)
