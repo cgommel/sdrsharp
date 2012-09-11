@@ -39,7 +39,7 @@ namespace SDRSharp.Radio
 
             if (_isMultiThteaded)
             {
-                ThreadPool.QueueUserWorkItem(
+                DSPThreadPool.QueueUserWorkItem(
                     delegate
                     {
                         _rFilter.ProcessInterleaved(ptr, length);

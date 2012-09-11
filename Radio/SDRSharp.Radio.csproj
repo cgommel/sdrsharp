@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmDetector.cs" />
+    <Compile Include="DSPThreadPool.cs" />
     <Compile Include="ExtIO.cs" />
     <Compile Include="ExtIOController.cs" />
     <Compile Include="IirFilter.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="RdsDecoder.cs" />
     <Compile Include="RdsDetectorBank.cs" />
     <Compile Include="RdsDumpGroups.cs" />
+    <Compile Include="SharpThreadPool.cs" />
     <Compile Include="StereoDecoder.cs" />
     <Compile Include="StreamControl.cs" />
     <Compile Include="AutomaticGain.cs" />

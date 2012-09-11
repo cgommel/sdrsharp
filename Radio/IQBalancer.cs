@@ -74,7 +74,7 @@ namespace SDRSharp.Radio
 
         private void RemoveDC(Complex* iq, int length)
         {
-            ThreadPool.QueueUserWorkItem(
+            DSPThreadPool.QueueUserWorkItem(
                 delegate
                 {
                     // I branch

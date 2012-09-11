@@ -90,7 +90,12 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 Tick();
-                buffer[i] *= Out;
+
+                Complex osc;
+                osc.Real = (float) _outR;
+                osc.Imag = (float) _outI;
+
+                buffer[i] *= osc;
             }
         }
 

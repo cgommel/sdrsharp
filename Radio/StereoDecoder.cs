@@ -131,7 +131,7 @@ namespace SDRSharp.Radio
 
             var audioLength = length / _audioDecimationFactor;
 
-            ThreadPool.QueueUserWorkItem(
+            DSPThreadPool.QueueUserWorkItem(
                 delegate
                     {
                         Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));

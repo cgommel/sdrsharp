@@ -325,7 +325,7 @@ namespace SDRSharp.Radio
                     _baseBandDecimationStageCount = _decimationStageCount;
                     _audioDecimationStageCount = 0;
                 }
-                _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate);
+                _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate, false, 2);
                 _needNewFilters = true;
             }
             if (_needNewFilters)
@@ -391,9 +391,9 @@ namespace SDRSharp.Radio
             
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
 
-            if (_iqFilter == null)
+            if (_iqFilter == null || _decimationModeHasChanged)
             {
-                _iqFilter = new IQFirFilter(coeffs, false);
+                _iqFilter = new IQFirFilter(coeffs, _actualDetectorType == DetectorType.WFM);
             }
             else
             {

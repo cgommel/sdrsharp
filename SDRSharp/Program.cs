@@ -18,6 +18,8 @@ namespace SDRSharp
                 Utils.TimeBeginPeriod(1);
             }
 
+            DSPThreadPool.Initialize();
+
             Control.CheckForIllegalCrossThreadCalls = false;
             Application.EnableVisualStyles();
             Application.Run(new MainForm());
@@ -26,6 +28,8 @@ namespace SDRSharp
             {
                 Utils.TimeEndPeriod(1);
             }
+
+            DSPThreadPool.Terminate();
 
             Application.Exit(); // ExtIO may have some thread still running preventing the program from terminating
         }
