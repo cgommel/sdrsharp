@@ -476,7 +476,7 @@ namespace SDRSharp.Radio
         private readonly int _stageCount;
         private readonly int _threadCount;
         private readonly int _cicCount;
-        private readonly CicFilter[,] _cicFilters;
+        private readonly CicDecimator[,] _cicDecimators;
         private readonly FirFilter[] _firFilters;
 
         public FloatDecimator(int stageCount) : this(stageCount, 0, DecimationFilterType.Audio, 1)
@@ -516,12 +516,12 @@ namespace SDRSharp.Radio
                     break;
             }
 
-            _cicFilters = new CicFilter[threadCount, _cicCount];
+            _cicDecimators = new CicDecimator[threadCount, _cicCount];
             for (var i = 0; i < threadCount; i++)
             {
                 for (var j = 0; j < _cicCount; j++)
                 {
-                    _cicFilters[i, j] = new CicFilter();
+                    _cicDecimators[i, j] = new CicDecimator();
                 }
             }
 
@@ -562,14 +562,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicFilters[contextId, n].Process(chunk, chunkLength);
-
-                chunkLength /= 2;
-
-                for (int i = 0, j = 0; i < chunkLength; i++, j += 2)
-                {
-                    chunk[i] = chunk[j];
-                }
+                _cicDecimators[contextId, n].Process(chunk, chunkLength);
 
                 #endregion
 
@@ -600,12 +593,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicFilters[contextId, n].ProcessInterleaved(chunk, chunkLength);
-
-                for (int i = 0, j = 0; i < chunkLength; i += 2, j += 4)
-                {
-                    chunk[i] = chunk[j];
-                }
+                _cicDecimators[contextId, n].ProcessInterleaved(chunk, chunkLength);
 
                 #endregion
 
@@ -627,7 +615,7 @@ namespace SDRSharp.Radio
         }
     }
 
-    public unsafe sealed class CicFilter
+    public unsafe sealed class CicDecimator
     {
         private float _xOdd;
         private float _xEven;
@@ -646,11 +634,11 @@ namespace SDRSharp.Radio
 
         public void Process(float* buffer, int length)
         {
-            for (var i = 0; i < length; i += 2)
+            for (int i = 0, j = 0; i < length; i += 2, j++)
             {
                 var even = buffer[i];
                 var odd = buffer[i + 1];
-                buffer[i] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
+                buffer[j] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
                 _xOdd = odd;
                 _xEven = even;
             }
@@ -659,11 +647,11 @@ namespace SDRSharp.Radio
         public void ProcessInterleaved(float* buffer, int length)
         {
             length *= 2;
-            for (var i = 0; i < length; i += 4)
+            for (int i = 0, j = 0; i < length; i += 4, j += 2)
             {
                 var even = buffer[i];
                 var odd = buffer[i + 2];
-                buffer[i] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
+                buffer[j] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
                 _xOdd = odd;
                 _xEven = even;
             }
