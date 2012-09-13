@@ -6,7 +6,7 @@ namespace SDRSharp.Radio
 {
     public class SharpThreadPool
     {
-        private class WorkItem
+        private struct WorkItem
         {
             private readonly WaitCallback _callback;
             private readonly object _parameter;
