@@ -15,7 +15,7 @@ namespace SDRSharp.Radio
             WaveFile
         }
 
-        private const int WaveBufferSize = 512 * 1024;
+        private const int WaveBufferSize = 64 * 1024;
         private const int MaxDecimationFactor = 1024;
 
         private static readonly int _minOutputSampleRate = Utils.GetIntSetting("minOutputSampleRate", 24000);

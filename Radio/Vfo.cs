@@ -16,7 +16,7 @@ namespace SDRSharp.Radio
         public const int MinNFMAudioFrequency = 300;
 
         private readonly AutomaticGainControl _agc = new AutomaticGainControl();
-        private readonly Oscillator _localOscillator = new Oscillator();
+        private readonly DownConverter _downConverter = new DownConverter();
         private readonly AmDetector _amDetector = new AmDetector();
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
@@ -305,8 +305,8 @@ namespace SDRSharp.Radio
         private void Configure()
         {
             _actualDetectorType = _detectorType;
-            _localOscillator.SampleRate = _sampleRate;
-            _localOscillator.Frequency = _frequency;
+            _downConverter.SampleRate = _sampleRate;
+            _downConverter.Frequency = _frequency;
             if (_needNewDecimators)
             {
                 _needNewDecimators = false;
@@ -346,22 +346,22 @@ namespace SDRSharp.Radio
             {
                 case DetectorType.USB:
                     _usbDetector.BfoFrequency = -_bandwidth / 2;
-                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    _downConverter.Frequency -= _usbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.LSB:
                     _lsbDetector.BfoFrequency = -_bandwidth / 2;
-                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    _downConverter.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.CWU:
                     _usbDetector.BfoFrequency = -_cwToneShift;
-                    _localOscillator.Frequency -= _usbDetector.BfoFrequency;
+                    _downConverter.Frequency -= _usbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.CWL:
                     _lsbDetector.BfoFrequency = -_cwToneShift;
-                    _localOscillator.Frequency += _lsbDetector.BfoFrequency;
+                    _downConverter.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
                 case DetectorType.NFM:
@@ -442,7 +442,7 @@ namespace SDRSharp.Radio
                 _needConfigure = false;
             }
 
-            _localOscillator.Mix(iqBuffer, length);
+            _downConverter.Process(iqBuffer, length);
 
             if (_baseBandDecimator.StageCount > 0)
             {

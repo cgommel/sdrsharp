@@ -42,6 +42,30 @@ namespace SDRSharp.Radio
             }
         }
 
+        public double StateReal
+        {
+            get { return _vectR; }
+            set { _vectR = value; }
+        }
+
+        public double StateImag
+        {
+            get { return _vectI; }
+            set { _vectI = value; }
+        }
+
+        public double StateSin
+        {
+            get { return _sinOfAnglePerSample; }
+            set { _sinOfAnglePerSample = value; }
+        }
+
+        public double StateCos
+        {
+            get { return _cosOfAnglePerSample; }
+            set { _cosOfAnglePerSample = value; }
+        }
+
         private void Configure()
         {
             _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
@@ -71,7 +95,7 @@ namespace SDRSharp.Radio
         {
             _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
             _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-            double oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+            var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
             _vectR = oscGn * _outR;
             _vectI = oscGn * _outI;
         }
@@ -80,16 +104,30 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                Tick();
+                _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
+                _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
+                var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+                _vectR = oscGn * _outR;
+                _vectI = oscGn * _outI;
+
                 buffer[i] *= (float) _outR;
             }
         }
 
         public void Mix(Complex* buffer, int length)
         {
-            for (var i = 0; i < length; i++)
+            Mix(buffer, length, 0, 1);
+        }
+
+        public void Mix(Complex* buffer, int length, int startIndex, int stepSize)
+        {
+            for (var i = startIndex; i < length; i += stepSize)
             {
-                Tick();
+                _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
+                _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
+                var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+                _vectR = oscGn * _outR;
+                _vectI = oscGn * _outI;
 
                 Complex osc;
                 osc.Real = (float) _outR;
