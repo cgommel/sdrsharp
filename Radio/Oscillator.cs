@@ -9,7 +9,7 @@ namespace SDRSharp.Radio
         private double _anglePerSample;
         private double _sinOfAnglePerSample;
         private double _cosOfAnglePerSample;
-        private double _vectR;
+        private double _vectR = 1.0;
         private double _vectI;
         private double _outR;
         private double _outI;
@@ -22,8 +22,8 @@ namespace SDRSharp.Radio
                 if (_sampleRate != value)
                 {
                     _sampleRate = value;
-                    _vectR = 1;
-                    _vectI = 0;
+                    _vectR = 1.0;
+                    _vectI = 0.0;
                     Configure();
                 }
             }

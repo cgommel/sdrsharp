@@ -22,7 +22,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public DownConverter() : this(1) // this(Environment.ProcessorCount)
+        public DownConverter() : this(2) // this(Environment.ProcessorCount)
         {
         }
 
@@ -47,7 +47,7 @@ namespace SDRSharp.Radio
                 if (_frequency != value)
                 {
                     _frequency = value;
-                    SetFrequency();
+                    _initialized = false;
                 }
             }
         }
@@ -59,12 +59,15 @@ namespace SDRSharp.Radio
             var targetSin = Math.Sin(targetAngularFrequency);
             var targetCos = Math.Cos(targetAngularFrequency);
 
-            var vectR = 1.0;
-            var vectI = 0.0;
+            var threadFrequency = _frequency * _oscillators.Length;
+
+            var vectR = _oscillators[0].StateReal;
+            var vectI = _oscillators[0].StateImag;
 
             for (var i = 0; i < _oscillators.Length; i++)
             {
                 _oscillators[i].SampleRate = _sampleRate;
+                _oscillators[i].Frequency = threadFrequency;
                 _oscillators[i].StateReal = vectR;
                 _oscillators[i].StateImag = vectI;
 
@@ -73,16 +76,6 @@ namespace SDRSharp.Radio
                 var oscGn = 1.95 - (vectR * vectR + vectI * vectI);
                 vectR = oscGn * outR;
                 vectI = oscGn * outI;
-            }
-        }
-
-        public void SetFrequency()
-        {
-            var threadFrequency = _frequency * _oscillators.Length;
-
-            for (var i = 0; i < _oscillators.Length; i++)
-            {
-                _oscillators[i].Frequency = threadFrequency;
             }
         }
 
