@@ -164,8 +164,13 @@ namespace SDRSharp.Radio
 
         private void PlayerFiller(float* buffer, int frameCount)
         {
-            var count = _audioStream.Read(buffer, 0, frameCount * 2);
+            var sampleCount = frameCount * 2;
+            var count = _audioStream.Read(buffer, 0, sampleCount);
             ScaleAudio(buffer, count);
+            for (var i = count; i < sampleCount; i++)
+            {
+                buffer[i] = 0.0f;
+            }
         }
 
         private void RecorderFiller(float* buffer, int frameCount)
