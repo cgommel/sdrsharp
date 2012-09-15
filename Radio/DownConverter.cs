@@ -22,7 +22,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public DownConverter() : this(2) // this(Environment.ProcessorCount)
+        public DownConverter() : this(Environment.ProcessorCount)
         {
         }
 
@@ -102,11 +102,15 @@ namespace SDRSharp.Radio
             }
 
             _oscillators[0].Mix(buffer, length, 0, _oscillators.Length);
-            Interlocked.Increment(ref _completedCount);
 
-            while (_completedCount < _oscillators.Length)
+            if (_oscillators.Length > 1)
             {
-                _event.WaitOne();
+                Interlocked.Increment(ref _completedCount);
+
+                while (_completedCount < _oscillators.Length)
+                {
+                    _event.WaitOne();
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ namespace SDRSharp.Radio
         private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
         private static readonly double _pllPhaseAdjM = Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
         private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", 0.0f);
+        private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
         private readonly Pll _pll = new Pll();
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
@@ -131,14 +132,23 @@ namespace SDRSharp.Radio
 
             var audioLength = length / _audioDecimationFactor;
 
-            DSPThreadPool.QueueUserWorkItem(
-                delegate
-                    {
-                        Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));
-                        _channelADecimator.Process(_channelAPtr, length);
-                        _channelAFilter.Process(_channelAPtr, audioLength);
-                        _event.Set();
-                    });
+            if (_isMultiThreaded)
+            {
+                DSPThreadPool.QueueUserWorkItem(
+                    delegate
+                        {
+                            Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));
+                            _channelADecimator.Process(_channelAPtr, length);
+                            _channelAFilter.Process(_channelAPtr, audioLength);
+                            _event.Set();
+                        });
+            }
+            else
+            {
+                Utils.Memcpy(_channelAPtr, baseBand, length * sizeof(float));
+                _channelADecimator.Process(_channelAPtr, length);
+                _channelAFilter.Process(_channelAPtr, audioLength);
+            }
 
             #endregion
 
@@ -153,7 +163,10 @@ namespace SDRSharp.Radio
 
             if (!_pll.IsLocked)
             {
-                _event.WaitOne();
+                if (_isMultiThreaded)
+                {
+                    _event.WaitOne();
+                }
 
                 #region Process mono deemphasis
 
@@ -189,7 +202,10 @@ namespace SDRSharp.Radio
 
             #region Recover L and R audio channels
 
-            _event.WaitOne();
+            if (_isMultiThreaded)
+            {
+                _event.WaitOne();
+            }
 
             for (var i = 0; i < audioLength; i++)
             {

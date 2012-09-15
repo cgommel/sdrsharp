@@ -19,6 +19,7 @@ namespace SDRSharp.Radio
         private float _averagePower;
         private float _powerRange;
         private Complex* _iqPtr;
+        private readonly bool _isMultithreaded;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
         private readonly Random _rng = new Random();
@@ -29,6 +30,7 @@ namespace SDRSharp.Radio
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
             _windowPtr = (float*) _windowBuffer;
+            _isMultithreaded = Environment.ProcessorCount > 1;
         }
 
         public float Phase
@@ -74,17 +76,29 @@ namespace SDRSharp.Radio
 
         private void RemoveDC(Complex* iq, int length)
         {
-            DSPThreadPool.QueueUserWorkItem(
-                delegate
-                {
-                    // I branch
-                    for (var i = 0; i < length; i++)
+            if (_isMultithreaded)
+            {
+                DSPThreadPool.QueueUserWorkItem(
+                    delegate
                     {
-                        _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
-                        iq[i].Real -= _averageI;
-                    }
-                    _event.Set();
-                });
+                        // I branch
+                        for (var i = 0; i < length; i++)
+                        {
+                            _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                            iq[i].Real -= _averageI;
+                        }
+                        _event.Set();
+                    });
+            }
+            else
+            {
+                // I branch
+                for (var i = 0; i < length; i++)
+                {
+                    _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
+                    iq[i].Real -= _averageI;
+                }
+            }
 
             // Q branch
             for (var i = 0; i < length; i++)
@@ -93,7 +107,10 @@ namespace SDRSharp.Radio
                 iq[i].Imag -= _averageQ;
             }
 
-            _event.WaitOne();
+            if (_isMultithreaded)
+            {
+                _event.WaitOne();
+            }
         }
 
         private void EstimateImbalance()

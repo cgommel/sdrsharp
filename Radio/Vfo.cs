@@ -325,7 +325,7 @@ namespace SDRSharp.Radio
                     _baseBandDecimationStageCount = _decimationStageCount;
                     _audioDecimationStageCount = 0;
                 }
-                _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate, false, 2);
+                _baseBandDecimator = new IQDecimator(_baseBandDecimationStageCount, _sampleRate, false, Environment.ProcessorCount > 1);
                 _needNewFilters = true;
             }
             if (_needNewFilters)

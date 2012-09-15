@@ -68,7 +68,7 @@ namespace SDRSharp.Radio
                 decimationStageCount++;
             }
 
-            _decimator = new IQDecimator(decimationStageCount, _sampleRate, true, 1);
+            _decimator = new IQDecimator(decimationStageCount, _sampleRate, true, false);
             _decimationFactor = (int) Math.Pow(2.0, decimationStageCount);
             _demodulationSampleRate = _sampleRate / _decimationFactor;
 

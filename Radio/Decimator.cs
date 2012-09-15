@@ -5,7 +5,7 @@ namespace SDRSharp.Radio
 {
     public enum DecimationFilterType
     {
-        Cic3,
+        Fast,
         Baseband,
         Audio
     }
@@ -417,20 +417,29 @@ namespace SDRSharp.Radio
 
     public unsafe sealed class IQDecimator
     {
-        private readonly int _threadCount;
+        private readonly bool _isMultithreaded;
         private readonly FloatDecimator _rDecimator;
         private readonly FloatDecimator _iDecimator;
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
-        public IQDecimator(int stageCount, double samplerate, bool useFastFilters, int threadCount)
+        public IQDecimator(int stageCount, double samplerate, bool useFastFilters, bool isMultithreaded)
         {
-            _threadCount = threadCount;
-            var childThreads = Math.Max(threadCount / 2, 1);
-            _rDecimator = new FloatDecimator(stageCount, samplerate, useFastFilters ? DecimationFilterType.Cic3 : DecimationFilterType.Baseband, childThreads);
-            _iDecimator = new FloatDecimator(stageCount, samplerate, useFastFilters ? DecimationFilterType.Cic3 : DecimationFilterType.Baseband, childThreads);
+            _isMultithreaded = isMultithreaded;
+            int childThreads;
+            if (_isMultithreaded)
+            {
+                childThreads = Environment.ProcessorCount / 2;
+            }
+            else
+            {
+                childThreads = 1;
+            }
+            var filterType = useFastFilters ? DecimationFilterType.Fast : DecimationFilterType.Baseband;
+            _rDecimator = new FloatDecimator(stageCount, samplerate, filterType, childThreads);
+            _iDecimator = new FloatDecimator(stageCount, samplerate, filterType, childThreads);
         }
 
-        public IQDecimator(int stageCount, double samplerate, bool useFastFilters) : this(stageCount, samplerate, useFastFilters, 1)
+        public IQDecimator(int stageCount, double samplerate, bool useFastFilters) : this(stageCount, samplerate, useFastFilters, false)
         {
         }
 
@@ -443,7 +452,7 @@ namespace SDRSharp.Radio
             var rPtr = (float*) buffer;
             var iPtr = rPtr + 1;
 
-            if (_threadCount >= 2)
+            if (_isMultithreaded)
             {
                 DSPThreadPool.QueueUserWorkItem(
                     delegate
@@ -459,7 +468,7 @@ namespace SDRSharp.Radio
 
             _iDecimator.ProcessInterleaved(iPtr, length);
 
-            if (_threadCount >= 2)
+            if (_isMultithreaded)
             {
                 _event.WaitOne();
             }
@@ -498,7 +507,7 @@ namespace SDRSharp.Radio
 
             switch (filterType)
             {
-                case DecimationFilterType.Cic3:
+                case DecimationFilterType.Fast:
                     _cicCount = stageCount;
                     break;
 
@@ -587,7 +596,7 @@ namespace SDRSharp.Radio
         {
             for (var n = 0; n < _cicCount; n++)
             {
-                var contextId = 0; 
+                var contextId = 0;
                 var chunk = buffer;
                 var chunkLength = sampleCount;
 
