@@ -45,6 +45,7 @@ namespace SDRSharp
         private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
         private readonly AutoResetEvent _fftEvent = new AutoResetEvent(false);
         private readonly System.Windows.Forms.Timer _fftTimer;
+        private readonly System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
         private int _maxIQBuffer;
         private long _frequencyToSet;
@@ -303,6 +304,12 @@ namespace SDRSharp
         {
             InitializeComponent();
             _fftTimer = new System.Windows.Forms.Timer(components);
+            _fftTimer.Tick += fftTimer_Tick;
+            _fftTimer.Enabled = true;
+            _performTimer = new System.Windows.Forms.Timer(components);
+            _performTimer.Tick += performTimer_Tick;
+            _performTimer.Interval = 40;
+            _performTimer.Enabled = true;
             _sharpControlProxy = new SharpControlProxy(this);
             _terminated = false;
             ThreadPool.QueueUserWorkItem(TuneThreadProc);
@@ -390,21 +397,23 @@ namespace SDRSharp
 
             frequencyNumericUpDown.Value = 0;
 
-            _fftTimer.Tick += fftTimer_Tick;
-            _fftTimer.Interval = Utils.GetIntSetting("displayTimerInterval", 50);
-            _fftTimer.Enabled = true;
+            fftSpeedTrackBar.Value = Utils.GetIntSetting("fftSpeed", 50);
+            fftSpeedTrackBar_Scroll(null, null);
+
+            contrastTrackBar.Value = Utils.GetIntSetting("fftContrast", 0);
+            contrastTrackBar_Scroll(null, null);
 
             spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
-            sAttackTrackBar.Value = (int)(spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
+            sAttackTrackBar.Value = (int) (spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
 
             spectrumAnalyzer.Decay = Utils.GetDoubleSetting("spectrumAnalyzerDecay", 0.3);
-            sDecayTrackBar.Value = (int)(spectrumAnalyzer.Decay * sDecayTrackBar.Maximum);
+            sDecayTrackBar.Value = (int) (spectrumAnalyzer.Decay * sDecayTrackBar.Maximum);
 
             waterfall.Attack = Utils.GetDoubleSetting("waterfallAttack", 0.9);
-            wAttackTrackBar.Value = (int)(waterfall.Attack * wAttackTrackBar.Maximum);
+            wAttackTrackBar.Value = (int) (waterfall.Attack * wAttackTrackBar.Maximum);
 
             waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
-            wDecayTrackBar.Value = (int)(waterfall.Decay * wDecayTrackBar.Maximum);
+            wDecayTrackBar.Value = (int) (waterfall.Decay * wDecayTrackBar.Maximum);
 
             waterfall.UseTimestamps = Utils.GetBooleanSetting("useTimeMarkers");
             useTimestampsCheckBox.Checked = waterfall.UseTimestamps;
@@ -516,6 +525,7 @@ namespace SDRSharp
 
         private void MainForm_Closing(object sender, CancelEventArgs e)
         {
+            _terminated = true;
             _streamControl.Stop();
             _fftEvent.Set();
             if (_frontendController != null)
@@ -538,8 +548,8 @@ namespace SDRSharp
             Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("waterfallDecay", waterfall.Decay.ToString(CultureInfo.InvariantCulture));
             Utils.SaveSetting("useTimeMarkers", useTimestampsCheckBox.Checked.ToString());
-
-            _terminated = true;
+            Utils.SaveSetting("fftSpeed", fftSpeedTrackBar.Value.ToString());
+            Utils.SaveSetting("fftContrast", contrastTrackBar.Value.ToString());
         }
 
         #endregion
@@ -572,7 +582,7 @@ namespace SDRSharp
                 var overlapRatio = _streamControl.SampleRate / fftRate;
                 var bytes = (int) (_actualFftBins * overlapRatio);
                 _fftSamplesPerFrame = Math.Min(bytes, _actualFftBins);
-                var framesPerIQBuffer = _streamControl.BufferSizeInMs / (float) _fftTimer.Interval;
+                var framesPerIQBuffer = _streamControl.BufferSizeInMs / (double) _fftTimer.Interval;
                 _maxIQBuffer = (int) (_fftSamplesPerFrame * framesPerIQBuffer);
 
                 #region Shift data for overlapped mode
@@ -619,6 +629,11 @@ namespace SDRSharp
 
                     _fftSpectrumSamples = _actualFftBins;
                     _fftSpectrumAvailable = true;
+
+                    if (!IsDisposed)
+                    {
+                        Invoke(new Action(RenderFFT));
+                    }
                 }
 
                 if (_fftStream.Length < _maxIQBuffer)
@@ -630,20 +645,30 @@ namespace SDRSharp
             _fftStream.Flush();
         }
 
+        private void RenderFFT()
+        {
+            if (!panSplitContainer.Panel1Collapsed)
+            {
+                spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
+            }
+            if (!panSplitContainer.Panel2Collapsed)
+            {
+                waterfall.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
+            }
+        }
+
+        private void performTimer_Tick(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.Perform();
+            waterfall.Perform();
+        }
+
         private void fftTimer_Tick(object sender, EventArgs e)
         {
             if (_streamControl.IsPlaying)
             {
                 if (_fftSpectrumAvailable)
                 {
-                    if (!panSplitContainer.Panel1Collapsed)
-                    {
-                        spectrumAnalyzer.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
-                    }
-                    if (!panSplitContainer.Panel2Collapsed)
-                    {
-                        waterfall.Render(_scaledFFTSpectrum, _fftSpectrumSamples);
-                    }
                     _fftSpectrumAvailable = false;
                 }
                 if (_fftBufferIsWaiting)
@@ -652,7 +677,6 @@ namespace SDRSharp
                     _fftEvent.Set();
                 }
             }
-
             spectrumAnalyzer.Perform();
             waterfall.Perform();
         }
@@ -1429,6 +1453,11 @@ namespace SDRSharp
         private void useTimeStampCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             waterfall.UseTimestamps = useTimestampsCheckBox.Checked;
+        }
+
+        private void fftSpeedTrackBar_Scroll(object sender, EventArgs e)
+        {
+            _fftTimer.Interval = (int) (1.0 / fftSpeedTrackBar.Value * 1000.0);
         }
 
         #endregion

@@ -104,6 +104,8 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -130,6 +132,7 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
             // openDlg
@@ -1380,10 +1383,38 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
+            // label17
+            // 
+            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(909, 449);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(38, 13);
+            this.label17.TabIndex = 27;
+            this.label17.Text = "Speed";
+            // 
+            // fftSpeedTrackBar
+            // 
+            this.fftSpeedTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.fftSpeedTrackBar.Location = new System.Drawing.Point(905, 465);
+            this.fftSpeedTrackBar.Maximum = 100;
+            this.fftSpeedTrackBar.Minimum = 1;
+            this.fftSpeedTrackBar.Name = "fftSpeedTrackBar";
+            this.fftSpeedTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.fftSpeedTrackBar.RightToLeftLayout = true;
+            this.fftSpeedTrackBar.Size = new System.Drawing.Size(45, 184);
+            this.fftSpeedTrackBar.TabIndex = 26;
+            this.fftSpeedTrackBar.TickFrequency = 10;
+            this.fftSpeedTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.fftSpeedTrackBar.Value = 50;
+            this.fftSpeedTrackBar.Scroll += new System.EventHandler(this.fftSpeedTrackBar_Scroll);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(962, 717);
+            this.Controls.Add(this.label17);
+            this.Controls.Add(this.fftSpeedTrackBar);
             this.Controls.Add(this.controlPanel);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
@@ -1434,6 +1465,7 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1532,5 +1564,7 @@ namespace SDRSharp
         private NumericUpDown frequencyShiftNumericUpDown;
         private CheckBox markPeaksCheckBox;
         private CheckBox useTimestampsCheckBox;
+        private Label label17;
+        private TrackBar fftSpeedTrackBar;
     }
 }
