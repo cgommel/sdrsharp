@@ -268,6 +268,33 @@ namespace SDRSharp.Radio
             return defaultValue;
         }
 
+        public static long GetLongSetting(string name, long defaultValue)
+        {
+            var strValue = ConfigurationManager.AppSettings[name];
+            long result;
+            if (long.TryParse(strValue, out result))
+            {
+                return result;
+            }
+            return defaultValue;
+        }
+
+        public static string GetStringSetting(string name, string defaultValue)
+        {
+            var result = ConfigurationManager.AppSettings[name];
+            if (string.IsNullOrEmpty(result))
+            {
+                return defaultValue;
+            }
+            return result;
+        }
+
+        public static void SaveSetting(string key, object value)
+        {
+            var str = Convert.ToString(value, CultureInfo.InvariantCulture);
+            SaveSetting(key, str);
+        }
+
         public static void SaveSetting(string key, string value)
         {
             var configurationFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

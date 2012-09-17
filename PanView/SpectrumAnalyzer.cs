@@ -473,6 +473,7 @@ namespace SDRSharp.PanView
             {
                 Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
+
             _performNeeded = true;
         }
 

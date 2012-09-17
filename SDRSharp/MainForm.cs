@@ -44,8 +44,8 @@ namespace SDRSharp
         private readonly float[] _fftSpectrum = new float[MaxFFTBins];
         private readonly byte[] _scaledFFTSpectrum = new byte[MaxFFTBins];
         private readonly AutoResetEvent _fftEvent = new AutoResetEvent(false);
-        private readonly System.Windows.Forms.Timer _fftTimer;
-        private readonly System.Windows.Forms.Timer _performTimer;
+        private System.Windows.Forms.Timer _fftTimer;
+        private System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
         private int _maxIQBuffer;
         private long _frequencyToSet;
@@ -59,9 +59,10 @@ namespace SDRSharp
         private bool _extioChangingFrequency;
         private bool _extioChangingSamplerate;
         private bool _terminated;
+        private string _waveFile;
 
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
-        private readonly SharpControlProxy _sharpControlProxy;
+        private SharpControlProxy _sharpControlProxy;
 
         #endregion
 
@@ -189,8 +190,8 @@ namespace SDRSharp
 
         public bool SwapIq
         {
-            get { return swapInQCheckBox.Checked; }
-            set { swapInQCheckBox.Checked = value; }
+            get { return swapIQCheckBox.Checked; }
+            set { swapIQCheckBox.Checked = value; }
         }
 
         public bool FmStereo
@@ -223,7 +224,7 @@ namespace SDRSharp
             set { agcCheckBox.Checked = value; }
         }
 
-        public bool UseHang
+        public bool AgcHang
         {
             get { return agcUseHangCheckBox.Checked; }
             set { agcUseHangCheckBox.Checked = value; }
@@ -232,19 +233,19 @@ namespace SDRSharp
 
         public int AgcThreshold
         {
-            get { return (int)agcThresholdNumericUpDown.Value; }
+            get { return (int) agcThresholdNumericUpDown.Value; }
             set { agcThresholdNumericUpDown.Value = value; }
         }
 
         public int AgcDecay
         {
-            get { return (int)agcDecayNumericUpDown.Value; }
+            get { return (int) agcDecayNumericUpDown.Value; }
             set { agcDecayNumericUpDown.Value = value; }
         }
 
         public int AgcSlope
         {
-            get { return (int)agcSlopeNumericUpDown.Value; }
+            get { return (int) agcSlopeNumericUpDown.Value; }
             set { agcSlopeNumericUpDown.Value = value; }
         }
 
@@ -295,6 +296,11 @@ namespace SDRSharp
         {
             get { return (int) _vfo.SampleRate; }
         }
+
+        public bool SourceIsWaveFile
+        {
+            get { return iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2; }
+        }
         
         #endregion
 
@@ -303,21 +309,19 @@ namespace SDRSharp
         public MainForm()
         {
             InitializeComponent();
-            _fftTimer = new System.Windows.Forms.Timer(components);
-            _fftTimer.Tick += fftTimer_Tick;
-            _fftTimer.Enabled = true;
-            _performTimer = new System.Windows.Forms.Timer(components);
-            _performTimer.Tick += performTimer_Tick;
-            _performTimer.Interval = 40;
-            _performTimer.Enabled = true;
-            _sharpControlProxy = new SharpControlProxy(this);
-            _terminated = false;
-            ThreadPool.QueueUserWorkItem(TuneThreadProc);
+
+            InitializeGUI();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private void InitializeGUI()
         {
-            #region Initialize audio devices
+            #region Tunning
+
+            ThreadPool.QueueUserWorkItem(TuneThreadProc);
+
+            #endregion
+
+            #region Audio devices
 
             var defaultIndex = 0;
             var devices = AudioDevice.GetDevices(DeviceDirection.Input);
@@ -352,56 +356,112 @@ namespace SDRSharp
             _streamControl.AudioGain = 30.0f;
             _streamControl.BufferNeeded += ProcessBuffer;
 
-            #endregion
-
-            #region Initialize the VFO
-
-            _vfo.DetectorType = DetectorType.AM;
-            _vfo.Bandwidth = DefaultAMBandwidth;
-            _vfo.FilterOrder = 400;
-            _vfo.SquelchThreshold = 0;
-            _vfo.UseAGC = true;
-            _vfo.AgcThreshold = -100.0f;
-            _vfo.AgcDecay = 100;
-            _vfo.AgcSlope = 0;
-            _vfo.AgcHang = true;
-            _vfo.CWToneShift = Vfo.DefaultCwSideTone;
-
-            stepSizeComboBox.SelectedIndex = 4;
-
-            #endregion
-
-            #region Initialize FFT display
-
-            _fftBins = 4096;
-
-            viewComboBox.SelectedIndex = 2;
-            fftResolutionComboBox.SelectedIndex = 3;
             sampleRateComboBox.SelectedIndex = 7;
 
-            _fftWindowType = WindowType.BlackmanHarris;
-            fftWindowComboBox.SelectedIndex = (int) _fftWindowType;
-            filterTypeComboBox.SelectedIndex = (int) WindowType.BlackmanHarris - 1;
+            #endregion
 
-            cwShiftNumericUpDown.Value = Vfo.DefaultCwSideTone;
-            
-            waterfall.FilterBandwidth = _vfo.Bandwidth;
-            waterfall.Frequency = _vfo.Frequency;
+            #region VFO
+
+            filterOrderNumericUpDown.Value = Utils.GetIntSetting("filterOrder", 400);
+            filterOrderNumericUpDown_ValueChanged(null, null);
+
+            cwShiftNumericUpDown.Value = Utils.GetIntSetting("cwShift", Vfo.DefaultCwSideTone);
+            cwShiftNumericUpDown_ValueChanged(null, null);
+
+            squelchNumericUpDown.Value = Utils.GetIntSetting("squelchThreshold", 50);
+            squelchNumericUpDown_ValueChanged(null, null);
+
+            useSquelchCheckBox.Checked = Utils.GetBooleanSetting("squelchEnabled");
+            useSquelchCheckBox_CheckedChanged(null, null);
+
+            agcCheckBox.Checked = Utils.GetBooleanSetting("useAGC");
+            agcCheckBox_CheckedChanged(null, null);
+
+            agcThresholdNumericUpDown.Value = Utils.GetIntSetting("agcThreshold", -100);
+            agcThresholdNumericUpDown_ValueChanged(null, null);
+
+            agcDecayNumericUpDown.Value = Utils.GetIntSetting("agcDecay", 100);
+            agcDecayNumericUpDown_ValueChanged(null, null);
+
+            agcSlopeNumericUpDown.Value = Utils.GetIntSetting("agcSlope", 0);
+            agcSlopeNumericUpDown_ValueChanged(null, null);
+
+            agcUseHangCheckBox.Checked = Utils.GetBooleanSetting("agcHang");
+            agcUseHangCheckBox_CheckedChanged(null, null);
+
+            DetectorType = (DetectorType) Utils.GetIntSetting("detectorType", (int) DetectorType.AM);
+            modeRadioButton_CheckStateChanged(null, null);
+
+            var filterBandwidth = Utils.GetIntSetting("filterBandwidth", -1);
+            if (filterBandwidth >= 0)
+            {
+                filterBandwidthNumericUpDown.Value = filterBandwidth;
+            }
+            filterBandwidthNumericUpDown_ValueChanged(null, null);
+
+            centerFreqNumericUpDown.Value = 0;
+            centerFreqNumericUpDown_ValueChanged(null, null);
+
+            frequencyShiftNumericUpDown.Value = Utils.GetLongSetting("frequencyShift", 0);
+            frequencyShiftNumericUpDown_ValueChanged(null, null);
+
+            frequencyShiftCheckBox.Checked = Utils.GetBooleanSetting("frequencyShiftEnabled");
+            frequencyShiftCheckBox_CheckStateChanged(null, null);
+
+            var stepSizeIndex = Utils.GetIntSetting("stepSize", -1);
+            if (stepSizeIndex >= 0)
+            {
+                stepSizeComboBox.SelectedIndex = stepSizeIndex;
+            }
+            snapFrequencyCheckBox.Checked = Utils.GetBooleanSetting("snapToGrid");
+            stepSizeComboBox_SelectedIndexChanged(null, null);
+
+            swapIQCheckBox.Checked = Utils.GetBooleanSetting("swapIQ");
+            swapIQCheckBox_CheckedChanged(null, null);
+
+            correctIQCheckBox.Checked = Utils.GetBooleanSetting("correctIQ");
+            autoCorrectIQCheckBox_CheckStateChanged(null, null);
+
+            markPeaksCheckBox.Checked = Utils.GetBooleanSetting("markPeaks");
+            markPeaksCheckBox_CheckedChanged(null, null);
+
+            fmStereoCheckBox.Checked = Utils.GetBooleanSetting("fmStereo");
+            fmStereoCheckBox_CheckedChanged(null, null);
+
+            filterAudioCheckBox.Checked = Utils.GetBooleanSetting("filterAudio");
+            filterAudioCheckBox_CheckStateChanged(null, null);
+
+            audioGainTrackBar.Value = Utils.GetIntSetting("audioGain", 30);
+            audioGainTrackBar_ValueChanged(null, null);
+
+            latencyNumericUpDown.Value = Utils.GetIntSetting("latency", 100);
+            sampleRateComboBox.Text = Utils.GetStringSetting("sampleRate", "48000 sample/sec");
+
+            WindowState = (FormWindowState) Utils.GetIntSetting("windowState", (int) FormWindowState.Normal);
+
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
-            waterfall.BandType = BandType.Center;
-
-            spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
-            spectrumAnalyzer.Frequency = _vfo.Frequency;
             spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
-            spectrumAnalyzer.BandType = BandType.Center;
+            
+            #endregion
 
-            frequencyNumericUpDown.Value = 0;
+            #region FFT display
 
-            fftSpeedTrackBar.Value = Utils.GetIntSetting("fftSpeed", 50);
-            fftSpeedTrackBar_Scroll(null, null);
+            _fftTimer = new System.Windows.Forms.Timer(components);
+            _fftTimer.Tick += fftTimer_Tick;
+            _fftTimer.Enabled = true;
 
-            contrastTrackBar.Value = Utils.GetIntSetting("fftContrast", 0);
-            contrastTrackBar_Scroll(null, null);
+            _performTimer = new System.Windows.Forms.Timer(components);
+            _performTimer.Tick += performTimer_Tick;
+            _performTimer.Interval = 40;
+            _performTimer.Enabled = true;
+
+            viewComboBox.SelectedIndex = Utils.GetIntSetting("fftView", 2);
+            fftResolutionComboBox.SelectedIndex = Utils.GetIntSetting("fftResolution", 3);
+            fftWindowComboBox.SelectedIndex = Utils.GetIntSetting("fftWindowType", (int) WindowType.BlackmanHarris);
+            filterTypeComboBox.SelectedIndex = Utils.GetIntSetting("filterType", (int) WindowType.BlackmanHarris - 1);
+            
+            fftSpeedTrackBar.Value = Utils.GetIntSetting("fftSpeed", 40);
+            fftContrastTrackBar.Value = Utils.GetIntSetting("fftContrast", 0);
 
             spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
             sAttackTrackBar.Value = (int) (spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
@@ -415,8 +475,7 @@ namespace SDRSharp
             waterfall.Decay = Utils.GetDoubleSetting("waterfallDecay", 0.5);
             wDecayTrackBar.Value = (int) (waterfall.Decay * wDecayTrackBar.Maximum);
 
-            waterfall.UseTimestamps = Utils.GetBooleanSetting("useTimeMarkers");
-            useTimestampsCheckBox.Checked = waterfall.UseTimestamps;
+            useTimestampsCheckBox.Checked = Utils.GetBooleanSetting("useTimeMarkers");
 
             #endregion
 
@@ -435,7 +494,7 @@ namespace SDRSharp
                     var objectHandle = Activator.CreateInstance(assemblyName, typeName);
                     var controller = (IFrontendController) objectHandle.Unwrap();
                     _frontendControllers.Add(key, controller);
-                    frontEndComboBox.Items.Add(key);
+                    iqSourceComboBox.Items.Add(key);
                 }
                 catch (Exception ex)
                 {
@@ -445,8 +504,8 @@ namespace SDRSharp
 
             var extIOs = Directory.GetFiles(".", "ExtIO_*.dll");
 
-            var dropDownWidth = frontEndComboBox.Width;
-            var graphics = frontEndComboBox.CreateGraphics();
+            var dropDownWidth = iqSourceComboBox.Width;
+            var graphics = iqSourceComboBox.CreateGraphics();
 
             foreach (var extIO in extIOs)
             {
@@ -460,13 +519,13 @@ namespace SDRSharp
                         displayName += " (" + ExtIO.HWModel + ")";
                     }
                     displayName += " - " + Path.GetFileName(extIO);
-                    var size = graphics.MeasureString(displayName, frontEndComboBox.Font);
+                    var size = graphics.MeasureString(displayName, iqSourceComboBox.Font);
                     if (size.Width > dropDownWidth)
                     {
                         dropDownWidth = (int) size.Width;
                     }
                     _frontendControllers.Add(displayName, controller);
-                    frontEndComboBox.Items.Add(displayName);
+                    iqSourceComboBox.Items.Add(displayName);
                 }
                 catch (Exception ex)
                 {
@@ -474,13 +533,15 @@ namespace SDRSharp
                 }
             }
 
-            frontEndComboBox.DropDownWidth = dropDownWidth;
+            iqSourceComboBox.DropDownWidth = dropDownWidth;
 
             ExtIO.SampleRateChanged += ExtIO_SampleRateChanged;
             ExtIO.LOFreqChanged += ExtIO_LOFreqChanged;
 
-            frontEndComboBox.Items.Add("Other");
-            frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+            iqSourceComboBox.Items.Add("IQ file (*.wav)");
+
+            iqSourceComboBox.Items.Add("Other (Sound card)");
+            iqSourceComboBox.SelectedIndex = iqSourceComboBox.Items.Count - 1;
 
             #endregion
 
@@ -543,13 +604,41 @@ namespace SDRSharp
             
             #endregion
 
-            Utils.SaveSetting("spectrumAnalyzerAttack", spectrumAnalyzer.Attack.ToString(CultureInfo.InvariantCulture));
-            Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay.ToString(CultureInfo.InvariantCulture));
-            Utils.SaveSetting("waterfallAttack", waterfall.Attack.ToString(CultureInfo.InvariantCulture));
-            Utils.SaveSetting("waterfallDecay", waterfall.Decay.ToString(CultureInfo.InvariantCulture));
-            Utils.SaveSetting("useTimeMarkers", useTimestampsCheckBox.Checked.ToString());
-            Utils.SaveSetting("fftSpeed", fftSpeedTrackBar.Value.ToString());
-            Utils.SaveSetting("fftContrast", contrastTrackBar.Value.ToString());
+            Utils.SaveSetting("spectrumAnalyzerAttack", spectrumAnalyzer.Attack);
+            Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay);
+            Utils.SaveSetting("waterfallAttack", waterfall.Attack);
+            Utils.SaveSetting("waterfallDecay", waterfall.Decay);
+            Utils.SaveSetting("useTimeMarkers", useTimestampsCheckBox.Checked);
+            Utils.SaveSetting("fftSpeed", fftSpeedTrackBar.Value);
+            Utils.SaveSetting("fftContrast", fftContrastTrackBar.Value);
+            Utils.SaveSetting("fftWindowType", fftWindowComboBox.SelectedIndex);
+            Utils.SaveSetting("fftView", viewComboBox.SelectedIndex);
+            Utils.SaveSetting("fftResolution", fftResolutionComboBox.SelectedIndex);
+            Utils.SaveSetting("filterType", filterTypeComboBox.SelectedIndex);
+            Utils.SaveSetting("cwShift", cwShiftNumericUpDown.Value);
+            Utils.SaveSetting("detectorType", (int) DetectorType);
+            Utils.SaveSetting("filterOrder", (int) filterOrderNumericUpDown.Value);
+            Utils.SaveSetting("filterBandwidth", (int) filterBandwidthNumericUpDown.Value);
+            Utils.SaveSetting("squelchEnabled", useSquelchCheckBox.Checked);
+            Utils.SaveSetting("squelchThreshold", (int) squelchNumericUpDown.Value);
+            Utils.SaveSetting("useAGC", agcCheckBox.Checked);
+            Utils.SaveSetting("agcThreshold", (int) agcThresholdNumericUpDown.Value);
+            Utils.SaveSetting("agcDecay", (int) agcDecayNumericUpDown.Value);
+            Utils.SaveSetting("agcSlope", (int) agcSlopeNumericUpDown.Value);
+            Utils.SaveSetting("agcHang", agcUseHangCheckBox.Checked);
+            Utils.SaveSetting("stepSize", stepSizeComboBox.SelectedIndex);
+            Utils.SaveSetting("snapToGrid", snapFrequencyCheckBox.Checked);
+            Utils.SaveSetting("frequencyShift", (long) frequencyShiftNumericUpDown.Value);
+            Utils.SaveSetting("frequencyShiftEnabled", frequencyShiftCheckBox.Checked);
+            Utils.SaveSetting("swapIq", swapIQCheckBox.Checked);
+            Utils.SaveSetting("correctIQ", correctIQCheckBox.Checked);
+            Utils.SaveSetting("markPeaks", markPeaksCheckBox.Checked);
+            Utils.SaveSetting("fmStereo", fmStereoCheckBox.Checked);
+            Utils.SaveSetting("filterAudio", filterAudioCheckBox.Checked);
+            Utils.SaveSetting("latency", (int) latencyNumericUpDown.Value);
+            Utils.SaveSetting("sampleRate", sampleRateComboBox.Text);
+            Utils.SaveSetting("audioGain", audioGainTrackBar.Value);
+            Utils.SaveSetting("windowState", (int) WindowState);
         }
 
         #endregion
@@ -677,8 +766,6 @@ namespace SDRSharp
                     _fftEvent.Set();
                 }
             }
-            spectrumAnalyzer.Perform();
-            waterfall.Perform();
         }
 
         private void iqTimer_Tick(object sender, EventArgs e)
@@ -713,61 +800,12 @@ namespace SDRSharp
 
         #region IQ source selection
 
-        private void iqStreamRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void iqSourceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (iqStreamRadioButton.Checked)
-            {
-                _streamControl.Stop();
-                wavFileTextBox.Enabled = false;
-                fileSelectButton.Enabled = false;
-                playButton.Enabled = true;
-                stopButton.Enabled = false;
-                sampleRateComboBox.Enabled = true;
-                inputDeviceComboBox.Enabled = true;
-                outputDeviceComboBox.Enabled = true;
-                latencyNumericUpDown.Enabled = true;
-                centerFreqNumericUpDown.Enabled = true;
-                frontEndComboBox.Enabled = true;
-                frontendGuiButton.Enabled = true;
-                frequencyShiftCheckBox.Enabled = true;
-                frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
-
-                frontEndComboBox_SelectedIndexChanged(null, null);
-            }
-        }
-
-        private void waveFileRadioButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (waveFileRadioButton.Checked)
-            {
-                _streamControl.Stop();
-                _iqBalancer.Reset();
-                wavFileTextBox.Enabled = true;
-                fileSelectButton.Enabled = true;
-                playButton.Enabled = true;
-                stopButton.Enabled = false;
-                sampleRateComboBox.Enabled = false;
-                inputDeviceComboBox.Enabled = false;
-                outputDeviceComboBox.Enabled = true;
-                latencyNumericUpDown.Enabled = true;
-                centerFreqNumericUpDown.Enabled = false;
-                frontEndComboBox.Enabled = false;
-                frontendGuiButton.Enabled = false;
-                frequencyShiftCheckBox.Enabled = false;
-                frequencyShiftNumericUpDown.Enabled = false;
-
-                frequencyShiftNumericUpDown.Value = 0;
-                frequencyShiftCheckBox.Checked = false;
-                centerFreqNumericUpDown.Value = 0;
-                frequencyNumericUpDown.Value = 0;
-            }
-        }
-
-        private void frontEndComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
+            _streamControl.Stop();
             _iqBalancer.Reset();
-            var frontendName = (string) frontEndComboBox.SelectedItem;
-            if (frontendName == "Other")
+
+            if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 1)
             {
                 if (_frontendController != null)
                 {
@@ -781,11 +819,45 @@ namespace SDRSharp
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = _frequencyShift;
                 frequencyNumericUpDown_ValueChanged(null, null);
-                frontendGuiButton.Enabled = false;
                 frequencyShiftCheckBox.Enabled = true;
                 frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
+                configureSourceButton.Visible = false;
                 return;
             }
+            
+            configureSourceButton.Visible = true;
+
+            if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2)
+            {
+                configureSourceButton.Text = "Select";
+                sampleRateComboBox.Enabled = false;
+                inputDeviceComboBox.Enabled = false;
+                outputDeviceComboBox.Enabled = true;
+                latencyNumericUpDown.Enabled = true;
+                centerFreqNumericUpDown.Enabled = false;
+                frequencyShiftCheckBox.Enabled = false;
+                frequencyShiftNumericUpDown.Enabled = false;
+
+                frequencyShiftNumericUpDown.Value = 0;
+                frequencyShiftCheckBox.Checked = false;
+                centerFreqNumericUpDown.Value = 0;
+                frequencyNumericUpDown.Value = 0;
+
+                SelectWaveFile();
+                return;
+            }
+
+            configureSourceButton.Text = "Configure";
+            inputDeviceComboBox.Enabled = true;
+            sampleRateComboBox.Enabled = true;
+            centerFreqNumericUpDown.Value = 0;
+            centerFreqNumericUpDown_ValueChanged(null, null);
+            frequencyNumericUpDown.Value = _frequencyShift;
+            frequencyNumericUpDown_ValueChanged(null, null);
+            frequencyShiftCheckBox.Enabled = true;
+            frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
+
+            var frontendName = (string) iqSourceComboBox.SelectedItem;
             try
             {
                 if (_frontendController != null)
@@ -825,7 +897,7 @@ namespace SDRSharp
             }
             catch
             {
-                frontEndComboBox.SelectedIndex = frontEndComboBox.Items.Count - 1;
+                iqSourceComboBox.SelectedIndex = iqSourceComboBox.Items.Count - 1;
                 if (_frontendController != null)
                 {
                     _frontendController.Close();
@@ -837,21 +909,18 @@ namespace SDRSharp
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
-            frontendGuiButton.Enabled = frontEndComboBox.SelectedIndex < frontEndComboBox.Items.Count - 1;
         }
 
-        private void fileSelectButton_Click(object sender, EventArgs e)
+        private void SelectWaveFile()
         {
             if (openDlg.ShowDialog() == DialogResult.OK)
             {
                 _streamControl.Stop();
-                if (wavFileTextBox.Text != openDlg.FileName)
+                if (_waveFile != openDlg.FileName)
                 {
                     _iqBalancer.Reset();
                 }
-                wavFileTextBox.Text = openDlg.FileName;
-                playButton.Enabled = true;
-                stopButton.Enabled = false;
+                _waveFile = openDlg.FileName;
             }
         }
 
@@ -865,7 +934,28 @@ namespace SDRSharp
             var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
             var oldCenterFrequency = centerFreqNumericUpDown.Value;
             Match match;
-            if (iqStreamRadioButton.Checked)
+            if (SourceIsWaveFile)
+            {
+                if (!File.Exists(_waveFile))
+                {
+                    throw new ApplicationException("No such file");
+                }
+                _streamControl.OpenFile(_waveFile, outputDevice.Index, (int) latencyNumericUpDown.Value);
+
+                var friendlyFilename = "" + Path.GetFileName(_waveFile);
+                match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    var center = int.Parse(match.Groups[1].Value) * 1000;
+                    centerFreqNumericUpDown.Value = center;
+                }
+                else
+                {
+                    centerFreqNumericUpDown.Value = 0;
+                }
+                centerFreqNumericUpDown_ValueChanged(null, null);
+            }
+            else
             {
                 if (_frontendController == null || _frontendController.IsSoundCardBased)
                 {
@@ -882,27 +972,6 @@ namespace SDRSharp
                     _streamControl.OpenPlugin(_frontendController, outputDevice.Index, (int) latencyNumericUpDown.Value);
                 }
             }
-            else
-            {
-                if (!File.Exists(wavFileTextBox.Text))
-                {
-                    return;
-                }
-                _streamControl.OpenFile(wavFileTextBox.Text, outputDevice.Index, (int) latencyNumericUpDown.Value);
-
-                var friendlyFilename = "" + Path.GetFileName(wavFileTextBox.Text);
-                match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
-                if (match.Success)
-                {
-                    var center = int.Parse(match.Groups[1].Value) * 1000;
-                    centerFreqNumericUpDown.Value = center;
-                }
-                else
-                {
-                    centerFreqNumericUpDown.Value = 0;
-                }
-                centerFreqNumericUpDown_ValueChanged(null, null);
-            }
 
             _vfo.SampleRate = _streamControl.SampleRate;
             _vfo.DecimationStageCount = _streamControl.DecimationStageCount;
@@ -916,8 +985,8 @@ namespace SDRSharp
             {
                 frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value + _frequencyShift;
 
-                zoomTrackBar.Value = 0;
-                zoomTrackBar_Scroll(null, null);
+                fftZoomTrackBar.Value = 0;
+                fftZoomTrackBar_ValueChanged(null, null);
             }
             
             frequencyNumericUpDown_ValueChanged(null, null);
@@ -930,7 +999,7 @@ namespace SDRSharp
             _streamControl.AudioGain = audioGainTrackBar.Value;
         }
 
-        private void filterAudioCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void filterAudioCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             _vfo.FilterAudio = filterAudioCheckBox.Checked;
         }
@@ -939,21 +1008,25 @@ namespace SDRSharp
 
         #region Main controls
 
-        private void playButton_Click(object sender, EventArgs e)
+        private void playStopButton_Click(object sender, EventArgs e)
         {
             try
             {
-                StartRadio();
+                if (_streamControl.IsPlaying)
+                {
+                    StopRadio();
+                    playStopButton.Text = "Play";
+                }
+                else
+                {
+                    StartRadio();
+                    playStopButton.Text = "Stop";
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void stopButton_Click(object sender, EventArgs e)
-        {
-            StopRadio();
         }
 
         #endregion
@@ -991,7 +1064,7 @@ namespace SDRSharp
                 frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
             }
 
-            if (_frontendController != null && iqStreamRadioButton.Checked && !_extioChangingFrequency)
+            if (_frontendController != null && !SourceIsWaveFile && !_extioChangingFrequency)
             {
                 lock (this)
                 {
@@ -1038,13 +1111,19 @@ namespace SDRSharp
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            if (iqStreamRadioButton.Checked)
+            if (SourceIsWaveFile)
             {
-                centerFreqNumericUpDown.Value = e.Frequency - _frequencyShift;
+                e.Cancel = true;
             }
             else
             {
-                e.Cancel = true;
+                var f = e.Frequency - _frequencyShift;
+                if (f < 0)
+                {
+                    f = 0;
+                    e.Cancel = true;
+                }
+                centerFreqNumericUpDown.Value = f;
             }
         }
 
@@ -1071,12 +1150,12 @@ namespace SDRSharp
             _vfo.WindowType = (WindowType) (filterTypeComboBox.SelectedIndex + 1);
         }
 
-        private void autoCorrectIQCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void autoCorrectIQCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             _iqBalancer.AutoBalanceIQ = correctIQCheckBox.Checked;
         }
 
-        private void frequencyShiftCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void frequencyShiftCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
             frequencyNumericUpDown.Minimum = long.MinValue;
@@ -1105,7 +1184,7 @@ namespace SDRSharp
 
         #region Mode selection
 
-        private void modeRadioButton_CheckedChanged(object sender, EventArgs e)
+        private void modeRadioButton_CheckStateChanged(object sender, EventArgs e)
         {
             //filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
             filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
@@ -1244,7 +1323,7 @@ namespace SDRSharp
             squelchNumericUpDown.Enabled = useSquelchCheckBox.Checked;
             if (useSquelchCheckBox.Checked)
             {
-                _vfo.SquelchThreshold = (int)squelchNumericUpDown.Value;
+                _vfo.SquelchThreshold = (int) squelchNumericUpDown.Value;
             }
             else
             {
@@ -1278,7 +1357,7 @@ namespace SDRSharp
                 waterfall.StepSize = stepSize;
                 spectrumAnalyzer.StepSize = stepSize;
 
-                if (snapFrequencyCheckBox.Checked && iqStreamRadioButton.Checked)
+                if (snapFrequencyCheckBox.Checked && !SourceIsWaveFile)
                 {
                     frequencyNumericUpDown.Maximum = decimal.MaxValue;
                     frequencyNumericUpDown.Minimum = decimal.MinValue;
@@ -1311,7 +1390,11 @@ namespace SDRSharp
 
         private void frontendGuiButton_Click(object sender, EventArgs e)
         {
-            if (_frontendController != null)
+            if (SourceIsWaveFile)
+            {
+                SelectWaveFile();
+            }
+            else if (_frontendController != null)
             {
                 _frontendController.ShowSettingGUI(this);
             }
@@ -1339,22 +1422,22 @@ namespace SDRSharp
 
         private void agcDecayNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.AgcDecay = (int)agcDecayNumericUpDown.Value;
+            _vfo.AgcDecay = (int) agcDecayNumericUpDown.Value;
         }
 
         private void agcThresholdNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.AgcThreshold = (int)agcThresholdNumericUpDown.Value;
+            _vfo.AgcThreshold = (int) agcThresholdNumericUpDown.Value;
         }
 
         private void agcSlopeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.AgcSlope = (int)agcSlopeNumericUpDown.Value;
+            _vfo.AgcSlope = (int) agcSlopeNumericUpDown.Value;
         }
 
-        private void swapInQCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void swapIQCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            _streamControl.SwapIQ = swapInQCheckBox.Checked;
+            _streamControl.SwapIQ = swapIQCheckBox.Checked;
         }
 
         #endregion
@@ -1414,33 +1497,27 @@ namespace SDRSharp
             return sb.ToString().Substring(1);
         }
 
-        private void contrastTrackBar_Scroll(object sender, EventArgs e)
+        private void fftContrastTrackBar_Changed(object sender, EventArgs e)
         {
-            waterfall.Contrast = contrastTrackBar.Value * 100 / (contrastTrackBar.Maximum - contrastTrackBar.Minimum);
+            waterfall.Contrast = fftContrastTrackBar.Value * 100 / (fftContrastTrackBar.Maximum - fftContrastTrackBar.Minimum);
         }
 
-        private void zoomTrackBar_Scroll(object sender, EventArgs e)
-        {
-            spectrumAnalyzer.Zoom = zoomTrackBar.Value * 100 / zoomTrackBar.Maximum;
-            waterfall.Zoom = spectrumAnalyzer.Zoom;
-        }
-
-        private void sAttackTrackBar_Scroll(object sender, EventArgs e)
+        private void sAttackTrackBar_ValueChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.Attack = sAttackTrackBar.Value / (double) sAttackTrackBar.Maximum;
         }
 
-        private void sDecayTrackBar_Scroll(object sender, EventArgs e)
+        private void sDecayTrackBar_ValueChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.Decay = sDecayTrackBar.Value / (double)sDecayTrackBar.Maximum;
         }
 
-        private void wAttackTrackBar_Scroll(object sender, EventArgs e)
+        private void wAttackTrackBar_ValueChanged(object sender, EventArgs e)
         {
             waterfall.Attack = wAttackTrackBar.Value / (double)wAttackTrackBar.Maximum;
         }
 
-        private void wDecayTrackBar_Scroll(object sender, EventArgs e)
+        private void wDecayTrackBar_ValueChanged(object sender, EventArgs e)
         {
             waterfall.Decay = wDecayTrackBar.Value / (double) wDecayTrackBar.Maximum;
         }
@@ -1455,9 +1532,15 @@ namespace SDRSharp
             waterfall.UseTimestamps = useTimestampsCheckBox.Checked;
         }
 
-        private void fftSpeedTrackBar_Scroll(object sender, EventArgs e)
+        private void fftSpeedTrackBar_ValueChanged(object sender, EventArgs e)
         {
             _fftTimer.Interval = (int) (1.0 / fftSpeedTrackBar.Value * 1000.0);
+        }
+
+        private void fftZoomTrackBar_ValueChanged(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.Zoom = fftZoomTrackBar.Value * 100 / fftZoomTrackBar.Maximum;
+            waterfall.Zoom = spectrumAnalyzer.Zoom;
         }
 
         #endregion
@@ -1466,6 +1549,7 @@ namespace SDRSharp
 
         private void InitialiseSharpPlugins()
         {
+            _sharpControlProxy = new SharpControlProxy(this);
             var sharpPlugins = (Hashtable) ConfigurationManager.GetSection("sharpPlugins");
 
             if (sharpPlugins == null)
@@ -1540,26 +1624,20 @@ namespace SDRSharp
             Open();
             _streamControl.Play();
             ThreadPool.QueueUserWorkItem(ProcessFFT);
-            playButton.Enabled = false;
-            stopButton.Enabled = true;
             sampleRateComboBox.Enabled = false;
             inputDeviceComboBox.Enabled = false;
             outputDeviceComboBox.Enabled = false;
             latencyNumericUpDown.Enabled = false;
-            frontEndComboBox.Enabled = false;
         }
 
         public void StopRadio()
         {
             _streamControl.Stop();
             _fftStream.Flush();
-            playButton.Enabled = true;
-            stopButton.Enabled = false;
-            if (iqStreamRadioButton.Checked)
+            if (iqSourceComboBox.SelectedIndex < iqSourceComboBox.Items.Count - 3)
             {
                 inputDeviceComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
                 sampleRateComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
-                frontEndComboBox.Enabled = true;
             }
             outputDeviceComboBox.Enabled = true;
             latencyNumericUpDown.Enabled = true;

@@ -33,7 +33,7 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 var m = buffer[i].Real * buffer[i].Real + buffer[i].Imag * buffer[i].Imag;
-                var strength = (float)(10.5 * Math.Log10(m)) + offset;
+                var strength = (float)(10.0 * Math.Log10(m)) + offset;
                 if (float.IsNaN(strength))
                 {
                     strength = MinPower;
@@ -55,7 +55,7 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 var m = buffer[i].Real * buffer[i].Real + buffer[i].Imag * buffer[i].Imag;
-                var strength = (float) (10 * Math.Log10(m)) + offset;
+                var strength = (float) (10.0 * Math.Log10(m)) + offset;
                 if (float.IsNaN(strength))
                 {
                     strength = MinPower;

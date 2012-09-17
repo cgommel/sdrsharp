@@ -31,7 +31,6 @@ namespace SDRSharp.PanView
 
         private double _attack;
         private double _decay;
-        private bool _drawNewLineNeeded;
         private bool _performNeeded;
         private Bitmap _buffer;
         private Bitmap _buffer2;
@@ -107,12 +106,15 @@ namespace SDRSharp.PanView
 
         public void Perform()
         {
-            if (_performNeeded || _drawNewLineNeeded)
+            if (_performNeeded)
             {
-                Draw();
+                if (_mouseIn)
+                {
+                    CopyMainBuffer();
+                    DrawCursor();
+                }
                 Invalidate();
             }
-            _drawNewLineNeeded = false;
             _performNeeded = false;
         }
 
@@ -382,7 +384,9 @@ namespace SDRSharp.PanView
             {
                 Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
             }
-            _drawNewLineNeeded = true;
+
+            Draw();
+            Invalidate();
         }
 
         private void Draw()
@@ -396,30 +400,28 @@ namespace SDRSharp.PanView
 
             #endregion
 
-            if (_drawNewLineNeeded)
+
+            #region Shift image
+
+            ShiftImage();
+
+            #endregion
+
+            #region Draw Spectrum
+
+            DrawSpectrum();
+
+            #endregion
+
+            #region Timestamps
+
+            if (_useTimestamps && ++_scanlines >= TimestampInterval)
             {
-                #region Shift image
-
-                ShiftImage();
-
-                #endregion
-
-                #region Draw Spectrum
-
-                DrawSpectrum();
-
-                #endregion
-
-                #region Timestamps
-
-                if (_useTimestamps && ++_scanlines >= TimestampInterval)
-                {
-                    _scanlines = 0;
-                    DrawTimestamp();
-                }
-
-                #endregion
+                _scanlines = 0;
+                DrawTimestamp();
             }
+
+            #endregion
 
             #region Draw gradient
 
@@ -431,7 +433,7 @@ namespace SDRSharp.PanView
 
             if (_mouseIn)
             {
-                CopyMainBufferBuffer();
+                CopyMainBuffer();
                 DrawCursor();
             }
 
@@ -597,7 +599,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private unsafe void CopyMainBufferBuffer()
+        private unsafe void CopyMainBuffer()
         {
             var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, _buffer.PixelFormat);
             var data2 = _buffer2.LockBits(ClientRectangle, ImageLockMode.WriteOnly, _buffer2.PixelFormat);
@@ -903,7 +905,7 @@ namespace SDRSharp.PanView
             base.OnMouseEnter(e);
             _mouseIn = true;
             _performNeeded = true;
-            CopyMainBufferBuffer();
+            CopyMainBuffer();
         }
 
         protected override void OnMouseLeave(EventArgs e)

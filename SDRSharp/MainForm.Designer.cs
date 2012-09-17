@@ -16,43 +16,37 @@ namespace SDRSharp
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
-            this.playButton = new System.Windows.Forms.Button();
-            this.stopButton = new System.Windows.Forms.Button();
-            this.wavFileTextBox = new System.Windows.Forms.TextBox();
-            this.iqStreamRadioButton = new System.Windows.Forms.RadioButton();
-            this.waveFileRadioButton = new System.Windows.Forms.RadioButton();
-            this.fileSelectButton = new System.Windows.Forms.Button();
+            this.playStopButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
             this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
             this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
-            this.contrastTrackBar = new System.Windows.Forms.TrackBar();
-            this.zoomTrackBar = new System.Windows.Forms.TrackBar();
+            this.fftContrastTrackBar = new System.Windows.Forms.TrackBar();
+            this.fftZoomTrackBar = new System.Windows.Forms.TrackBar();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
-            this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftCheckBox = new System.Windows.Forms.CheckBox();
+            this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.cwuRadioButton = new System.Windows.Forms.RadioButton();
+            this.cwlRadioButton = new System.Windows.Forms.RadioButton();
             this.useSquelchCheckBox = new System.Windows.Forms.CheckBox();
             this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
-            this.cwlRadioButton = new System.Windows.Forms.RadioButton();
             this.nfmRadioButton = new System.Windows.Forms.RadioButton();
             this.dsbRadioButton = new System.Windows.Forms.RadioButton();
             this.frequencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.snapFrequencyCheckBox = new System.Windows.Forms.CheckBox();
             this.wfmRadioButton = new System.Windows.Forms.RadioButton();
-            this.label15 = new System.Windows.Forms.Label();
+            this.snapFrequencyCheckBox = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.cwShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.frontendGuiButton = new System.Windows.Forms.Button();
+            this.label15 = new System.Windows.Forms.Label();
             this.amRadioButton = new System.Windows.Forms.RadioButton();
+            this.cwShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.lsbRadioButton = new System.Windows.Forms.RadioButton();
             this.usbRadioButton = new System.Windows.Forms.RadioButton();
-            this.frontEndComboBox = new System.Windows.Forms.ComboBox();
             this.centerFreqNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label9 = new System.Windows.Forms.Label();
             this.label18 = new System.Windows.Forms.Label();
             this.stepSizeComboBox = new System.Windows.Forms.ComboBox();
             this.label16 = new System.Windows.Forms.Label();
@@ -61,10 +55,9 @@ namespace SDRSharp
             this.label1 = new System.Windows.Forms.Label();
             this.squelchNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.filterTypeComboBox = new System.Windows.Forms.ComboBox();
-            this.label9 = new System.Windows.Forms.Label();
-            this.swapInQCheckBox = new System.Windows.Forms.CheckBox();
-            this.correctIQCheckBox = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.swapIQCheckBox = new System.Windows.Forms.CheckBox();
+            this.correctIQCheckBox = new System.Windows.Forms.CheckBox();
             this.audioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
             this.audioGainTrackBar = new System.Windows.Forms.TrackBar();
             this.latencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -104,13 +97,15 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.configureSourceButton = new System.Windows.Forms.Button();
+            this.iqSourceComboBox = new System.Windows.Forms.ComboBox();
             this.label17 = new System.Windows.Forms.Label();
             this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.contrastTrackBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.zoomTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftContrastTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftZoomTrackBar)).BeginInit();
             this.controlPanel.SuspendLayout();
             this.radioCollapsiblePanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyShiftNumericUpDown)).BeginInit();
@@ -140,70 +135,14 @@ namespace SDRSharp
             this.openDlg.DefaultExt = "wav";
             this.openDlg.Filter = "WAV files|*.wav";
             // 
-            // playButton
+            // playStopButton
             // 
-            this.playButton.Location = new System.Drawing.Point(12, 12);
-            this.playButton.Name = "playButton";
-            this.playButton.Size = new System.Drawing.Size(50, 24);
-            this.playButton.TabIndex = 0;
-            this.playButton.Text = "Play";
-            this.playButton.Click += new System.EventHandler(this.playButton_Click);
-            // 
-            // stopButton
-            // 
-            this.stopButton.Enabled = false;
-            this.stopButton.Location = new System.Drawing.Point(68, 12);
-            this.stopButton.Name = "stopButton";
-            this.stopButton.Size = new System.Drawing.Size(50, 24);
-            this.stopButton.TabIndex = 1;
-            this.stopButton.Text = "Stop";
-            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
-            // 
-            // wavFileTextBox
-            // 
-            this.wavFileTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.wavFileTextBox.Enabled = false;
-            this.wavFileTextBox.Location = new System.Drawing.Point(278, 15);
-            this.wavFileTextBox.Name = "wavFileTextBox";
-            this.wavFileTextBox.Size = new System.Drawing.Size(639, 20);
-            this.wavFileTextBox.TabIndex = 4;
-            // 
-            // iqStreamRadioButton
-            // 
-            this.iqStreamRadioButton.AutoSize = true;
-            this.iqStreamRadioButton.Checked = true;
-            this.iqStreamRadioButton.Location = new System.Drawing.Point(124, 16);
-            this.iqStreamRadioButton.Name = "iqStreamRadioButton";
-            this.iqStreamRadioButton.Size = new System.Drawing.Size(72, 17);
-            this.iqStreamRadioButton.TabIndex = 2;
-            this.iqStreamRadioButton.TabStop = true;
-            this.iqStreamRadioButton.Text = "IQ Stream";
-            this.iqStreamRadioButton.UseVisualStyleBackColor = true;
-            this.iqStreamRadioButton.CheckedChanged += new System.EventHandler(this.iqStreamRadioButton_CheckedChanged);
-            // 
-            // waveFileRadioButton
-            // 
-            this.waveFileRadioButton.AutoSize = true;
-            this.waveFileRadioButton.Location = new System.Drawing.Point(202, 16);
-            this.waveFileRadioButton.Name = "waveFileRadioButton";
-            this.waveFileRadioButton.Size = new System.Drawing.Size(70, 17);
-            this.waveFileRadioButton.TabIndex = 3;
-            this.waveFileRadioButton.Text = "Wave file";
-            this.waveFileRadioButton.UseVisualStyleBackColor = true;
-            this.waveFileRadioButton.CheckedChanged += new System.EventHandler(this.waveFileRadioButton_CheckedChanged);
-            // 
-            // fileSelectButton
-            // 
-            this.fileSelectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.fileSelectButton.Enabled = false;
-            this.fileSelectButton.Location = new System.Drawing.Point(923, 13);
-            this.fileSelectButton.Name = "fileSelectButton";
-            this.fileSelectButton.Size = new System.Drawing.Size(26, 23);
-            this.fileSelectButton.TabIndex = 5;
-            this.fileSelectButton.Text = "...";
-            this.fileSelectButton.UseVisualStyleBackColor = true;
-            this.fileSelectButton.Click += new System.EventHandler(this.fileSelectButton_Click);
+            this.playStopButton.Location = new System.Drawing.Point(12, 11);
+            this.playStopButton.Name = "playStopButton";
+            this.playStopButton.Size = new System.Drawing.Size(50, 25);
+            this.playStopButton.TabIndex = 0;
+            this.playStopButton.Text = "Play";
+            this.playStopButton.Click += new System.EventHandler(this.playStopButton_Click);
             // 
             // panSplitContainer
             // 
@@ -284,34 +223,34 @@ namespace SDRSharp
             this.iqTimer.Interval = 500;
             this.iqTimer.Tick += new System.EventHandler(this.iqTimer_Tick);
             // 
-            // contrastTrackBar
+            // fftContrastTrackBar
             // 
-            this.contrastTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.contrastTrackBar.Location = new System.Drawing.Point(905, 262);
-            this.contrastTrackBar.Maximum = 24;
-            this.contrastTrackBar.Minimum = -24;
-            this.contrastTrackBar.Name = "contrastTrackBar";
-            this.contrastTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.contrastTrackBar.RightToLeftLayout = true;
-            this.contrastTrackBar.Size = new System.Drawing.Size(45, 184);
-            this.contrastTrackBar.TabIndex = 17;
-            this.contrastTrackBar.TickFrequency = 6;
-            this.contrastTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.contrastTrackBar.Scroll += new System.EventHandler(this.contrastTrackBar_Scroll);
+            this.fftContrastTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.fftContrastTrackBar.Location = new System.Drawing.Point(905, 262);
+            this.fftContrastTrackBar.Maximum = 24;
+            this.fftContrastTrackBar.Minimum = -24;
+            this.fftContrastTrackBar.Name = "fftContrastTrackBar";
+            this.fftContrastTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.fftContrastTrackBar.RightToLeftLayout = true;
+            this.fftContrastTrackBar.Size = new System.Drawing.Size(45, 184);
+            this.fftContrastTrackBar.TabIndex = 17;
+            this.fftContrastTrackBar.TickFrequency = 6;
+            this.fftContrastTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.fftContrastTrackBar.ValueChanged += new System.EventHandler(this.fftContrastTrackBar_Changed);
             // 
-            // zoomTrackBar
+            // fftZoomTrackBar
             // 
-            this.zoomTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.zoomTrackBar.Location = new System.Drawing.Point(905, 58);
-            this.zoomTrackBar.Maximum = 50;
-            this.zoomTrackBar.Name = "zoomTrackBar";
-            this.zoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.zoomTrackBar.RightToLeftLayout = true;
-            this.zoomTrackBar.Size = new System.Drawing.Size(45, 184);
-            this.zoomTrackBar.TabIndex = 18;
-            this.zoomTrackBar.TickFrequency = 5;
-            this.zoomTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.zoomTrackBar.Scroll += new System.EventHandler(this.zoomTrackBar_Scroll);
+            this.fftZoomTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.fftZoomTrackBar.Location = new System.Drawing.Point(905, 58);
+            this.fftZoomTrackBar.Maximum = 50;
+            this.fftZoomTrackBar.Name = "fftZoomTrackBar";
+            this.fftZoomTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.fftZoomTrackBar.RightToLeftLayout = true;
+            this.fftZoomTrackBar.Size = new System.Drawing.Size(45, 184);
+            this.fftZoomTrackBar.TabIndex = 18;
+            this.fftZoomTrackBar.TickFrequency = 5;
+            this.fftZoomTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.fftZoomTrackBar.ValueChanged += new System.EventHandler(this.fftZoomTrackBar_ValueChanged);
             // 
             // label19
             // 
@@ -349,27 +288,26 @@ namespace SDRSharp
             // 
             // radioCollapsiblePanel
             // 
-            this.radioCollapsiblePanel.Controls.Add(this.markPeaksCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.frequencyShiftCheckBox);
+            this.radioCollapsiblePanel.Controls.Add(this.markPeaksCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.frequencyShiftNumericUpDown);
             this.radioCollapsiblePanel.Controls.Add(this.cwuRadioButton);
+            this.radioCollapsiblePanel.Controls.Add(this.cwlRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.useSquelchCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.fmStereoCheckBox);
-            this.radioCollapsiblePanel.Controls.Add(this.cwlRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.nfmRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.dsbRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.frequencyNumericUpDown);
-            this.radioCollapsiblePanel.Controls.Add(this.snapFrequencyCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.wfmRadioButton);
-            this.radioCollapsiblePanel.Controls.Add(this.label15);
+            this.radioCollapsiblePanel.Controls.Add(this.snapFrequencyCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.label2);
-            this.radioCollapsiblePanel.Controls.Add(this.cwShiftNumericUpDown);
-            this.radioCollapsiblePanel.Controls.Add(this.frontendGuiButton);
+            this.radioCollapsiblePanel.Controls.Add(this.label15);
             this.radioCollapsiblePanel.Controls.Add(this.amRadioButton);
+            this.radioCollapsiblePanel.Controls.Add(this.cwShiftNumericUpDown);
             this.radioCollapsiblePanel.Controls.Add(this.lsbRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.usbRadioButton);
-            this.radioCollapsiblePanel.Controls.Add(this.frontEndComboBox);
             this.radioCollapsiblePanel.Controls.Add(this.centerFreqNumericUpDown);
+            this.radioCollapsiblePanel.Controls.Add(this.label9);
             this.radioCollapsiblePanel.Controls.Add(this.label18);
             this.radioCollapsiblePanel.Controls.Add(this.stepSizeComboBox);
             this.radioCollapsiblePanel.Controls.Add(this.label16);
@@ -378,28 +316,16 @@ namespace SDRSharp
             this.radioCollapsiblePanel.Controls.Add(this.label1);
             this.radioCollapsiblePanel.Controls.Add(this.squelchNumericUpDown);
             this.radioCollapsiblePanel.Controls.Add(this.filterTypeComboBox);
-            this.radioCollapsiblePanel.Controls.Add(this.label9);
-            this.radioCollapsiblePanel.Controls.Add(this.swapInQCheckBox);
-            this.radioCollapsiblePanel.Controls.Add(this.correctIQCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.label5);
-            this.radioCollapsiblePanel.ExpandedHeight = 362;
+            this.radioCollapsiblePanel.Controls.Add(this.swapIQCheckBox);
+            this.radioCollapsiblePanel.Controls.Add(this.correctIQCheckBox);
+            this.radioCollapsiblePanel.ExpandedHeight = 338;
             this.radioCollapsiblePanel.Location = new System.Drawing.Point(0, 2);
             this.radioCollapsiblePanel.Name = "radioCollapsiblePanel";
             this.radioCollapsiblePanel.NextPanel = this.audioCollapsiblePanel;
             this.radioCollapsiblePanel.PanelTitle = "Radio";
-            this.radioCollapsiblePanel.Size = new System.Drawing.Size(217, 382);
+            this.radioCollapsiblePanel.Size = new System.Drawing.Size(217, 358);
             this.radioCollapsiblePanel.TabIndex = 21;
-            // 
-            // markPeaksCheckBox
-            // 
-            this.markPeaksCheckBox.Location = new System.Drawing.Point(110, 361);
-            this.markPeaksCheckBox.Name = "markPeaksCheckBox";
-            this.markPeaksCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.markPeaksCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.markPeaksCheckBox.TabIndex = 33;
-            this.markPeaksCheckBox.Text = "Mark Peaks";
-            this.markPeaksCheckBox.UseVisualStyleBackColor = true;
-            this.markPeaksCheckBox.CheckedChanged += new System.EventHandler(this.markPeaksCheckBox_CheckedChanged);
             // 
             // frequencyShiftCheckBox
             // 
@@ -410,7 +336,18 @@ namespace SDRSharp
             this.frequencyShiftCheckBox.TabIndex = 10;
             this.frequencyShiftCheckBox.Text = "Shift";
             this.frequencyShiftCheckBox.UseVisualStyleBackColor = true;
-            this.frequencyShiftCheckBox.CheckedChanged += new System.EventHandler(this.frequencyShiftCheckBox_CheckedChanged);
+            this.frequencyShiftCheckBox.CheckedChanged += new System.EventHandler(this.frequencyShiftCheckBox_CheckStateChanged);
+            // 
+            // markPeaksCheckBox
+            // 
+            this.markPeaksCheckBox.Location = new System.Drawing.Point(111, 334);
+            this.markPeaksCheckBox.Name = "markPeaksCheckBox";
+            this.markPeaksCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.markPeaksCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.markPeaksCheckBox.TabIndex = 33;
+            this.markPeaksCheckBox.Text = "Mark Peaks";
+            this.markPeaksCheckBox.UseVisualStyleBackColor = true;
+            this.markPeaksCheckBox.CheckedChanged += new System.EventHandler(this.markPeaksCheckBox_CheckedChanged);
             // 
             // frequencyShiftNumericUpDown
             // 
@@ -421,7 +358,7 @@ namespace SDRSharp
             0,
             0,
             0});
-            this.frequencyShiftNumericUpDown.Location = new System.Drawing.Point(69, 133);
+            this.frequencyShiftNumericUpDown.Location = new System.Drawing.Point(70, 133);
             this.frequencyShiftNumericUpDown.Maximum = new decimal(new int[] {
             276447232,
             23283,
@@ -433,7 +370,7 @@ namespace SDRSharp
             0,
             -2147483648});
             this.frequencyShiftNumericUpDown.Name = "frequencyShiftNumericUpDown";
-            this.frequencyShiftNumericUpDown.Size = new System.Drawing.Size(135, 24);
+            this.frequencyShiftNumericUpDown.Size = new System.Drawing.Size(134, 24);
             this.frequencyShiftNumericUpDown.TabIndex = 11;
             this.frequencyShiftNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.frequencyShiftNumericUpDown.ThousandsSeparator = true;
@@ -448,31 +385,7 @@ namespace SDRSharp
             this.cwuRadioButton.TabIndex = 7;
             this.cwuRadioButton.Text = "CW-U";
             this.cwuRadioButton.UseVisualStyleBackColor = true;
-            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
-            // 
-            // useSquelchCheckBox
-            // 
-            this.useSquelchCheckBox.Location = new System.Drawing.Point(9, 253);
-            this.useSquelchCheckBox.Name = "useSquelchCheckBox";
-            this.useSquelchCheckBox.Size = new System.Drawing.Size(69, 17);
-            this.useSquelchCheckBox.TabIndex = 17;
-            this.useSquelchCheckBox.Text = "Squelch";
-            this.useSquelchCheckBox.UseVisualStyleBackColor = true;
-            this.useSquelchCheckBox.CheckedChanged += new System.EventHandler(this.useSquelchCheckBox_CheckedChanged);
-            // 
-            // fmStereoCheckBox
-            // 
-            this.fmStereoCheckBox.Checked = true;
-            this.fmStereoCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.fmStereoCheckBox.Enabled = false;
-            this.fmStereoCheckBox.Location = new System.Drawing.Point(5, 361);
-            this.fmStereoCheckBox.Name = "fmStereoCheckBox";
-            this.fmStereoCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.fmStereoCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.fmStereoCheckBox.TabIndex = 24;
-            this.fmStereoCheckBox.Text = "FM Stereo";
-            this.fmStereoCheckBox.UseVisualStyleBackColor = true;
-            this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
+            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // cwlRadioButton
             // 
@@ -483,7 +396,29 @@ namespace SDRSharp
             this.cwlRadioButton.TabIndex = 6;
             this.cwlRadioButton.Text = "CW-L";
             this.cwlRadioButton.UseVisualStyleBackColor = true;
-            this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
+            this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
+            // useSquelchCheckBox
+            // 
+            this.useSquelchCheckBox.Location = new System.Drawing.Point(10, 226);
+            this.useSquelchCheckBox.Name = "useSquelchCheckBox";
+            this.useSquelchCheckBox.Size = new System.Drawing.Size(69, 17);
+            this.useSquelchCheckBox.TabIndex = 17;
+            this.useSquelchCheckBox.Text = "Squelch";
+            this.useSquelchCheckBox.UseVisualStyleBackColor = true;
+            this.useSquelchCheckBox.CheckedChanged += new System.EventHandler(this.useSquelchCheckBox_CheckedChanged);
+            // 
+            // fmStereoCheckBox
+            // 
+            this.fmStereoCheckBox.Enabled = false;
+            this.fmStereoCheckBox.Location = new System.Drawing.Point(6, 334);
+            this.fmStereoCheckBox.Name = "fmStereoCheckBox";
+            this.fmStereoCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.fmStereoCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.fmStereoCheckBox.TabIndex = 24;
+            this.fmStereoCheckBox.Text = "FM Stereo";
+            this.fmStereoCheckBox.UseVisualStyleBackColor = true;
+            this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
             // 
             // nfmRadioButton
             // 
@@ -494,7 +429,7 @@ namespace SDRSharp
             this.nfmRadioButton.TabIndex = 0;
             this.nfmRadioButton.Text = "NFM";
             this.nfmRadioButton.UseVisualStyleBackColor = true;
-            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
+            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // dsbRadioButton
             // 
@@ -505,7 +440,7 @@ namespace SDRSharp
             this.dsbRadioButton.TabIndex = 5;
             this.dsbRadioButton.Text = "DSB";
             this.dsbRadioButton.UseVisualStyleBackColor = true;
-            this.dsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
+            this.dsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // frequencyNumericUpDown
             // 
@@ -527,22 +462,11 @@ namespace SDRSharp
             0,
             -2147483648});
             this.frequencyNumericUpDown.Name = "frequencyNumericUpDown";
-            this.frequencyNumericUpDown.Size = new System.Drawing.Size(135, 24);
+            this.frequencyNumericUpDown.Size = new System.Drawing.Size(134, 24);
             this.frequencyNumericUpDown.TabIndex = 8;
             this.frequencyNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.frequencyNumericUpDown.ThousandsSeparator = true;
             this.frequencyNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyNumericUpDown_ValueChanged);
-            // 
-            // snapFrequencyCheckBox
-            // 
-            this.snapFrequencyCheckBox.Location = new System.Drawing.Point(5, 313);
-            this.snapFrequencyCheckBox.Name = "snapFrequencyCheckBox";
-            this.snapFrequencyCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.snapFrequencyCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.snapFrequencyCheckBox.TabIndex = 20;
-            this.snapFrequencyCheckBox.Text = "Snap to grid";
-            this.snapFrequencyCheckBox.UseVisualStyleBackColor = true;
-            this.snapFrequencyCheckBox.CheckedChanged += new System.EventHandler(this.stepSizeComboBox_SelectedIndexChanged);
             // 
             // wfmRadioButton
             // 
@@ -553,17 +477,18 @@ namespace SDRSharp
             this.wfmRadioButton.TabIndex = 4;
             this.wfmRadioButton.Text = "WFM";
             this.wfmRadioButton.UseVisualStyleBackColor = true;
-            this.wfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
+            this.wfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
-            // label15
+            // snapFrequencyCheckBox
             // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(111, 254);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(49, 13);
-            this.label15.TabIndex = 32;
-            this.label15.Text = "CW Shift";
-            this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.snapFrequencyCheckBox.Location = new System.Drawing.Point(6, 286);
+            this.snapFrequencyCheckBox.Name = "snapFrequencyCheckBox";
+            this.snapFrequencyCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.snapFrequencyCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.snapFrequencyCheckBox.TabIndex = 20;
+            this.snapFrequencyCheckBox.Text = "Snap to grid";
+            this.snapFrequencyCheckBox.UseVisualStyleBackColor = true;
+            this.snapFrequencyCheckBox.CheckedChanged += new System.EventHandler(this.stepSizeComboBox_SelectedIndexChanged);
             // 
             // label2
             // 
@@ -575,10 +500,31 @@ namespace SDRSharp
             this.label2.Text = "Frequency";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(112, 227);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(49, 13);
+            this.label15.TabIndex = 32;
+            this.label15.Text = "CW Shift";
+            this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // amRadioButton
+            // 
+            this.amRadioButton.AutoSize = true;
+            this.amRadioButton.Location = new System.Drawing.Point(60, 26);
+            this.amRadioButton.Name = "amRadioButton";
+            this.amRadioButton.Size = new System.Drawing.Size(41, 17);
+            this.amRadioButton.TabIndex = 1;
+            this.amRadioButton.Text = "AM";
+            this.amRadioButton.UseVisualStyleBackColor = true;
+            this.amRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
             // cwShiftNumericUpDown
             // 
             this.cwShiftNumericUpDown.Enabled = false;
-            this.cwShiftNumericUpDown.Location = new System.Drawing.Point(110, 271);
+            this.cwShiftNumericUpDown.Location = new System.Drawing.Point(111, 244);
             this.cwShiftNumericUpDown.Maximum = new decimal(new int[] {
             1200,
             0,
@@ -600,32 +546,6 @@ namespace SDRSharp
             0});
             this.cwShiftNumericUpDown.ValueChanged += new System.EventHandler(this.cwShiftNumericUpDown_ValueChanged);
             // 
-            // frontendGuiButton
-            // 
-            this.frontendGuiButton.Enabled = false;
-            this.frontendGuiButton.FlatAppearance.BorderSize = 0;
-            this.frontendGuiButton.Location = new System.Drawing.Point(5, 163);
-            this.frontendGuiButton.Name = "frontendGuiButton";
-            this.frontendGuiButton.Size = new System.Drawing.Size(61, 21);
-            this.frontendGuiButton.TabIndex = 12;
-            this.frontendGuiButton.Text = "Front end";
-            this.frontendGuiButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.frontendGuiButton.UseVisualStyleBackColor = true;
-            this.frontendGuiButton.Click += new System.EventHandler(this.frontendGuiButton_Click);
-            // 
-            // amRadioButton
-            // 
-            this.amRadioButton.AutoSize = true;
-            this.amRadioButton.Checked = true;
-            this.amRadioButton.Location = new System.Drawing.Point(60, 26);
-            this.amRadioButton.Name = "amRadioButton";
-            this.amRadioButton.Size = new System.Drawing.Size(41, 17);
-            this.amRadioButton.TabIndex = 1;
-            this.amRadioButton.TabStop = true;
-            this.amRadioButton.Text = "AM";
-            this.amRadioButton.UseVisualStyleBackColor = true;
-            this.amRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
-            // 
             // lsbRadioButton
             // 
             this.lsbRadioButton.AutoSize = true;
@@ -635,7 +555,7 @@ namespace SDRSharp
             this.lsbRadioButton.TabIndex = 2;
             this.lsbRadioButton.Text = "LSB";
             this.lsbRadioButton.UseVisualStyleBackColor = true;
-            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
+            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // usbRadioButton
             // 
@@ -646,18 +566,7 @@ namespace SDRSharp
             this.usbRadioButton.TabIndex = 3;
             this.usbRadioButton.Text = "USB";
             this.usbRadioButton.UseVisualStyleBackColor = true;
-            this.usbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckedChanged);
-            // 
-            // frontEndComboBox
-            // 
-            this.frontEndComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.frontEndComboBox.DropDownWidth = 135;
-            this.frontEndComboBox.FormattingEnabled = true;
-            this.frontEndComboBox.Location = new System.Drawing.Point(69, 163);
-            this.frontEndComboBox.Name = "frontEndComboBox";
-            this.frontEndComboBox.Size = new System.Drawing.Size(135, 21);
-            this.frontEndComboBox.TabIndex = 13;
-            this.frontEndComboBox.SelectedIndexChanged += new System.EventHandler(this.frontEndComboBox_SelectedIndexChanged);
+            this.usbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // centerFreqNumericUpDown
             // 
@@ -674,16 +583,26 @@ namespace SDRSharp
             0,
             0});
             this.centerFreqNumericUpDown.Name = "centerFreqNumericUpDown";
-            this.centerFreqNumericUpDown.Size = new System.Drawing.Size(135, 24);
+            this.centerFreqNumericUpDown.Size = new System.Drawing.Size(134, 24);
             this.centerFreqNumericUpDown.TabIndex = 9;
             this.centerFreqNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.centerFreqNumericUpDown.ThousandsSeparator = true;
             this.centerFreqNumericUpDown.ValueChanged += new System.EventHandler(this.centerFreqNumericUpDown_ValueChanged);
             // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(6, 109);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(38, 13);
+            this.label9.TabIndex = 24;
+            this.label9.Text = "Center";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(111, 294);
+            this.label18.Location = new System.Drawing.Point(112, 267);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(50, 13);
             this.label18.TabIndex = 30;
@@ -718,7 +637,7 @@ namespace SDRSharp
             "400 kHz",
             "450 kHz",
             "500 kHz"});
-            this.stepSizeComboBox.Location = new System.Drawing.Point(110, 311);
+            this.stepSizeComboBox.Location = new System.Drawing.Point(111, 284);
             this.stepSizeComboBox.Name = "stepSizeComboBox";
             this.stepSizeComboBox.Size = new System.Drawing.Size(94, 21);
             this.stepSizeComboBox.TabIndex = 21;
@@ -727,7 +646,7 @@ namespace SDRSharp
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(5, 193);
+            this.label16.Location = new System.Drawing.Point(6, 166);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(52, 13);
             this.label16.TabIndex = 26;
@@ -741,7 +660,7 @@ namespace SDRSharp
             0,
             0,
             0});
-            this.filterBandwidthNumericUpDown.Location = new System.Drawing.Point(5, 231);
+            this.filterBandwidthNumericUpDown.Location = new System.Drawing.Point(6, 204);
             this.filterBandwidthNumericUpDown.Maximum = new decimal(new int[] {
             250000,
             0,
@@ -770,7 +689,7 @@ namespace SDRSharp
             0,
             0,
             0});
-            this.filterOrderNumericUpDown.Location = new System.Drawing.Point(110, 231);
+            this.filterOrderNumericUpDown.Location = new System.Drawing.Point(111, 204);
             this.filterOrderNumericUpDown.Maximum = new decimal(new int[] {
             9999,
             0,
@@ -795,7 +714,7 @@ namespace SDRSharp
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 214);
+            this.label1.Location = new System.Drawing.Point(6, 187);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(81, 13);
             this.label1.TabIndex = 16;
@@ -805,16 +724,11 @@ namespace SDRSharp
             // squelchNumericUpDown
             // 
             this.squelchNumericUpDown.Enabled = false;
-            this.squelchNumericUpDown.Location = new System.Drawing.Point(5, 271);
+            this.squelchNumericUpDown.Location = new System.Drawing.Point(6, 244);
             this.squelchNumericUpDown.Name = "squelchNumericUpDown";
             this.squelchNumericUpDown.Size = new System.Drawing.Size(94, 20);
             this.squelchNumericUpDown.TabIndex = 18;
             this.squelchNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.squelchNumericUpDown.Value = new decimal(new int[] {
-            50,
-            0,
-            0,
-            0});
             this.squelchNumericUpDown.ValueChanged += new System.EventHandler(this.squelchNumericUpDown_ValueChanged);
             // 
             // filterTypeComboBox
@@ -827,55 +741,43 @@ namespace SDRSharp
             "Blackman-Harris",
             "Hann-Poisson",
             "Youssef"});
-            this.filterTypeComboBox.Location = new System.Drawing.Point(69, 190);
+            this.filterTypeComboBox.Location = new System.Drawing.Point(70, 163);
             this.filterTypeComboBox.Name = "filterTypeComboBox";
-            this.filterTypeComboBox.Size = new System.Drawing.Size(135, 21);
+            this.filterTypeComboBox.Size = new System.Drawing.Size(134, 21);
             this.filterTypeComboBox.TabIndex = 14;
             this.filterTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.filterTypeComboBox_SelectedIndexChanged);
             // 
-            // label9
+            // label5
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(6, 109);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(38, 13);
-            this.label9.TabIndex = 24;
-            this.label9.Text = "Center";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(112, 187);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(56, 13);
+            this.label5.TabIndex = 20;
+            this.label5.Text = "Filter order";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // swapInQCheckBox
+            // swapIQCheckBox
             // 
-            this.swapInQCheckBox.Location = new System.Drawing.Point(110, 338);
-            this.swapInQCheckBox.Name = "swapInQCheckBox";
-            this.swapInQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.swapInQCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.swapInQCheckBox.TabIndex = 23;
-            this.swapInQCheckBox.Text = "Swap I && Q";
-            this.swapInQCheckBox.UseVisualStyleBackColor = true;
-            this.swapInQCheckBox.CheckedChanged += new System.EventHandler(this.swapInQCheckBox_CheckedChanged);
+            this.swapIQCheckBox.Location = new System.Drawing.Point(111, 311);
+            this.swapIQCheckBox.Name = "swapIQCheckBox";
+            this.swapIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.swapIQCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.swapIQCheckBox.TabIndex = 23;
+            this.swapIQCheckBox.Text = "Swap I && Q";
+            this.swapIQCheckBox.UseVisualStyleBackColor = true;
+            this.swapIQCheckBox.CheckedChanged += new System.EventHandler(this.swapIQCheckBox_CheckedChanged);
             // 
             // correctIQCheckBox
             // 
-            this.correctIQCheckBox.Checked = true;
-            this.correctIQCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.correctIQCheckBox.Location = new System.Drawing.Point(5, 338);
+            this.correctIQCheckBox.Location = new System.Drawing.Point(6, 311);
             this.correctIQCheckBox.Name = "correctIQCheckBox";
             this.correctIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.correctIQCheckBox.Size = new System.Drawing.Size(94, 17);
             this.correctIQCheckBox.TabIndex = 22;
             this.correctIQCheckBox.Text = "Correct IQ";
             this.correctIQCheckBox.UseVisualStyleBackColor = true;
-            this.correctIQCheckBox.CheckedChanged += new System.EventHandler(this.autoCorrectIQCheckBox_CheckedChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(111, 214);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(56, 13);
-            this.label5.TabIndex = 20;
-            this.label5.Text = "Filter order";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.correctIQCheckBox.CheckedChanged += new System.EventHandler(this.autoCorrectIQCheckBox_CheckStateChanged);
             // 
             // audioCollapsiblePanel
             // 
@@ -891,7 +793,7 @@ namespace SDRSharp
             this.audioCollapsiblePanel.Controls.Add(this.inputDeviceComboBox);
             this.audioCollapsiblePanel.Controls.Add(this.label11);
             this.audioCollapsiblePanel.ExpandedHeight = 176;
-            this.audioCollapsiblePanel.Location = new System.Drawing.Point(0, 384);
+            this.audioCollapsiblePanel.Location = new System.Drawing.Point(0, 360);
             this.audioCollapsiblePanel.Name = "audioCollapsiblePanel";
             this.audioCollapsiblePanel.NextPanel = this.agcCollapsiblePanel;
             this.audioCollapsiblePanel.PanelTitle = "Audio";
@@ -928,15 +830,13 @@ namespace SDRSharp
             this.latencyNumericUpDown.TabIndex = 4;
             this.latencyNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.latencyNumericUpDown.Value = new decimal(new int[] {
-            100,
+            1,
             0,
             0,
             0});
             // 
             // filterAudioCheckBox
             // 
-            this.filterAudioCheckBox.Checked = true;
-            this.filterAudioCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.filterAudioCheckBox.Location = new System.Drawing.Point(118, 177);
             this.filterAudioCheckBox.Name = "filterAudioCheckBox";
             this.filterAudioCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
@@ -944,7 +844,7 @@ namespace SDRSharp
             this.filterAudioCheckBox.TabIndex = 34;
             this.filterAudioCheckBox.Text = "Filter Audio";
             this.filterAudioCheckBox.UseVisualStyleBackColor = true;
-            this.filterAudioCheckBox.CheckedChanged += new System.EventHandler(this.filterAudioCheckBox_CheckedChanged);
+            this.filterAudioCheckBox.CheckedChanged += new System.EventHandler(this.filterAudioCheckBox_CheckStateChanged);
             // 
             // label6
             // 
@@ -1045,7 +945,7 @@ namespace SDRSharp
             this.agcCollapsiblePanel.Controls.Add(this.agcDecayNumericUpDown);
             this.agcCollapsiblePanel.Controls.Add(this.label4);
             this.agcCollapsiblePanel.ExpandedHeight = 103;
-            this.agcCollapsiblePanel.Location = new System.Drawing.Point(0, 580);
+            this.agcCollapsiblePanel.Location = new System.Drawing.Point(0, 556);
             this.agcCollapsiblePanel.Name = "agcCollapsiblePanel";
             this.agcCollapsiblePanel.NextPanel = this.displayCollapsiblePanel;
             this.agcCollapsiblePanel.PanelTitle = "AGC";
@@ -1055,8 +955,6 @@ namespace SDRSharp
             // agcUseHangCheckBox
             // 
             this.agcUseHangCheckBox.AutoSize = true;
-            this.agcUseHangCheckBox.Checked = true;
-            this.agcUseHangCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.agcUseHangCheckBox.Location = new System.Drawing.Point(125, 27);
             this.agcUseHangCheckBox.Name = "agcUseHangCheckBox";
             this.agcUseHangCheckBox.Size = new System.Drawing.Size(74, 17);
@@ -1077,6 +975,11 @@ namespace SDRSharp
             this.agcSlopeNumericUpDown.Size = new System.Drawing.Size(79, 20);
             this.agcSlopeNumericUpDown.TabIndex = 4;
             this.agcSlopeNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.agcSlopeNumericUpDown.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             this.agcSlopeNumericUpDown.ValueChanged += new System.EventHandler(this.agcSlopeNumericUpDown_ValueChanged);
             // 
             // label22
@@ -1091,8 +994,6 @@ namespace SDRSharp
             // agcCheckBox
             // 
             this.agcCheckBox.AutoSize = true;
-            this.agcCheckBox.Checked = true;
-            this.agcCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.agcCheckBox.Location = new System.Drawing.Point(9, 27);
             this.agcCheckBox.Name = "agcCheckBox";
             this.agcCheckBox.Size = new System.Drawing.Size(70, 17);
@@ -1127,11 +1028,6 @@ namespace SDRSharp
             this.agcThresholdNumericUpDown.Size = new System.Drawing.Size(79, 20);
             this.agcThresholdNumericUpDown.TabIndex = 2;
             this.agcThresholdNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.agcThresholdNumericUpDown.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            -2147483648});
             this.agcThresholdNumericUpDown.ValueChanged += new System.EventHandler(this.agcThresholdNumericUpDown_ValueChanged);
             // 
             // agcDecayNumericUpDown
@@ -1152,7 +1048,7 @@ namespace SDRSharp
             this.agcDecayNumericUpDown.TabIndex = 3;
             this.agcDecayNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.agcDecayNumericUpDown.Value = new decimal(new int[] {
-            100,
+            2000,
             0,
             0,
             0});
@@ -1187,7 +1083,7 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
             this.displayCollapsiblePanel.ExpandedHeight = 259;
-            this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 703);
+            this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 679);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
@@ -1205,7 +1101,6 @@ namespace SDRSharp
             // 
             // useTimestampsCheckBox
             // 
-            this.useTimestampsCheckBox.AutoSize = true;
             this.useTimestampsCheckBox.Location = new System.Drawing.Point(9, 105);
             this.useTimestampsCheckBox.Name = "useTimestampsCheckBox";
             this.useTimestampsCheckBox.Size = new System.Drawing.Size(107, 17);
@@ -1249,7 +1144,7 @@ namespace SDRSharp
             this.wDecayTrackBar.Size = new System.Drawing.Size(156, 45);
             this.wDecayTrackBar.TabIndex = 8;
             this.wDecayTrackBar.TickFrequency = 5;
-            this.wDecayTrackBar.Scroll += new System.EventHandler(this.wDecayTrackBar_Scroll);
+            this.wDecayTrackBar.ValueChanged += new System.EventHandler(this.wDecayTrackBar_ValueChanged);
             // 
             // wAttackTrackBar
             // 
@@ -1259,7 +1154,7 @@ namespace SDRSharp
             this.wAttackTrackBar.Size = new System.Drawing.Size(156, 45);
             this.wAttackTrackBar.TabIndex = 7;
             this.wAttackTrackBar.TickFrequency = 5;
-            this.wAttackTrackBar.Scroll += new System.EventHandler(this.wAttackTrackBar_Scroll);
+            this.wAttackTrackBar.ValueChanged += new System.EventHandler(this.wAttackTrackBar_ValueChanged);
             // 
             // label21
             // 
@@ -1312,7 +1207,7 @@ namespace SDRSharp
             this.sDecayTrackBar.Size = new System.Drawing.Size(156, 45);
             this.sDecayTrackBar.TabIndex = 6;
             this.sDecayTrackBar.TickFrequency = 5;
-            this.sDecayTrackBar.Scroll += new System.EventHandler(this.sDecayTrackBar_Scroll);
+            this.sDecayTrackBar.ValueChanged += new System.EventHandler(this.sDecayTrackBar_ValueChanged);
             // 
             // label14
             // 
@@ -1345,7 +1240,7 @@ namespace SDRSharp
             this.sAttackTrackBar.Size = new System.Drawing.Size(156, 45);
             this.sAttackTrackBar.TabIndex = 5;
             this.sAttackTrackBar.TickFrequency = 5;
-            this.sAttackTrackBar.Scroll += new System.EventHandler(this.sAttackTrackBar_Scroll);
+            this.sAttackTrackBar.ValueChanged += new System.EventHandler(this.sAttackTrackBar_ValueChanged);
             // 
             // gradientButton
             // 
@@ -1383,6 +1278,28 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
+            // configureSourceButton
+            // 
+            this.configureSourceButton.FlatAppearance.BorderSize = 0;
+            this.configureSourceButton.Location = new System.Drawing.Point(256, 11);
+            this.configureSourceButton.Name = "configureSourceButton";
+            this.configureSourceButton.Size = new System.Drawing.Size(70, 25);
+            this.configureSourceButton.TabIndex = 3;
+            this.configureSourceButton.Text = "Configure";
+            this.configureSourceButton.UseVisualStyleBackColor = true;
+            this.configureSourceButton.Click += new System.EventHandler(this.frontendGuiButton_Click);
+            // 
+            // iqSourceComboBox
+            // 
+            this.iqSourceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.iqSourceComboBox.DropDownWidth = 135;
+            this.iqSourceComboBox.FormattingEnabled = true;
+            this.iqSourceComboBox.Location = new System.Drawing.Point(68, 13);
+            this.iqSourceComboBox.Name = "iqSourceComboBox";
+            this.iqSourceComboBox.Size = new System.Drawing.Size(182, 21);
+            this.iqSourceComboBox.TabIndex = 2;
+            this.iqSourceComboBox.SelectedIndexChanged += new System.EventHandler(this.iqSourceComboBox_SelectedIndexChanged);
+            // 
             // label17
             // 
             this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -1407,7 +1324,7 @@ namespace SDRSharp
             this.fftSpeedTrackBar.TickFrequency = 10;
             this.fftSpeedTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.fftSpeedTrackBar.Value = 50;
-            this.fftSpeedTrackBar.Scroll += new System.EventHandler(this.fftSpeedTrackBar_Scroll);
+            this.fftSpeedTrackBar.ValueChanged += new System.EventHandler(this.fftSpeedTrackBar_ValueChanged);
             // 
             // MainForm
             // 
@@ -1418,15 +1335,12 @@ namespace SDRSharp
             this.Controls.Add(this.controlPanel);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
-            this.Controls.Add(this.zoomTrackBar);
-            this.Controls.Add(this.contrastTrackBar);
+            this.Controls.Add(this.fftZoomTrackBar);
+            this.Controls.Add(this.fftContrastTrackBar);
             this.Controls.Add(this.panSplitContainer);
-            this.Controls.Add(this.fileSelectButton);
-            this.Controls.Add(this.waveFileRadioButton);
-            this.Controls.Add(this.iqStreamRadioButton);
-            this.Controls.Add(this.wavFileTextBox);
-            this.Controls.Add(this.stopButton);
-            this.Controls.Add(this.playButton);
+            this.Controls.Add(this.playStopButton);
+            this.Controls.Add(this.configureSourceButton);
+            this.Controls.Add(this.iqSourceComboBox);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MinimumSize = new System.Drawing.Size(500, 400);
@@ -1434,12 +1348,11 @@ namespace SDRSharp
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SDR#";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.panSplitContainer.Panel1.ResumeLayout(false);
             this.panSplitContainer.Panel2.ResumeLayout(false);
             this.panSplitContainer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.contrastTrackBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.zoomTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftContrastTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftZoomTrackBar)).EndInit();
             this.controlPanel.ResumeLayout(false);
             this.radioCollapsiblePanel.ResumeLayout(false);
             this.radioCollapsiblePanel.PerformLayout();
@@ -1475,8 +1388,7 @@ namespace SDRSharp
 
         private System.ComponentModel.IContainer components;
 
-        private Button playButton;
-        private Button stopButton;
+        private Button playStopButton;
         private Label label3;
         private OpenFileDialog openDlg;
         private CheckBox agcCheckBox;
@@ -1484,10 +1396,6 @@ namespace SDRSharp
         private NumericUpDown agcThresholdNumericUpDown;
         private SpectrumAnalyzer spectrumAnalyzer;
         private Waterfall waterfall;
-        private TextBox wavFileTextBox;
-        private RadioButton iqStreamRadioButton;
-        private RadioButton waveFileRadioButton;
-        private Button fileSelectButton;
         private Label label10;
         private NumericUpDown agcDecayNumericUpDown;
         private Label label12;
@@ -1504,8 +1412,8 @@ namespace SDRSharp
         private Timer iqTimer;
         private Button gradientButton;
         private Label label14;
-        private TrackBar contrastTrackBar;
-        private TrackBar zoomTrackBar;
+        private TrackBar fftContrastTrackBar;
+        private TrackBar fftZoomTrackBar;
         private Label label19;
         private Label label20;
         private Label label21;
@@ -1520,7 +1428,7 @@ namespace SDRSharp
         private NumericUpDown frequencyNumericUpDown;
         private RadioButton wfmRadioButton;
         private Label label2;
-        private Button frontendGuiButton;
+        private Button configureSourceButton;
         private RadioButton lsbRadioButton;
         private Label label18;
         private RadioButton usbRadioButton;
@@ -1531,10 +1439,10 @@ namespace SDRSharp
         private NumericUpDown filterOrderNumericUpDown;
         private Label label16;
         private Label label5;
-        private ComboBox frontEndComboBox;
+        private ComboBox iqSourceComboBox;
         private ComboBox filterTypeComboBox;
         private Label label9;
-        private CheckBox swapInQCheckBox;
+        private CheckBox swapIQCheckBox;
         private CheckBox correctIQCheckBox;
         private NumericUpDown centerFreqNumericUpDown;
         private CollapsiblePanel.CollapsiblePanel radioCollapsiblePanel;

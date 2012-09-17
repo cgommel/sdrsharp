@@ -11,7 +11,7 @@ namespace SDRSharp.Radio
         private const float PowerThreshold = 20.0f; // in dB
 
         private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
-        private bool _autoBalanceIQ = true;
+        private bool _autoBalanceIQ;
         private float _averageI;
         private float _averageQ;
         private float _gain = 1.0f;

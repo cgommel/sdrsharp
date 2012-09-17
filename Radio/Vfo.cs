@@ -49,10 +49,10 @@ namespace SDRSharp.Radio
         private float _agcSlope;
         private bool _agcUseHang;
         private int _squelchThreshold;
-        private bool _fmStereo = true;
+        private bool _fmStereo;
+        private bool _filterAudio;
         private UnsafeBuffer _rawAudioBuffer;
         private float* _rawAudioPtr;
-        private bool _filterAudio = true;
 
         public Vfo()
         {
