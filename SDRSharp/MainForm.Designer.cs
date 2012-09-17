@@ -1107,7 +1107,7 @@ namespace SDRSharp
             this.useTimestampsCheckBox.TabIndex = 3;
             this.useTimestampsCheckBox.Text = "Use time markers";
             this.useTimestampsCheckBox.UseVisualStyleBackColor = true;
-            this.useTimestampsCheckBox.CheckedChanged += new System.EventHandler(this.useTimeStampCheckBox_CheckedChanged);
+            this.useTimestampsCheckBox.CheckedChanged += new System.EventHandler(this.useTimestampCheckBox_CheckedChanged);
             // 
             // label26
             // 

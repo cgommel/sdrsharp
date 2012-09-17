@@ -461,7 +461,10 @@ namespace SDRSharp
             filterTypeComboBox.SelectedIndex = Utils.GetIntSetting("filterType", (int) WindowType.BlackmanHarris - 1);
             
             fftSpeedTrackBar.Value = Utils.GetIntSetting("fftSpeed", 40);
+            fftSpeedTrackBar_ValueChanged(null, null);
+
             fftContrastTrackBar.Value = Utils.GetIntSetting("fftContrast", 0);
+            fftContrastTrackBar_Changed(null, null);
 
             spectrumAnalyzer.Attack = Utils.GetDoubleSetting("spectrumAnalyzerAttack", 0.9);
             sAttackTrackBar.Value = (int) (spectrumAnalyzer.Attack * sAttackTrackBar.Maximum);
@@ -476,6 +479,7 @@ namespace SDRSharp
             wDecayTrackBar.Value = (int) (waterfall.Decay * wDecayTrackBar.Maximum);
 
             useTimestampsCheckBox.Checked = Utils.GetBooleanSetting("useTimeMarkers");
+            useTimestampCheckBox_CheckedChanged(null, null);
 
             #endregion
 
@@ -550,6 +554,21 @@ namespace SDRSharp
             InitialiseSharpPlugins();
             
             #endregion
+
+            iqSourceComboBox.SelectedIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
+            if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
+            {
+                centerFreqNumericUpDown.Value = Utils.GetLongSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);
+                var vfo = Utils.GetLongSetting("vfo", (long) centerFreqNumericUpDown.Value);
+                if (vfo >= frequencyNumericUpDown.Minimum && vfo <= frequencyNumericUpDown.Maximum)
+                {
+                    frequencyNumericUpDown.Value = vfo;
+                }
+                else
+                {
+                    frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
+                }
+            }
         }
 
         private void ExtIO_LOFreqChanged(int frequency)
@@ -630,7 +649,7 @@ namespace SDRSharp
             Utils.SaveSetting("snapToGrid", snapFrequencyCheckBox.Checked);
             Utils.SaveSetting("frequencyShift", (long) frequencyShiftNumericUpDown.Value);
             Utils.SaveSetting("frequencyShiftEnabled", frequencyShiftCheckBox.Checked);
-            Utils.SaveSetting("swapIq", swapIQCheckBox.Checked);
+            Utils.SaveSetting("swapIQ", swapIQCheckBox.Checked);
             Utils.SaveSetting("correctIQ", correctIQCheckBox.Checked);
             Utils.SaveSetting("markPeaks", markPeaksCheckBox.Checked);
             Utils.SaveSetting("fmStereo", fmStereoCheckBox.Checked);
@@ -639,6 +658,9 @@ namespace SDRSharp
             Utils.SaveSetting("sampleRate", sampleRateComboBox.Text);
             Utils.SaveSetting("audioGain", audioGainTrackBar.Value);
             Utils.SaveSetting("windowState", (int) WindowState);
+            Utils.SaveSetting("iqSource", iqSourceComboBox.SelectedIndex);
+            Utils.SaveSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);
+            Utils.SaveSetting("vfo", (long) frequencyNumericUpDown.Value);
         }
 
         #endregion
@@ -849,12 +871,6 @@ namespace SDRSharp
             }
 
             configureSourceButton.Text = "Configure";
-            inputDeviceComboBox.Enabled = true;
-            sampleRateComboBox.Enabled = true;
-            centerFreqNumericUpDown.Value = 0;
-            centerFreqNumericUpDown_ValueChanged(null, null);
-            frequencyNumericUpDown.Value = _frequencyShift;
-            frequencyNumericUpDown_ValueChanged(null, null);
             frequencyShiftCheckBox.Enabled = true;
             frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
 
@@ -1528,7 +1544,7 @@ namespace SDRSharp
             spectrumAnalyzer.MarkPeaks = markPeaksCheckBox.Checked;
         }
 
-        private void useTimeStampCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void useTimestampCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             waterfall.UseTimestamps = useTimestampsCheckBox.Checked;
         }
