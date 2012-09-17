@@ -814,6 +814,7 @@ namespace SDRSharp
                 }
 
                 inputDeviceComboBox.Enabled = true;
+                outputDeviceComboBox.Enabled = true;
                 sampleRateComboBox.Enabled = true;
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
