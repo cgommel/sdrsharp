@@ -44,23 +44,23 @@ namespace SDRSharp.Radio
             GC.SuppressFinalize(this);
         }
 
-        private Complex[] AllocBlock()
+        private UnsafeBuffer AllocBlock()
         {
-            Complex[] result = _usedBlocks.Count > 0 ? (Complex[])_usedBlocks.Pop() : new Complex[BlockSize];
+            var result = _usedBlocks.Count > 0 ? (UnsafeBuffer)_usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(Complex));
             return result;
         }
 
-        private void FreeBlock(Complex[] block)
+        private void FreeBlock(UnsafeBuffer block)
         {
             if (_usedBlocks.Count < MaxBlocksInCache)
                 _usedBlocks.Push(block);
         }
 
-        private Complex[] GetWBlock()
+        private UnsafeBuffer GetWBlock()
         {
-            Complex[] result;
+            UnsafeBuffer result;
             if (_writePos < BlockSize && _blocks.Count > 0)
-                result = (Complex[])_blocks[_blocks.Count - 1];
+                result = (UnsafeBuffer) _blocks[_blocks.Count - 1];
             else
             {
                 result = AllocBlock();
@@ -92,7 +92,7 @@ namespace SDRSharp.Radio
         {
             lock (this)
             {
-                foreach (Complex[] block in _blocks)
+                foreach (UnsafeBuffer block in _blocks)
                     FreeBlock(block);
                 _blocks.Clear();
                 _readPos = 0;
@@ -110,40 +110,6 @@ namespace SDRSharp.Radio
         {
             if (_event != null)
             {
-                //while (_size < count && !_terminated)
-                //{
-                //    _event.WaitOne();
-                //}
-                if (_size == 0)
-                {
-                    _event.WaitOne();
-                }
-                if (_terminated)
-                {
-                    return 0;
-                }
-            }
-            lock (this)
-            {
-                int result = Peek(buf, ofs, count);
-                Advance(result);
-                return result;
-            }
-        }
-
-        public int Read(Complex[] buf, int count)
-        {
-            return Read(buf, 0, count);
-        }
-
-        public int Read(Complex[] buf, int ofs, int count)
-        {
-            if (_event != null)
-            {
-                //while (_size < count && !_terminated)
-                //{
-                //    _event.WaitOne();
-                //}
                 if (_size == 0)
                 {
                     _event.WaitOne();
@@ -169,12 +135,9 @@ namespace SDRSharp.Radio
                 while (left > 0)
                 {
                     int toWrite = Math.Min(BlockSize - _writePos, left);
-                    //Array.Copy(buf, ofs + count - left, GetWBlock(), _writePos, toWrite);
                     var block = GetWBlock();
-                    fixed (Complex* blockPtr = block)
-                    {
-                        Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(Complex));
-                    }
+                    var blockPtr = (Complex*) block;
+                    Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(Complex));
                     _writePos += toWrite;
                     left -= toWrite;
                 }
@@ -202,40 +165,13 @@ namespace SDRSharp.Radio
                     if (_readPos == BlockSize)
                     {
                         _readPos = 0;
-                        FreeBlock((Complex[])_blocks[0]);
+                        FreeBlock((UnsafeBuffer) _blocks[0]);
                         _blocks.RemoveAt(0);
                     }
                     int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
                     _readPos += toFeed;
                     sizeLeft -= toFeed;
                     _size -= toFeed;
-                }
-                return count - sizeLeft;
-            }
-        }
-
-        public int Peek(Complex[] buf, int ofs, int count)
-        {
-            lock (this)
-            {
-                int sizeLeft = count;
-                int tempBlockPos = _readPos;
-                int tempSize = _size;
-
-                int currentBlock = 0;
-                while (sizeLeft > 0 && tempSize > 0)
-                {
-                    if (tempBlockPos == BlockSize)
-                    {
-                        tempBlockPos = 0;
-                        currentBlock++;
-                    }
-                    int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
-                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    Array.Copy((Complex[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
-                    sizeLeft -= toFeed;
-                    tempBlockPos += toFeed;
-                    tempSize -= toFeed;
                 }
                 return count - sizeLeft;
             }
@@ -259,12 +195,9 @@ namespace SDRSharp.Radio
                     }
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    //Array.Copy((Complex[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
-                    var block = (Complex[]) _blocks[currentBlock];
-                    fixed (Complex* blockPtr = block)
-                    {
-                        Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
-                    }
+                    var block = (UnsafeBuffer) _blocks[currentBlock];
+                    var blockPtr = (Complex*) block;
+                    Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
                     sizeLeft -= toFeed;
                     tempBlockPos += toFeed;
                     tempSize -= toFeed;
@@ -316,23 +249,23 @@ namespace SDRSharp.Radio
             GC.SuppressFinalize(this);
         }
 
-        private float[] AllocBlock()
+        private UnsafeBuffer AllocBlock()
         {
-            float[] result = _usedBlocks.Count > 0 ? (float[])_usedBlocks.Pop() : new float[BlockSize];
+            var result = _usedBlocks.Count > 0 ? (UnsafeBuffer) _usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(float));
             return result;
         }
 
-        private void FreeBlock(float[] block)
+        private void FreeBlock(UnsafeBuffer block)
         {
             if (_usedBlocks.Count < MaxBlocksInCache)
                 _usedBlocks.Push(block);
         }
 
-        private float[] GetWBlock()
+        private UnsafeBuffer GetWBlock()
         {
-            float[] result;
+            UnsafeBuffer result;
             if (_writePos < BlockSize && _blocks.Count > 0)
-                result = (float[])_blocks[_blocks.Count - 1];
+                result = (UnsafeBuffer) _blocks[_blocks.Count - 1];
             else
             {
                 result = AllocBlock();
@@ -364,29 +297,13 @@ namespace SDRSharp.Radio
         {
             lock (this)
             {
-                foreach (float[] block in _blocks)
+                foreach (UnsafeBuffer block in _blocks)
                     FreeBlock(block);
                 _blocks.Clear();
                 _readPos = 0;
                 _writePos = 0;
                 _size = 0;
             }
-        }
-
-        public int Read(float[] buf, int count)
-        {
-            return Read(buf, 0, count);
-        }
-
-        public int Read(float[] buf, int ofs, int count)
-        {
-            int result;
-            lock (this)
-            {
-                result = Peek(buf, ofs, count);
-                Advance(result);
-            }
-            return result;
         }
 
         public int Read(float* buf, int ofs, int count)
@@ -419,44 +336,9 @@ namespace SDRSharp.Radio
                 while (left > 0)
                 {
                     int toWrite = Math.Min(BlockSize - _writePos, left);
-                    //Array.Copy(buf, ofs + count - left, GetWBlock(), _writePos, toWrite);
                     var block = GetWBlock();
-                    fixed (float* blockPtr = block)
-                    {
-                        Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(float));
-                    }
-                    _writePos += toWrite;
-                    left -= toWrite;
-                }
-                _size += count;
-            }
-        }
-
-        public void Write(float[] buf, int count)
-        {
-            Write(buf, 0, count);
-        }
-
-        public void Write(float[] buf, int ofs, int count)
-        {
-            if (_event != null)
-            {
-                while (_size >= _maxSize && !_terminated)
-                {
-                    _event.WaitOne();
-                }
-                if (_terminated)
-                {
-                    return;
-                }
-            }
-            lock (this)
-            {
-                int left = count;
-                while (left > 0)
-                {
-                    int toWrite = Math.Min(BlockSize - _writePos, left);
-                    Array.Copy(buf, ofs + count - left, GetWBlock(), _writePos, toWrite);
+                    var blockPtr = (float*) block;
+                    Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(float));
                     _writePos += toWrite;
                     left -= toWrite;
                 }
@@ -480,7 +362,7 @@ namespace SDRSharp.Radio
                     if (_readPos == BlockSize)
                     {
                         _readPos = 0;
-                        FreeBlock((float[])_blocks[0]);
+                        FreeBlock((UnsafeBuffer) _blocks[0]);
                         _blocks.RemoveAt(0);
                     }
                     int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
@@ -491,33 +373,6 @@ namespace SDRSharp.Radio
                 if (_event != null)
                 {
                     _event.Set();
-                }
-                return count - sizeLeft;
-            }
-        }
-
-        public int Peek(float[] buf, int ofs, int count)
-        {
-            lock (this)
-            {
-                int sizeLeft = count;
-                int tempBlockPos = _readPos;
-                int tempSize = _size;
-
-                int currentBlock = 0;
-                while (sizeLeft > 0 && tempSize > 0)
-                {
-                    if (tempBlockPos == BlockSize)
-                    {
-                        tempBlockPos = 0;
-                        currentBlock++;
-                    }
-                    int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
-                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    Array.Copy((float[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
-                    sizeLeft -= toFeed;
-                    tempBlockPos += toFeed;
-                    tempSize -= toFeed;
                 }
                 return count - sizeLeft;
             }
@@ -541,12 +396,9 @@ namespace SDRSharp.Radio
                     }
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    //Array.Copy((float[])_blocks[currentBlock], tempBlockPos, buf, ofs + count - sizeLeft, toFeed);
-                    var block = (float[]) _blocks[currentBlock];
-                    fixed (float* blockPtr = block)
-                    {
-                        Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(float));
-                    }
+                    var block = (UnsafeBuffer) _blocks[currentBlock];
+                    var blockPtr = (float*) block;
+                    Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(float));
                     sizeLeft -= toFeed;
                     tempBlockPos += toFeed;
                     tempSize -= toFeed;

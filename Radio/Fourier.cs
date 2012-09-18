@@ -122,42 +122,49 @@ namespace SDRSharp.Radio
             }
         }
 
+
+
         public static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
         {
             fixed (byte* srcPtr = source)
             fixed (byte* dstPtr = destination)
             {
-                var r = sourceLength / scale / destination.Length;
-                if (r > 1.0f)
+                SmoothCopy(srcPtr, dstPtr, sourceLength, destination.Length, scale, offset);
+            }
+        }
+
+        public static void SmoothCopy(byte* srcPtr, byte* dstPtr, int sourceLength, int destinationLength, float scale, int offset)
+        {
+            var r = sourceLength / scale / destinationLength;
+            if (r > 1.0f)
+            {
+                var n = (int) Math.Ceiling(r);
+                for (var i = 0; i < destinationLength; i++)
                 {
-                    var n = (int)Math.Ceiling(r);
-                    for (var i = 0; i < destination.Length; i++)
+                    var k = (int)(i * r - n * 0.5f);
+                    var max = (byte) 0;
+                    for (var j = 0; j < n; j++)
                     {
-                        var k = (int)(i * r - n * 0.5f);
-                        var max = (byte) 0;
-                        for (var j = 0; j < n; j++)
-                        {
-                            var index = k + j + offset;
-                            if (index >= 0 && index < sourceLength)
-                            {
-                                if (max < srcPtr[index])
-                                {
-                                    max = srcPtr[index];
-                                }
-                            }
-                        }
-                        dstPtr[i] = max;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < destination.Length; i++)
-                    {
-                        var index = (int)(r * i + offset);
+                        var index = k + j + offset;
                         if (index >= 0 && index < sourceLength)
                         {
-                            dstPtr[i] = srcPtr[index];
+                            if (max < srcPtr[index])
+                            {
+                                max = srcPtr[index];
+                            }
                         }
+                    }
+                    dstPtr[i] = max;
+                }
+            }
+            else
+            {
+                for (var i = 0; i < destinationLength; i++)
+                {
+                    var index = (int)(r * i + offset);
+                    if (index >= 0 && index < sourceLength)
+                    {
+                        dstPtr[i] = srcPtr[index];
                     }
                 }
             }

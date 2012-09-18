@@ -366,14 +366,17 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public void Render(byte[] spectrum, int length)
+        public unsafe void Render(byte* spectrum, int length)
         {
             var scaledLength = (int)(length / _scale);
-            var offset = (int)((length - scaledLength) / 2.0 + length * (double)(_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
+            var offset = (int) ((length - scaledLength) / 2.0 + length * (double) (_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
 
             if (_useSmoothing)
             {
-                Fourier.SmoothCopy(spectrum, _temp, length, _scale, offset);
+                fixed (byte* tempPtr = _temp)
+                {
+                    Fourier.SmoothCopy(spectrum, tempPtr, length, _temp.Length, _scale, offset);
+                }
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
@@ -382,7 +385,11 @@ namespace SDRSharp.PanView
             }
             else
             {
-                Fourier.SmoothCopy(spectrum, _spectrum, length, _scale, offset);
+
+                fixed (byte* spectrumPtr = _spectrum)
+                {
+                    Fourier.SmoothCopy(spectrum, spectrumPtr, length, _spectrum.Length, _scale, offset);
+                }
             }
 
             Draw();
