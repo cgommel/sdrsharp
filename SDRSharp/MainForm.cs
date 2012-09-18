@@ -838,6 +838,7 @@ namespace SDRSharp
                 inputDeviceComboBox.Enabled = true;
                 outputDeviceComboBox.Enabled = true;
                 sampleRateComboBox.Enabled = true;
+                centerFreqNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Value = 0;
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = _frequencyShift;
@@ -907,6 +908,7 @@ namespace SDRSharp
                 }
                 _vfo.SampleRate = _frontendController.Samplerate;
                 _vfo.Frequency = 0;
+                centerFreqNumericUpDown.Enabled = true;
                 centerFreqNumericUpDown.Value = _frontendController.Frequency;
                 centerFreqNumericUpDown_ValueChanged(null, null);
                 frequencyNumericUpDown.Value = _frontendController.Frequency + _frequencyShift;
