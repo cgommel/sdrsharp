@@ -947,12 +947,7 @@ namespace SDRSharp
             if (openDlg.ShowDialog() == DialogResult.OK)
             {
                 StopRadio();
-                if (_waveFile != openDlg.FileName)
-                {
-                    _iqBalancer.Reset();
-                }
                 _waveFile = openDlg.FileName;
-                //StartRadio();
             }
         }
 
