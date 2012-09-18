@@ -824,8 +824,7 @@ namespace SDRSharp
 
         private void iqSourceComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _streamControl.Stop();
-            _iqBalancer.Reset();
+            StopRadio();
 
             if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 1)
             {
@@ -940,6 +939,7 @@ namespace SDRSharp
                     _iqBalancer.Reset();
                 }
                 _waveFile = openDlg.FileName;
+                //StartRadio();
             }
         }
 
@@ -1034,16 +1034,15 @@ namespace SDRSharp
                 if (_streamControl.IsPlaying)
                 {
                     StopRadio();
-                    playStopButton.Text = "Play";
                 }
                 else
                 {
                     StartRadio();
-                    playStopButton.Text = "Stop";
                 }
             }
             catch (Exception ex)
             {
+                StopRadio();
                 MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1640,6 +1639,7 @@ namespace SDRSharp
 
         public void StartRadio()
         {
+            playStopButton.Text = "Stop";
             Open();
             _streamControl.Play();
             ThreadPool.QueueUserWorkItem(ProcessFFT);
@@ -1651,7 +1651,9 @@ namespace SDRSharp
 
         public void StopRadio()
         {
+            playStopButton.Text = "Play";
             _streamControl.Stop();
+            _iqBalancer.Reset();
             _fftStream.Flush();
             if (iqSourceComboBox.SelectedIndex < iqSourceComboBox.Items.Count - 3)
             {

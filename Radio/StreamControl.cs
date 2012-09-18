@@ -451,6 +451,7 @@ namespace SDRSharp.Radio
             catch
             {
                 Stop();
+                throw;
             }
         }
 
@@ -478,6 +479,7 @@ namespace SDRSharp.Radio
             catch
             {
                 Stop();
+                throw;
             }
         }
 
