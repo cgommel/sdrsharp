@@ -1668,7 +1668,7 @@ namespace SDRSharp
             _streamControl.Stop();
             _iqBalancer.Reset();
             _fftStream.Flush();
-            if (iqSourceComboBox.SelectedIndex < iqSourceComboBox.Items.Count - 3)
+            if (iqSourceComboBox.SelectedIndex < iqSourceComboBox.Items.Count - 2)
             {
                 inputDeviceComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
                 sampleRateComboBox.Enabled = _frontendController == null ? true : _frontendController.IsSoundCardBased;
