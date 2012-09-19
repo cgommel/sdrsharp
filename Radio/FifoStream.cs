@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace SDRSharp.Radio
 {
@@ -14,8 +15,8 @@ namespace SDRSharp.Radio
         private int _writePos;
         private bool _terminated;
         private readonly AutoResetEvent _event;
-        private readonly Stack _usedBlocks = new Stack();
-        private readonly ArrayList _blocks = new ArrayList();
+        private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
+        private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
 
         public ComplexFifoStream() : this(false)
         {
@@ -46,7 +47,7 @@ namespace SDRSharp.Radio
 
         private UnsafeBuffer AllocBlock()
         {
-            var result = _usedBlocks.Count > 0 ? (UnsafeBuffer)_usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(Complex));
+            var result = _usedBlocks.Count > 0 ? _usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(Complex));
             return result;
         }
 
@@ -60,7 +61,7 @@ namespace SDRSharp.Radio
         {
             UnsafeBuffer result;
             if (_writePos < BlockSize && _blocks.Count > 0)
-                result = (UnsafeBuffer) _blocks[_blocks.Count - 1];
+                result = _blocks[_blocks.Count - 1];
             else
             {
                 result = AllocBlock();
@@ -92,7 +93,7 @@ namespace SDRSharp.Radio
         {
             lock (this)
             {
-                foreach (UnsafeBuffer block in _blocks)
+                foreach (var block in _blocks)
                     FreeBlock(block);
                 _blocks.Clear();
                 _readPos = 0;
@@ -165,7 +166,7 @@ namespace SDRSharp.Radio
                     if (_readPos == BlockSize)
                     {
                         _readPos = 0;
-                        FreeBlock((UnsafeBuffer) _blocks[0]);
+                        FreeBlock(_blocks[0]);
                         _blocks.RemoveAt(0);
                     }
                     int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
@@ -195,7 +196,7 @@ namespace SDRSharp.Radio
                     }
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    var block = (UnsafeBuffer) _blocks[currentBlock];
+                    var block = _blocks[currentBlock];
                     var blockPtr = (Complex*) block;
                     Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
                     sizeLeft -= toFeed;
@@ -218,8 +219,8 @@ namespace SDRSharp.Radio
         private bool _terminated;
         private readonly int _maxSize;
         private readonly AutoResetEvent _event;
-        private readonly Stack _usedBlocks = new Stack();
-        private readonly ArrayList _blocks = new ArrayList();
+        private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
+        private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
 
         public FloatFifoStream() : this(0)
         {
@@ -251,7 +252,7 @@ namespace SDRSharp.Radio
 
         private UnsafeBuffer AllocBlock()
         {
-            var result = _usedBlocks.Count > 0 ? (UnsafeBuffer) _usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(float));
+            var result = _usedBlocks.Count > 0 ? _usedBlocks.Pop() : UnsafeBuffer.Create(BlockSize, sizeof(float));
             return result;
         }
 
@@ -265,7 +266,7 @@ namespace SDRSharp.Radio
         {
             UnsafeBuffer result;
             if (_writePos < BlockSize && _blocks.Count > 0)
-                result = (UnsafeBuffer) _blocks[_blocks.Count - 1];
+                result = _blocks[_blocks.Count - 1];
             else
             {
                 result = AllocBlock();
@@ -297,7 +298,7 @@ namespace SDRSharp.Radio
         {
             lock (this)
             {
-                foreach (UnsafeBuffer block in _blocks)
+                foreach (var block in _blocks)
                     FreeBlock(block);
                 _blocks.Clear();
                 _readPos = 0;
@@ -362,10 +363,10 @@ namespace SDRSharp.Radio
                     if (_readPos == BlockSize)
                     {
                         _readPos = 0;
-                        FreeBlock((UnsafeBuffer) _blocks[0]);
+                        FreeBlock(_blocks[0]);
                         _blocks.RemoveAt(0);
                     }
-                    int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
+                    var toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
                     _readPos += toFeed;
                     sizeLeft -= toFeed;
                     _size -= toFeed;
@@ -396,7 +397,7 @@ namespace SDRSharp.Radio
                     }
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    var block = (UnsafeBuffer) _blocks[currentBlock];
+                    var block = _blocks[currentBlock];
                     var blockPtr = (float*) block;
                     Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(float));
                     sizeLeft -= toFeed;
