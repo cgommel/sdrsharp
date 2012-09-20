@@ -18,6 +18,7 @@ namespace SDRSharp.Radio
         private const int WaveBufferSize = 64 * 1024;
         private const int MaxDecimationFactor = 1024;
 
+        private static readonly int _processorCount = Environment.ProcessorCount;
         private static readonly int _minOutputSampleRate = Utils.GetIntSetting("minOutputSampleRate", 24000);
         private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
@@ -423,6 +424,7 @@ namespace SDRSharp.Radio
                 _decimationStageCount = GetDecimationStageCount();
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }
@@ -445,6 +447,7 @@ namespace SDRSharp.Radio
 
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }
@@ -473,6 +476,7 @@ namespace SDRSharp.Radio
                 
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
+                _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }
