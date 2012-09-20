@@ -12,13 +12,13 @@ namespace SDRSharp.Radio
 
         private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
         private bool _autoBalanceIQ;
-        private float _averageI;
-        private float _averageQ;
         private float _gain = 1.0f;
         private float _phase;
         private float _averagePower;
         private float _powerRange;
         private Complex* _iqPtr;
+        private DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
+        private DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
         private readonly bool _isMultithreaded;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
@@ -35,7 +35,7 @@ namespace SDRSharp.Radio
 
         public float Phase
         {
-            get { return (float)Math.Asin(_phase); }
+            get { return (float) Math.Asin(_phase); }
         }
 
         public float Gain
@@ -59,8 +59,8 @@ namespace SDRSharp.Radio
         {
             _phase = 0.0f;
             _gain = 1.0f;
-            _averageI = 0.0f;
-            _averageQ = 0.0f;
+            _dcRemoverI.Reset();
+            _dcRemoverQ.Reset();
         }
 
         public void Process(Complex* iq, int length)
@@ -76,36 +76,27 @@ namespace SDRSharp.Radio
 
         private void RemoveDC(Complex* iq, int length)
         {
+            var iPtr = (float*) iq;
+            var qPtr = iPtr + 1;
+
             if (_isMultithreaded)
             {
                 DSPThreadPool.QueueUserWorkItem(
                     delegate
                     {
                         // I branch
-                        for (var i = 0; i < length; i++)
-                        {
-                            _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
-                            iq[i].Real -= _averageI;
-                        }
+                        _dcRemoverI.ProcessInterleaved(iPtr, length);
                         _event.Set();
                     });
             }
             else
             {
                 // I branch
-                for (var i = 0; i < length; i++)
-                {
-                    _averageI = _averageI * (1 - DcTimeConst) + iq[i].Real * DcTimeConst;
-                    iq[i].Real -= _averageI;
-                }
+                _dcRemoverI.ProcessInterleaved(iPtr, length);
             }
 
             // Q branch
-            for (var i = 0; i < length; i++)
-            {
-                _averageQ = _averageQ * (1 - DcTimeConst) + iq[i].Imag * DcTimeConst;
-                iq[i].Imag -= _averageQ;
-            }
+            _dcRemoverQ.ProcessInterleaved(qPtr, length);
 
             if (_isMultithreaded)
             {

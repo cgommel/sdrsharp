@@ -2,7 +2,7 @@
 {
     public unsafe sealed class LsbDetector
     {
-        private readonly Oscillator _bfo = new Oscillator();
+        private Oscillator _bfo = new Oscillator();
 
         public void Demodulate(Complex* iq, float* audio, int length)
         {

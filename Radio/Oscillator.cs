@@ -2,17 +2,18 @@
 
 namespace SDRSharp.Radio
 {
-    public sealed unsafe class Oscillator
+    public unsafe struct Oscillator
     {
-        private double _sampleRate;
-        private double _frequency;
-        private double _anglePerSample;
         private double _sinOfAnglePerSample;
         private double _cosOfAnglePerSample;
-        private double _vectR = 1.0;
+        private double _vectR;
         private double _vectI;
         private double _outR;
         private double _outI;
+        private double _sampleRate;
+        private double _frequency;
+        private double _anglePerSample;
+        private bool _configureNeeded;
 
         public double SampleRate
         {
@@ -22,9 +23,7 @@ namespace SDRSharp.Radio
                 if (_sampleRate != value)
                 {
                     _sampleRate = value;
-                    _vectR = 1.0;
-                    _vectI = 0.0;
-                    Configure();
+                    _configureNeeded = true;
                 }
             }
         }
@@ -37,7 +36,7 @@ namespace SDRSharp.Radio
                 if (_frequency != value)
                 {
                     _frequency = value;
-                    Configure();
+                    _configureNeeded = true;
                 }
             }
         }
@@ -68,6 +67,10 @@ namespace SDRSharp.Radio
 
         private void Configure()
         {
+            if (_vectI == default(double) && _vectR == default(double))
+            {
+                _vectR = 1.0;
+            }
             _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
             _sinOfAnglePerSample = Math.Sin(_anglePerSample);
             _cosOfAnglePerSample = Math.Cos(_anglePerSample);
@@ -93,6 +96,12 @@ namespace SDRSharp.Radio
 
         public void Tick()
         {
+            if (_configureNeeded)
+            {
+                Configure();
+                _configureNeeded = false;
+            }
+
             _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
             _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
             var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
@@ -102,6 +111,12 @@ namespace SDRSharp.Radio
 
         public void Mix(float* buffer, int length)
         {
+            if (_configureNeeded)
+            {
+                Configure();
+                _configureNeeded = false;
+            }
+
             for (var i = 0; i < length; i++)
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
@@ -121,6 +136,12 @@ namespace SDRSharp.Radio
 
         public void Mix(Complex* buffer, int length, int startIndex, int stepSize)
         {
+            if (_configureNeeded)
+            {
+                Configure();
+                _configureNeeded = false;
+            }
+
             for (var i = startIndex; i < length; i += stepSize)
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;

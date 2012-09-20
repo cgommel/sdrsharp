@@ -8,10 +8,10 @@ namespace SDRSharp.Radio
         private readonly Oscillator[] _oscillators;
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
-        private bool _initialized;
         private double _sampleRate;
         private double _frequency;
         private int _completedCount;
+        private bool _configureNeeded;
 
         public DownConverter(int phaseCount)
         {
@@ -34,7 +34,7 @@ namespace SDRSharp.Radio
                 if (_sampleRate != value)
                 {
                     _sampleRate = value;
-                    _initialized = false;
+                    _configureNeeded = true;
                 }
             }
         }
@@ -47,12 +47,12 @@ namespace SDRSharp.Radio
                 if (_frequency != value)
                 {
                     _frequency = value;
-                    _initialized = false;
+                    _configureNeeded = true;
                 }
             }
         }
 
-        private void Initialize()
+        private void Configure()
         {
             var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
 
@@ -81,10 +81,10 @@ namespace SDRSharp.Radio
 
         public void Process(Complex* buffer, int length)
         {
-            if (!_initialized)
+            if (_configureNeeded)
             {
-                Initialize();
-                _initialized = true;
+                Configure();
+                _configureNeeded = false;
             }
 
             _completedCount = 0;

@@ -624,7 +624,7 @@ namespace SDRSharp.Radio
         }
     }
 
-    public unsafe sealed class CicDecimator
+    public unsafe struct CicDecimator
     {
         private float _xOdd;
         private float _xEven;

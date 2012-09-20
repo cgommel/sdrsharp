@@ -23,7 +23,7 @@ namespace SDRSharp.Radio
         private const int HissFilterOrder = 20;
         private const float HissFactor = 0.00002f;
 
-        private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
+        private DcRemover _dcRemover = new DcRemover(TimeConst);
         private float* _hissPtr;
         private UnsafeBuffer _hissBuffer;
         private FirFilter _hissFilter;
@@ -120,6 +120,7 @@ namespace SDRSharp.Radio
                         _hissFilter.Dispose();
                     }
                     _hissFilter = new FirFilter(bpk);
+                    _dcRemover.Reset();
                 }
             }
         }
