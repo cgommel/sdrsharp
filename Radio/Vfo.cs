@@ -22,10 +22,10 @@ namespace SDRSharp.Radio
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
         private readonly DsbDetector _dsbDetector = new DsbDetector();
-        private readonly DcRemover _dcRemover = new DcRemover(TimeConst);
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
         private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
         private readonly FirFilter _audioFilter = new FirFilter();
+        private DcRemover _dcRemover = new DcRemover(TimeConst);
         private IQFirFilter _iqFilter;
         private IQDecimator _baseBandDecimator;
         private DetectorType _detectorType;
