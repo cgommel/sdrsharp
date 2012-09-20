@@ -9,12 +9,12 @@ namespace SDRSharp.SDRIQ
         private readonly SDRIQControllerDialog _gui;
         private Radio.SamplesAvailableDelegate _callback;
 
-        public SdrIqIO()        
+        public SdrIqIO()
         {
-            
+
             NativeMethods.sdriq_initialise();
 
-            _gui = new SDRIQControllerDialog(this);            
+            _gui = new SDRIQControllerDialog(this);
         }
 
         ~SdrIqIO()
@@ -24,7 +24,16 @@ namespace SDRSharp.SDRIQ
 
         public void Dispose()
         {
-            NativeMethods.sdriq_destroy();
+
+            try
+            {
+                NativeMethods.sdriq_destroy();
+            }
+            catch
+            {
+                // Ignored
+            }
+
             if (_gui != null)
             {
                 _gui.Dispose();
@@ -74,7 +83,7 @@ namespace SDRSharp.SDRIQ
                 throw new ApplicationException("No device selected");
             }
             _callback = callback;
-            
+
             _device.Start();
         }
 
@@ -96,17 +105,17 @@ namespace SDRSharp.SDRIQ
 
         public bool IsSoundCardBased
         {
-            get { return false; }           
+            get { return false; }
         }
 
         public string SoundCardHint
         {
-            get { return string.Empty; }            
+            get { return string.Empty; }
         }
 
         public double Samplerate
         {
-            get { return _device == null ? 0.0 : _device.Samplerate; }           
+            get { return _device == null ? 0.0 : _device.Samplerate; }
         }
 
         public long Frequency
@@ -135,7 +144,7 @@ namespace SDRSharp.SDRIQ
         {
             _gui.Hide();
         }
-      
+
         private void sdriqDevice_SamplesAvailable(object sender, SamplesAvailableEventArgs e)
         {
             _callback(this, e.Buffer, e.Length);
