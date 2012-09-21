@@ -555,7 +555,6 @@ namespace SDRSharp
             iqSourceComboBox.Items.Add("IQ file (*.wav)");
 
             iqSourceComboBox.Items.Add("Other (Sound card)");
-            iqSourceComboBox.SelectedIndex = iqSourceComboBox.Items.Count - 1;
 
             #endregion
 
@@ -565,7 +564,8 @@ namespace SDRSharp
             
             #endregion
 
-            iqSourceComboBox.SelectedIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
+            var sourceIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
+            iqSourceComboBox.SelectedIndex = sourceIndex < iqSourceComboBox.Items.Count ? sourceIndex : (iqSourceComboBox.Items.Count - 1);
             if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
             {
                 centerFreqNumericUpDown.Value = Utils.GetLongSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);
