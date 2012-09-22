@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
-    public class Pll
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    public struct Pll
     {
         private const double DefaultZeta = 0.707;
         private const double DefaultLockTime = 0.5; // sec
@@ -18,19 +20,43 @@ namespace SDRSharp.Radio
         private double _minFrequencyRadian;
         private double _maxFrequencyRadian;
         private double _defaultFrequency;
-        private double _range = DefaultRange;
-        private double _bandwidth = DefaultBandwidth;
+        private double _range;
+        private double _bandwidth;
         private double _alpha;
         private double _beta;
-        private double _zeta = DefaultZeta;
+        private double _zeta;
         private double _phaseAdj;
-        private double _phaseAdjM = DefaultPhaseAdjM;
-        private double _phaseAdjB = DefaultPhaseAdjB;
+        private double _phaseAdjM;
+        private double _phaseAdjB;
         private double _lockAlpha;
-        private double _lockTime = DefaultLockTime;
+        private double _lockTime;
         private double _phaseErrorAvg;
         private double _adjustedPhase;
-        private double _lockThreshold = DefaultLockThreshold;
+        private double _lockThreshold;
+
+        public Pll(double frequency)
+        {
+            _sampleRate = 0;
+            _phase = 0;
+            _frequencyRadian = 0;
+            _minFrequencyRadian = 0;
+            _maxFrequencyRadian = 0;
+            _defaultFrequency = frequency;
+            _range = DefaultRange;
+            _bandwidth = DefaultBandwidth;
+            _alpha = 0;
+            _beta = 0;
+            _zeta = DefaultZeta;
+            _phaseAdj = 0;
+            _phaseAdjM = DefaultPhaseAdjM;
+            _phaseAdjB = DefaultPhaseAdjB;
+            _lockAlpha = 0;
+            _lockTime = DefaultLockTime;
+            _phaseErrorAvg = 0;
+            _adjustedPhase = 0;
+            _lockThreshold = DefaultLockThreshold;
+            Configure();
+        }
 
         public double AdjustedPhase
         {

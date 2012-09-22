@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace SDRSharp.Radio
@@ -624,6 +625,7 @@ namespace SDRSharp.Radio
         }
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public unsafe struct CicDecimator
     {
         private float _xOdd;

@@ -17,11 +17,11 @@ namespace SDRSharp.Radio
         private float _averagePower;
         private float _powerRange;
         private Complex* _iqPtr;
-        private DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
-        private DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
         private readonly bool _isMultithreaded;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
+        private readonly DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
+        private readonly DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
         private readonly Random _rng = new Random();
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
 

@@ -17,9 +17,9 @@ namespace SDRSharp.Radio
         private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", 0.0f);
         private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
-        private readonly Pll _pll = new Pll();
         private readonly AutoResetEvent _event = new AutoResetEvent(false);
 
+        private Pll _pll = new Pll(DefaultPilotFrequency);
         private IirFilter _pilotFilter;
         private UnsafeBuffer _channelABuffer;
         private UnsafeBuffer _channelBBuffer;

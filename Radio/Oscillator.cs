@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public unsafe struct Oscillator
     {
         private double _sinOfAnglePerSample;

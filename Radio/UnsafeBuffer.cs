@@ -10,11 +10,15 @@ namespace SDRSharp.Radio
         private int _length;
         private Array _buffer;
 
-        private UnsafeBuffer(Array buffer, int realLength)
+        private UnsafeBuffer(Array buffer, int realLength, bool aligned)
         {
             _buffer = buffer;
             _handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
             _ptr = (void*) _handle.AddrOfPinnedObject();
+            if (aligned)
+            {
+                _ptr = (void*) (((long) _ptr + 15) & ~15);
+            }
             _length = realLength;
         }
 
@@ -50,15 +54,25 @@ namespace SDRSharp.Radio
             return unsafeBuffer.Address;
         }
 
+        public static UnsafeBuffer Create(int size)
+        {
+            return Create(1, size, true);
+        }
+
         public static UnsafeBuffer Create(int length, int sizeOfElement)
         {
-            var buffer = new byte[length * sizeOfElement];
-            return new UnsafeBuffer(buffer, length);
+            return Create(length, sizeOfElement, true);
+        }
+
+        public static UnsafeBuffer Create(int length, int sizeOfElement, bool aligned)
+        {
+            var buffer = new byte[length * sizeOfElement + (aligned ? 16 : 0)];
+            return new UnsafeBuffer(buffer, length, aligned);
         }
 
         public static UnsafeBuffer Create(Array buffer)
         {
-            return new UnsafeBuffer(buffer, buffer.Length);
+            return new UnsafeBuffer(buffer, buffer.Length, false);
         }
     }
 }

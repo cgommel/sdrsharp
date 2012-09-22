@@ -1,12 +1,22 @@
-﻿namespace SDRSharp.Radio
+﻿using System.Runtime.InteropServices;
+
+namespace SDRSharp.Radio
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public unsafe struct DcRemover
     {
         private float _average;
-        private readonly float _ratio;
-        private readonly float _oneMinusRatio;
+        private float _ratio;
+        private float _oneMinusRatio;
 
         public DcRemover(float ratio)
+        {
+            _ratio = ratio;
+            _oneMinusRatio = 1.0f - ratio;
+            _average = 0.0f;
+        }
+
+        public void Init(float ratio)
         {
             _ratio = ratio;
             _oneMinusRatio = 1.0f - ratio;

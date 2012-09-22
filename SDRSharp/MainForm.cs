@@ -52,10 +52,11 @@ namespace SDRSharp
         private System.Windows.Forms.Timer _fftTimer;
         private System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
-        private int _maxIQBuffer;
+        private double _fftOverlapRatio;
         private long _frequencyToSet;
         private long _frequencySet;
         private long _frequencyShift;
+        private int _maxIQSamples;
         private int _fftBins;
         private int _actualFftBins;
         private int _fftSpectrumSamples;
@@ -680,9 +681,14 @@ namespace SDRSharp
         private void ProcessBuffer(Complex* iqBuffer, float* audioBuffer, int length)
         {
             _iqBalancer.Process(iqBuffer, length);
-            if (_fftStream.Length < _maxIQBuffer * 5)
+            if (_fftStream.Length < _maxIQSamples)
             {
                 _fftStream.Write(iqBuffer, length);
+                if (_fftBufferIsWaiting)
+                {
+                    _fftBufferIsWaiting = false;
+                    _fftEvent.Set();
+                }
             }
             _vfo.ProcessBuffer(iqBuffer, audioBuffer, length);
         }
@@ -691,7 +697,9 @@ namespace SDRSharp
         {
             while (_streamControl.IsPlaying || _extioChangingSamplerate)
             {
-                if (_actualFftBins < _fftBins)
+                #region Configure
+
+                if (_actualFftBins != _fftBins)
                 {
                     for (var i = _actualFftBins; i < _fftBins; i++)
                     {
@@ -700,13 +708,15 @@ namespace SDRSharp
                 }
                 _actualFftBins = _fftBins;
                 var fftRate = _actualFftBins / (_fftTimer.Interval * 0.001);
-                var overlapRatio = _streamControl.SampleRate / fftRate;
-                var bytes = (int) (_actualFftBins * overlapRatio);
-                _fftSamplesPerFrame = Math.Min(bytes, _actualFftBins);
-                var framesPerIQBuffer = _streamControl.BufferSizeInMs / (double) _fftTimer.Interval;
-                _maxIQBuffer = (int) (_fftSamplesPerFrame * framesPerIQBuffer);
+                _fftOverlapRatio = _streamControl.SampleRate / fftRate;
+                var samplesToConsume = (int) (_actualFftBins * _fftOverlapRatio);
+                _fftSamplesPerFrame = Math.Min(samplesToConsume, _actualFftBins);
+                var excessSamples = samplesToConsume - _fftSamplesPerFrame;
+                _maxIQSamples = (int) (samplesToConsume / (double) _fftTimer.Interval * _streamControl.BufferSizeInMs);
 
-                #region Shift data for overlapped mode
+                #endregion
+
+                #region Shift data for overlapped mode)
 
                 if (_fftSamplesPerFrame < _actualFftBins)
                 {
@@ -717,14 +727,16 @@ namespace SDRSharp
 
                 #region Read IQ data
 
+                var targetLength = _fftSamplesPerFrame;
+
                 var total = 0;
-                while (_streamControl.IsPlaying && total < _fftSamplesPerFrame)
+                while (_streamControl.IsPlaying && total < targetLength)
                 {
-                    var len = Math.Max(1024, _fftStream.Length);
-                    len = Math.Min(len, _fftSamplesPerFrame - total);
-                    len = Math.Min(len, _iqBuffer.Length);
-                    total += _fftStream.Read(_iqPtr, _actualFftBins - _fftSamplesPerFrame + total, len);
+                    var len = targetLength - total;
+                    total += _fftStream.Read(_iqPtr, _actualFftBins - targetLength + total, len);
                 }
+
+                _fftStream.Advance(excessSamples);
 
                 #endregion
 
@@ -750,19 +762,15 @@ namespace SDRSharp
 
                     _fftSpectrumSamples = _actualFftBins;
                     _fftSpectrumAvailable = true;
-
-                    if (!IsDisposed)
-                    {
-                        Invoke(new Action(RenderFFT));
-                    }
                 }
 
-                if (_fftStream.Length < _maxIQBuffer)
+                if (_fftStream.Length <= _maxIQSamples)
                 {
                     _fftBufferIsWaiting = true;
                     _fftEvent.WaitOne();
                 }
             }
+            _actualFftBins = 0;
             _fftStream.Flush();
         }
 
@@ -788,10 +796,8 @@ namespace SDRSharp
         {
             if (_streamControl.IsPlaying)
             {
-                if (_fftSpectrumAvailable)
-                {
-                    _fftSpectrumAvailable = false;
-                }
+                RenderFFT();
+                _fftSpectrumAvailable = false;
                 if (_fftBufferIsWaiting)
                 {
                     _fftBufferIsWaiting = false;

@@ -425,6 +425,7 @@ namespace SDRSharp.Radio
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
                 _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
+                _bufferSizeInMs = (int) Math.Round(_inputBufferSize / _inputSampleRate * 1000);
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }
@@ -441,13 +442,14 @@ namespace SDRSharp.Radio
                 _outputDevice = outputDevice;
                 _bufferSizeInMs = bufferSizeInMs;
                 _inputSampleRate = _waveFile.SampleRate;
-                _inputBufferSize = (int)(_bufferSizeInMs * _inputSampleRate / 1000);
+                _inputBufferSize = (int) (_bufferSizeInMs * _inputSampleRate / 1000);
 
                 _decimationStageCount = GetDecimationStageCount();
 
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
                 _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
+                _bufferSizeInMs = (int) Math.Round(_inputBufferSize / _inputSampleRate * 1000);
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }
@@ -477,6 +479,7 @@ namespace SDRSharp.Radio
                 var decimationFactor = (int) Math.Pow(2.0, _decimationStageCount);
                 _inputBufferSize = _inputBufferSize / decimationFactor * decimationFactor;
                 _inputBufferSize = _inputBufferSize / _processorCount * _processorCount;
+                _bufferSizeInMs = (int) Math.Round(_inputBufferSize / _inputSampleRate * 1000);
                 _outputSampleRate = _inputSampleRate / decimationFactor;
                 _outputBufferSize = _inputBufferSize / decimationFactor * 2;
             }

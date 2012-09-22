@@ -11,12 +11,12 @@ namespace SDRSharp.Radio
         private const double PllLockThreshold = 3.2;
         private const double RdsBitRate = 1187.5;
 
-        private readonly Pll _pll = new Pll();
         private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false);
         private readonly FirFilter _matchedFilter = new FirFilter();
         private readonly RdsDetectorBank _bitDecoder = new RdsDetectorBank();
 
-        private Oscillator _osc = new Oscillator();
+        private Pll _pll = new Pll(PllDefaultFrequency);
+        private Oscillator _osc;
         private IirFilter _syncFilter;
         private UnsafeBuffer _rawBuffer;
         private Complex* _rawPtr;

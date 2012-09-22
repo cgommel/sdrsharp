@@ -106,16 +106,13 @@ namespace SDRSharp.PanView
 
         public void Perform()
         {
-            if (_performNeeded)
+            if (_performNeeded && _mouseIn)
             {
-                if (_mouseIn)
-                {
-                    CopyMainBuffer();
-                    DrawCursor();
-                }
+                CopyMainBuffer();
+                DrawCursor();
                 Invalidate();
+                _performNeeded = false;
             }
-            _performNeeded = false;
         }
 
         public event ManualFrequencyChange FrequencyChanged;
@@ -918,8 +915,9 @@ namespace SDRSharp.PanView
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
-            _mouseIn = false;
             _performNeeded = true;
+            Perform();
+            _mouseIn = false;
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)

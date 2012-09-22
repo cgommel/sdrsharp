@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -137,7 +136,7 @@ namespace SDRSharp.Radio
                 {
                     int toWrite = Math.Min(BlockSize - _writePos, left);
                     var block = GetWBlock();
-                    var blockPtr = (Complex*) block;
+                    var blockPtr = (Complex*) block.Address;
                     Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(Complex));
                     _writePos += toWrite;
                     left -= toWrite;
@@ -197,7 +196,7 @@ namespace SDRSharp.Radio
                     int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
                     int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
                     var block = _blocks[currentBlock];
-                    var blockPtr = (Complex*) block;
+                    var blockPtr = (Complex*) block.Address;
                     Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
                     sizeLeft -= toFeed;
                     tempBlockPos += toFeed;
