@@ -40,7 +40,22 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                audio[i] = GetAudio(_iqState, iq[i]);
+                // Polar discriminator
+                var f = iq[i] * _iqState.Conjugate();
+
+                // Limiting
+                var m = f.Modulus();
+                if (m > 0.0f)
+                {
+                    f /= m;
+                }
+
+                // Angle estimate
+                var a = f.Argument();
+
+                // Scale
+                audio[i] = a * _afGain;
+
                 _iqState = iq[i];
             }
             _dcRemover.Process(audio, length);
@@ -48,24 +63,6 @@ namespace SDRSharp.Radio
             {
                 ProcessSquelch(audio, length);
             }
-        }
-
-        public float GetAudio(Complex previous, Complex current)
-        {
-            // Polar discriminator
-            var f = current * previous.Conjugate();
-
-            // Limiting
-            var m = f.Modulus();
-            if (m > 0.0f)
-            {
-                f /= m;
-            }
-
-            // Angle estimate
-            var a = f.Argument();
-
-            return a * _afGain;
         }
 
         private void ProcessSquelch(float* audio, int length)
