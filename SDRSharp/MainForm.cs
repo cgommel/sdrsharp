@@ -1082,10 +1082,6 @@ namespace SDRSharp
             {
                 _vfo.RdsReset();
             }
-            if (_vfo.DetectorType == DetectorType.WFM)
-            {
-                _vfo.RdsReset();
-            }
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
