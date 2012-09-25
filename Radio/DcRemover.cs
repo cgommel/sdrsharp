@@ -2,7 +2,9 @@
 
 namespace SDRSharp.Radio
 {
+#if !__MonoCS__
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
+#endif
     public unsafe struct DcRemover
     {
         private float _average;
