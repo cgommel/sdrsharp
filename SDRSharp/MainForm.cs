@@ -971,8 +971,8 @@ namespace SDRSharp
 
         private void Open()
         {
-            var inputDevice = (AudioDevice)inputDeviceComboBox.SelectedItem;
-            var outputDevice = (AudioDevice)outputDeviceComboBox.SelectedItem;
+            var inputDevice = (AudioDevice) inputDeviceComboBox.SelectedItem;
+            var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
             var oldCenterFrequency = centerFreqNumericUpDown.Value;
             Match match;
             if (SourceIsWaveFile)
@@ -981,7 +981,7 @@ namespace SDRSharp
                 {
                     throw new ApplicationException("No such file");
                 }
-                _streamControl.OpenFile(_waveFile, outputDevice.Index, (int) latencyNumericUpDown.Value);
+                _streamControl.OpenFile(_waveFile, outputDevice.Index, (int)latencyNumericUpDown.Value);
 
                 var friendlyFilename = "" + Path.GetFileName(_waveFile);
                 match = Regex.Match(friendlyFilename, "([0-9]+)kHz", RegexOptions.IgnoreCase);
@@ -1000,7 +1000,13 @@ namespace SDRSharp
             {
                 if (_frontendController == null || _frontendController.IsSoundCardBased)
                 {
-                    throw new ApplicationException("No such file");
+                    var sampleRate = 0.0;
+                    match = Regex.Match(sampleRateComboBox.Text, "([0-9\\.]+)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        sampleRate = double.Parse(match.Groups[1].Value);
+                    }
+                    _streamControl.OpenSoundDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
                 }
                 else
                 {
@@ -1013,8 +1019,8 @@ namespace SDRSharp
             spectrumAnalyzer.SpectrumWidth = (int)_streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (long)centerFreqNumericUpDown.Value + (int)(_streamControl.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = (long)centerFreqNumericUpDown.Value - (int)(_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = (long) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = (long) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2);
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
