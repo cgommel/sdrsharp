@@ -90,6 +90,9 @@
     <Compile Include="DSPThreadPool.cs" />
     <Compile Include="ExtIO.cs" />
     <Compile Include="ExtIOController.cs" />
+    <Compile Include="IAudioInterceptor.cs" />
+    <Compile Include="IAudioProcessor.cs" />
+    <Compile Include="IIQObserver.cs" />
     <Compile Include="IirFilter.cs" />
     <Compile Include="Pll.cs" />
     <Compile Include="RdsDecoder.cs" />
@@ -121,6 +124,7 @@
     <Compile Include="LsbDetector.cs" />
     <Compile Include="Oscillator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StreamHookManager.cs" />
     <Compile Include="UnsafeBuffer.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Vfo.cs" />

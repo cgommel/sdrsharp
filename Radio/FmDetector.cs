@@ -32,6 +32,7 @@ namespace SDRSharp.Radio
         private double _sampleRate;
         private float _noiseAveragingRatio;
         private int _squelchThreshold;
+        private bool _isSquelchOpen;
         private float _noiseThreshold;
         private FmMode _mode;
         private float _afGain = NarrowAFGain;
@@ -72,7 +73,7 @@ namespace SDRSharp.Radio
                 if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
                     _hissBuffer = UnsafeBuffer.Create(length, sizeof(float));
-                    _hissPtr = (float*) _hissBuffer;
+                    _hissPtr = (float*)_hissBuffer;
                 }
 
                 Utils.Memcpy(_hissPtr, audio, length * sizeof(float));
@@ -89,8 +90,16 @@ namespace SDRSharp.Radio
                     if (_noiseLevel > _noiseThreshold)
                     {
                         audio[i] = 0.0f;
-                    }
+                    }      
                 }
+
+                _isSquelchOpen = _noiseLevel < _noiseThreshold;
+
+            }
+            else
+            {
+                _isSquelchOpen = true;
+
             }
         }
 
@@ -133,6 +142,11 @@ namespace SDRSharp.Radio
                     _noiseThreshold = (float) Math.Log10(2 - _squelchThreshold/100.0) * HissFactor;
                 }
             }
+        }
+
+        public bool IsSquelchOpen
+        {
+            get { return _isSquelchOpen; }
         }
 
         public FmMode Mode

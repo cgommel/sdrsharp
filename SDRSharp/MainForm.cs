@@ -17,7 +17,7 @@ using SDRSharp.Radio.PortAudio;
 
 namespace SDRSharp
 {
-    public unsafe partial class MainForm : Form, ISharpControl
+    public unsafe partial class MainForm : Form, ISharpControl, INotifyPropertyChanged
     {
         #region Private fields
 
@@ -36,7 +36,8 @@ namespace SDRSharp
         private readonly Dictionary<string, IFrontendController> _frontendControllers = new Dictionary<string, IFrontendController>();
         private readonly IQBalancer _iqBalancer = new IQBalancer();
         private readonly Vfo _vfo = new Vfo();
-        private readonly StreamControl _streamControl = new StreamControl();
+        private readonly StreamHookManager _streamHookManager = new StreamHookManager();
+        private readonly StreamControl _streamControl;
         private readonly ComplexFifoStream _fftStream = new ComplexFifoStream(true);
         private readonly UnsafeBuffer _iqBuffer = UnsafeBuffer.Create(MaxFFTBins, sizeof(Complex));
         private readonly Complex* _iqPtr;
@@ -71,6 +72,8 @@ namespace SDRSharp
         private SharpControlProxy _sharpControlProxy;
 
         #endregion
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         #region Public Properties
 
@@ -236,7 +239,6 @@ namespace SDRSharp
             set { agcUseHangCheckBox.Checked = value; }
         }
 
-
         public int AgcThreshold
         {
             get { return (int) agcThresholdNumericUpDown.Value; }
@@ -307,6 +309,16 @@ namespace SDRSharp
         {
             get { return iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2; }
         }
+
+        public bool IsSquelchOpen
+        {
+            get { return _vfo.IsSquelchOpen; }
+        }
+
+        public int FFTResolution
+        {
+            get { return _fftBins; }
+        }
         
         #endregion
 
@@ -319,9 +331,11 @@ namespace SDRSharp
             _fftWindowPtr = (float*) _fftWindow;
             _fftSpectrumPtr = (float*) _fftSpectrum;
             _scaledFFTSpectrumPtr = (byte*) _scaledFFTSpectrum;
+            _streamControl = new StreamControl(_streamHookManager);
 
             InitializeComponent();
-            InitializeGUI();
+            InitializeGUI();            
+            InitialiseSharpPlugins();            
         }
 
         private void InitializeGUI()
@@ -363,10 +377,10 @@ namespace SDRSharp
             {
                 outputDeviceComboBox.SelectedIndex = defaultIndex;
             }
-            
+
             _streamControl.AudioGain = 30.0f;
             _streamControl.BufferNeeded += ProcessBuffer;
-
+            
             sampleRateComboBox.SelectedIndex = 7;
 
             #endregion
@@ -496,18 +510,18 @@ namespace SDRSharp
 
             #region Initialize the plugins
 
-            var frontendPlugins = (Hashtable) ConfigurationManager.GetSection("frontendPlugins");
+            var frontendPlugins = (Hashtable)ConfigurationManager.GetSection("frontendPlugins");
 
             foreach (string key in frontendPlugins.Keys)
             {
                 try
                 {
-                    var fullyQualifiedTypeName = (string) frontendPlugins[key];
+                    var fullyQualifiedTypeName = (string)frontendPlugins[key];
                     var patterns = fullyQualifiedTypeName.Split(',');
                     var typeName = patterns[0];
                     var assemblyName = patterns[1];
                     var objectHandle = Activator.CreateInstance(assemblyName, typeName);
-                    var controller = (IFrontendController) objectHandle.Unwrap();
+                    var controller = (IFrontendController)objectHandle.Unwrap();
                     _frontendControllers.Add(key, controller);
                     iqSourceComboBox.Items.Add(key);
                 }
@@ -537,7 +551,7 @@ namespace SDRSharp
                     var size = graphics.MeasureString(displayName, iqSourceComboBox.Font);
                     if (size.Width > dropDownWidth)
                     {
-                        dropDownWidth = (int) size.Width;
+                        dropDownWidth = (int)size.Width;
                     }
                     _frontendControllers.Add(displayName, controller);
                     iqSourceComboBox.Items.Add(displayName);
@@ -558,13 +572,7 @@ namespace SDRSharp
             iqSourceComboBox.Items.Add("Other (Sound card)");
 
             #endregion
-
-            #region Initialise ISharpPlugins
-
-            InitialiseSharpPlugins();
-            
-            #endregion
-
+           
             var sourceIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
             iqSourceComboBox.SelectedIndex = sourceIndex < iqSourceComboBox.Items.Count ? sourceIndex : (iqSourceComboBox.Items.Count - 1);
             if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
@@ -921,8 +929,8 @@ namespace SDRSharp
                 }
                 if (_frontendController.Samplerate > 0)
                 {
-                    waterfall.SpectrumWidth = (int) _frontendController.Samplerate;
-                    spectrumAnalyzer.SpectrumWidth = (int) _frontendController.Samplerate;
+                    waterfall.SpectrumWidth = (int)_frontendController.Samplerate;
+                    spectrumAnalyzer.SpectrumWidth = (int)_frontendController.Samplerate;
                 }
                 _vfo.SampleRate = _frontendController.Samplerate;
                 _vfo.Frequency = 0;
@@ -963,8 +971,8 @@ namespace SDRSharp
 
         private void Open()
         {
-            var inputDevice = (AudioDevice) inputDeviceComboBox.SelectedItem;
-            var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
+            var inputDevice = (AudioDevice)inputDeviceComboBox.SelectedItem;
+            var outputDevice = (AudioDevice)outputDeviceComboBox.SelectedItem;
             var oldCenterFrequency = centerFreqNumericUpDown.Value;
             Match match;
             if (SourceIsWaveFile)
@@ -992,13 +1000,7 @@ namespace SDRSharp
             {
                 if (_frontendController == null || _frontendController.IsSoundCardBased)
                 {
-                    var sampleRate = 0.0;
-                    match = Regex.Match(sampleRateComboBox.Text, "([0-9\\.]+)", RegexOptions.IgnoreCase);
-                    if (match.Success)
-                    {
-                        sampleRate = double.Parse(match.Groups[1].Value);
-                    }
-                    _streamControl.OpenSoundDevice(inputDevice.Index, outputDevice.Index, sampleRate, (int) latencyNumericUpDown.Value);
+                    throw new ApplicationException("No such file");
                 }
                 else
                 {
@@ -1008,11 +1010,11 @@ namespace SDRSharp
 
             _vfo.SampleRate = _streamControl.SampleRate;
             _vfo.DecimationStageCount = _streamControl.DecimationStageCount;
-            spectrumAnalyzer.SpectrumWidth = (int) _streamControl.SampleRate;
+            spectrumAnalyzer.SpectrumWidth = (int)_streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (long) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = (long) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = (long)centerFreqNumericUpDown.Value + (int)(_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Minimum = (long)centerFreqNumericUpDown.Value - (int)(_streamControl.SampleRate / 2);
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
@@ -1021,7 +1023,7 @@ namespace SDRSharp
                 fftZoomTrackBar.Value = 0;
                 fftZoomTrackBar_ValueChanged(null, null);
             }
-            
+
             frequencyNumericUpDown_ValueChanged(null, null);
 
             BuildFFTWindow();
@@ -1030,11 +1032,15 @@ namespace SDRSharp
         private void audioGainTrackBar_ValueChanged(object sender, EventArgs e)
         {
             _streamControl.AudioGain = audioGainTrackBar.Value;
+
+            NotifyPropertyChanged("AudioGain");
         }
 
         private void filterAudioCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             _vfo.FilterAudio = filterAudioCheckBox.Checked;
+
+            NotifyPropertyChanged("FilterAudio");
         }
 
         #endregion
@@ -1069,9 +1075,13 @@ namespace SDRSharp
 
         private void frequencyNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            waterfall.Frequency = (long) frequencyNumericUpDown.Value;
-            spectrumAnalyzer.Frequency = (long) frequencyNumericUpDown.Value;
-            _vfo.Frequency = (int) (waterfall.Frequency - (long) centerFreqNumericUpDown.Value - _frequencyShift);
+            waterfall.Frequency = (long)frequencyNumericUpDown.Value;
+            spectrumAnalyzer.Frequency = (long)frequencyNumericUpDown.Value;
+            _vfo.Frequency = (int)(waterfall.Frequency - (long)centerFreqNumericUpDown.Value - _frequencyShift);
+            if (_vfo.DetectorType == DetectorType.WFM)
+            {
+                _vfo.RdsReset();
+            }
             if (_vfo.DetectorType == DetectorType.WFM)
             {
                 _vfo.RdsReset();
@@ -1080,19 +1090,19 @@ namespace SDRSharp
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            var newCenterFreq = (long) centerFreqNumericUpDown.Value;
+            var newCenterFreq = (long)centerFreqNumericUpDown.Value;
             waterfall.CenterFrequency = newCenterFreq + _frequencyShift;
             spectrumAnalyzer.CenterFrequency = newCenterFreq + _frequencyShift;
 
             frequencyNumericUpDown.Maximum = decimal.MaxValue;
             frequencyNumericUpDown.Minimum = decimal.MinValue;
             frequencyNumericUpDown.Value = newCenterFreq + _vfo.Frequency + _frequencyShift;
-            frequencyNumericUpDown.Maximum = newCenterFreq + (int) (_vfo.SampleRate / 2) + _frequencyShift;
-            frequencyNumericUpDown.Minimum = newCenterFreq - (int) (_vfo.SampleRate / 2) + _frequencyShift;
+            frequencyNumericUpDown.Maximum = newCenterFreq + (int)(_vfo.SampleRate / 2) + _frequencyShift;
+            frequencyNumericUpDown.Minimum = newCenterFreq - (int)(_vfo.SampleRate / 2) + _frequencyShift;
 
             if (snapFrequencyCheckBox.Checked)
             {
-                frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
+                frequencyNumericUpDown.Maximum = ((long)frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
                 frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
             }
 
@@ -1161,7 +1171,7 @@ namespace SDRSharp
 
         private void filterBandwidthNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.Bandwidth = (int) filterBandwidthNumericUpDown.Value;
+            _vfo.Bandwidth = (int)filterBandwidthNumericUpDown.Value;
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
 
@@ -1170,21 +1180,29 @@ namespace SDRSharp
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
+
+            NotifyPropertyChanged("FilterBandwidth");
         }
 
         private void filterOrderNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.FilterOrder = (int) filterOrderNumericUpDown.Value;
+            _vfo.FilterOrder = (int)filterOrderNumericUpDown.Value;
+
+            NotifyPropertyChanged("FilterOrder");
         }
 
         private void filterTypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _vfo.WindowType = (WindowType) (filterTypeComboBox.SelectedIndex + 1);
+            _vfo.WindowType = (WindowType)(filterTypeComboBox.SelectedIndex + 1);
+
+            NotifyPropertyChanged("FilterType");
         }
 
         private void autoCorrectIQCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             _iqBalancer.AutoBalanceIQ = correctIQCheckBox.Checked;
+
+            NotifyPropertyChanged("CorrectIq");
         }
 
         private void frequencyShiftCheckBox_CheckStateChanged(object sender, EventArgs e)
@@ -1194,7 +1212,7 @@ namespace SDRSharp
             frequencyNumericUpDown.Maximum = long.MaxValue;
             if (frequencyShiftCheckBox.Checked)
             {
-                _frequencyShift = (long) frequencyShiftNumericUpDown.Value;
+                _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
                 frequencyNumericUpDown.Value += _frequencyShift;
             }
             else
@@ -1204,12 +1222,16 @@ namespace SDRSharp
                 frequencyNumericUpDown.Value -= shift;
             }
             centerFreqNumericUpDown_ValueChanged(null, null);
+
+            NotifyPropertyChanged("FrequencyShiftEnabled");
         }
 
         private void frequencyShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _frequencyShift = (long) frequencyShiftNumericUpDown.Value;
+            _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
             centerFreqNumericUpDown_ValueChanged(null, null);
+
+            NotifyPropertyChanged("FrequencyShift");
         }
 
         #endregion
@@ -1336,18 +1358,24 @@ namespace SDRSharp
         private void fmStereoCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.FmStereo = fmStereoCheckBox.Checked;
+
+            NotifyPropertyChanged("FmStereo");
         }
 
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
+            _vfo.CWToneShift = (int)cwShiftNumericUpDown.Value;
             waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
             spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+
+            NotifyPropertyChanged("CWShift");
         }
 
         private void squelchNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.SquelchThreshold = (int) squelchNumericUpDown.Value;
+            _vfo.SquelchThreshold = (int)squelchNumericUpDown.Value;
+
+            NotifyPropertyChanged("SquelchThreshold");
         }
 
         private void useSquelchCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -1361,6 +1389,8 @@ namespace SDRSharp
             {
                 _vfo.SquelchThreshold = 0;
             }
+
+            NotifyPropertyChanged("SquelchEnabled");
         }
 
         private void stepSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1394,27 +1424,31 @@ namespace SDRSharp
                     frequencyNumericUpDown.Maximum = decimal.MaxValue;
                     frequencyNumericUpDown.Minimum = decimal.MinValue;
 
-                    centerFreqNumericUpDown.Value = ((long) centerFreqNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
-                    frequencyNumericUpDown.Value = ((long) frequencyNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
+                    centerFreqNumericUpDown.Value = ((long)centerFreqNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
+                    frequencyNumericUpDown.Value = ((long)frequencyNumericUpDown.Value + stepSize / 2) / stepSize * stepSize;
 
-                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + _frequencyShift + (int) (_vfo.SampleRate / 2);
+                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value + _frequencyShift + (int)(_vfo.SampleRate / 2);
                     frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value + _frequencyShift - (int)(_vfo.SampleRate / 2);
 
-                    frequencyNumericUpDown.Maximum = ((long) frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
+                    frequencyNumericUpDown.Maximum = ((long)frequencyNumericUpDown.Maximum) / waterfall.StepSize * waterfall.StepSize;
                     frequencyNumericUpDown.Minimum = 2 * spectrumAnalyzer.CenterFrequency - frequencyNumericUpDown.Maximum;
                 }
             }
+
+            if (sender == snapFrequencyCheckBox)
+                NotifyPropertyChanged("SnapToGrid");
+            NotifyPropertyChanged("StepSize");
         }
 
         private void panview_BandwidthChanged(object sender, BandwidthEventArgs e)
         {
             if (e.Bandwidth < filterBandwidthNumericUpDown.Minimum)
             {
-                e.Bandwidth = (int) filterBandwidthNumericUpDown.Minimum;
+                e.Bandwidth = (int)filterBandwidthNumericUpDown.Minimum;
             }
             else if (e.Bandwidth > filterBandwidthNumericUpDown.Maximum)
             {
-                e.Bandwidth = (int) filterBandwidthNumericUpDown.Maximum;
+                e.Bandwidth = (int)filterBandwidthNumericUpDown.Maximum;
             }
 
             filterBandwidthNumericUpDown.Value = e.Bandwidth;
@@ -1431,7 +1465,7 @@ namespace SDRSharp
                 _frontendController.ShowSettingGUI(this);
             }
         }
-
+       
         #endregion
 
         #endregion
@@ -1445,26 +1479,36 @@ namespace SDRSharp
             agcDecayNumericUpDown.Enabled = agcCheckBox.Checked;
             agcSlopeNumericUpDown.Enabled = agcCheckBox.Checked;
             agcUseHangCheckBox.Enabled = agcCheckBox.Checked;
+
+            NotifyPropertyChanged("UseAgc");
         }
 
         private void agcUseHangCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.AgcHang = agcUseHangCheckBox.Checked;
+
+            NotifyPropertyChanged("UseHang");
         }
 
         private void agcDecayNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.AgcDecay = (int) agcDecayNumericUpDown.Value;
+
+            NotifyPropertyChanged("AgcDecay");
         }
 
         private void agcThresholdNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.AgcThreshold = (int) agcThresholdNumericUpDown.Value;
+
+            NotifyPropertyChanged("AgcThreshold");
         }
 
         private void agcSlopeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.AgcSlope = (int) agcSlopeNumericUpDown.Value;
+
+            NotifyPropertyChanged("AgcSlope");
         }
 
         private void swapIQCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -1473,7 +1517,7 @@ namespace SDRSharp
         }
 
         #endregion
-
+        
         #region Display settings
 
         private void viewComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -1501,11 +1545,13 @@ namespace SDRSharp
         {
             _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
             BuildFFTWindow();
+
+            NotifyPropertyChanged("FFTResolution");
         }
 
         private void fftWindowComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _fftWindowType = (WindowType) fftWindowComboBox.SelectedIndex;
+            _fftWindowType = (WindowType)fftWindowComboBox.SelectedIndex;
             BuildFFTWindow();
         }
 
@@ -1542,26 +1588,36 @@ namespace SDRSharp
         private void sDecayTrackBar_ValueChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.Decay = sDecayTrackBar.Value / (double)sDecayTrackBar.Maximum;
+
+            NotifyPropertyChanged("SDecay");
         }
 
         private void wAttackTrackBar_ValueChanged(object sender, EventArgs e)
         {
             waterfall.Attack = wAttackTrackBar.Value / (double)wAttackTrackBar.Maximum;
+
+            NotifyPropertyChanged("WAttack");
         }
 
         private void wDecayTrackBar_ValueChanged(object sender, EventArgs e)
         {
-            waterfall.Decay = wDecayTrackBar.Value / (double) wDecayTrackBar.Maximum;
+            waterfall.Decay = wDecayTrackBar.Value / (double)wDecayTrackBar.Maximum;
+
+            NotifyPropertyChanged("WDecay");
         }
 
         private void markPeaksCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.MarkPeaks = markPeaksCheckBox.Checked;
+
+            NotifyPropertyChanged("MarkPeaks");
         }
 
         private void useTimestampCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             waterfall.UseTimestamps = useTimestampsCheckBox.Checked;
+
+            NotifyPropertyChanged("UseTimeMarkers");
         }
 
         private void fftSpeedTrackBar_ValueChanged(object sender, EventArgs e)
@@ -1591,7 +1647,7 @@ namespace SDRSharp
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-
+        
             foreach (string key in sharpPlugins.Keys)
             {
                 try
@@ -1661,6 +1717,8 @@ namespace SDRSharp
             inputDeviceComboBox.Enabled = false;
             outputDeviceComboBox.Enabled = false;
             latencyNumericUpDown.Enabled = false;
+
+            NotifyPropertyChanged("StartRadio");
         }
 
         public void StopRadio()
@@ -1677,6 +1735,8 @@ namespace SDRSharp
             outputDeviceComboBox.Enabled = true;
             latencyNumericUpDown.Enabled = true;
             _fftEvent.Set();
+
+            NotifyPropertyChanged("StopRadio");
         }
 
         public void GetSpectrumSnapshot(byte[] destArray)
@@ -1685,6 +1745,35 @@ namespace SDRSharp
             {
                 Fourier.SmoothCopy(_scaledFFTSpectrumPtr, destPtr, _fftSpectrumSamples, destArray.Length, 1.0f, 0);
             }
+        }
+
+        public void RegisterStreamHook(object streamHook)
+        {
+            if (!IsPlaying)
+            {
+                _streamHookManager.RegisterStreamHook(streamHook);
+            }
+        }
+
+        public void UnregisterStreamHook(object streamHook)
+        {
+            if (!IsPlaying)
+            {
+                _streamHookManager.UnregisterStreamHook(streamHook);
+            }
+        }
+
+
+        #endregion
+
+        #region INotifyPropertyChanged
+
+        private void NotifyPropertyChanged(string property)
+        {
+
+            var handler = PropertyChanged;
+            if (handler != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
         }
 
         #endregion

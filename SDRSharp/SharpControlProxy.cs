@@ -1,17 +1,25 @@
-﻿using System.Windows.Forms;
+﻿using System.ComponentModel;
+using System.Windows.Forms;
 using SDRSharp.Radio;
 using SDRSharp.Common;
 
 namespace SDRSharp
 {
-    public class SharpControlProxy : ISharpControl
+    public class SharpControlProxy : ISharpControl, INotifyPropertyChanged
     {
         private readonly MainForm _owner;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public SharpControlProxy(MainForm owner)
         {
             _owner = owner;
+
+            _owner.PropertyChanged += PropertyChangedEventHandler;
+            
         }
+
+        #region Public Properties
 
         public DetectorType DetectorType
         {
@@ -202,6 +210,38 @@ namespace SDRSharp
                 else
                 {
                     _owner.FrequencyShiftEnabled = value;
+                }
+            }
+        }
+
+        public bool UseAgc
+        {
+            get { return _owner.UseAgc; }
+            set 
+            {
+                if(_owner.InvokeRequired)
+                {
+                    _owner.Invoke(new MethodInvoker(() => { _owner.UseAgc = value; }));
+                }
+                else
+                {
+                    _owner.UseAgc = value;
+                }
+            }
+        }
+
+        public bool AgcHang
+        {
+            get { return _owner.AgcHang; }
+            set
+            {
+                if (_owner.InvokeRequired)
+                {
+                    _owner.Invoke(new MethodInvoker(() => { _owner.AgcHang = value; }));
+                }
+                else
+                {
+                    _owner.AgcHang = value;
                 }
             }
         }
@@ -403,6 +443,24 @@ namespace SDRSharp
             }
         }
 
+        public bool UseTimeMarkers
+        {
+
+            get { return _owner.UseTimeMarkers; }
+            set
+            {
+                if (_owner.InvokeRequired)
+                {
+                    _owner.Invoke(new MethodInvoker(() => { _owner.UseTimeMarkers = value; }));
+                }
+                else
+                {
+                    _owner.UseTimeMarkers = value;
+                }
+            }
+
+        }
+
         public string RdsProgramService
         {
             get { return _owner.RdsProgramService; }
@@ -412,11 +470,24 @@ namespace SDRSharp
         {
             get { return _owner.RdsRadioText; }
         }
+        
+        public bool IsSquelchOpen
+        {
+            get { return _owner.IsSquelchOpen; }
+        }
 
         public int RFBandwidth
         {
             get { return _owner.RFBandwidth; }
         }
+
+        public int FFTResolution
+        {
+            get { return _owner.FFTResolution; }
+        }
+
+        #endregion
+
 
         public void GetSpectrumSnapshot(byte[] destArray)
         {
@@ -448,5 +519,84 @@ namespace SDRSharp
                 _owner.StopRadio();
             }
         }
+
+        public void RegisterStreamHook(object streamHook)
+        {
+            if (_owner.InvokeRequired)
+            {
+                _owner.Invoke(new MethodInvoker(() => _owner.RegisterStreamHook(streamHook)));
+            }
+            else
+            {
+                _owner.RegisterStreamHook(streamHook);
+            }
+        }
+
+        public void UnregisterStreamHook(object streamHook)
+        {
+            if (_owner.InvokeRequired)
+            {
+                _owner.Invoke(new MethodInvoker(() => _owner.UnregisterStreamHook(streamHook)));
+            }
+            else
+            {
+                _owner.UnregisterStreamHook(streamHook);
+            }
+        }
+
+        #region INotifyPropertyChanged
+
+        private void PropertyChangedEventHandler(object sender, PropertyChangedEventArgs e)
+        {
+
+            switch (e.PropertyName)
+            {
+                case "SelectedFrontendName":
+                case "AudioGain":
+                case "FilterAudio":
+                case "Frequency":
+                case "CenterFrequency":
+                case "FilterBandwidth":
+                case "FilterOrder":
+                case "FilterType":
+                case "CorrectIq":
+                case "FrequencyShiftEnabled":
+                case "FrequencyShift":
+                case "DetectorType":
+                case "FmStereo":
+                case "CWShift":
+                case "SquelchThreshold":
+                case "SquelchEnabled":
+                case "SnapToGrid":
+                case "StepSize":
+                case "UseAgc":
+                case "UseHang":
+                case "AgcDecay":
+                case "AgcThreshold":
+                case "AgcSlope":
+                case "SwapIq":
+                case "SAttack":
+                case "SDecay":
+                case "WAttack":
+                case "WDecay":
+                case "MarkPeaks":
+                case "UseTimeMarkers":
+                case "StartRadio":
+                case "StopRadio":
+                case "FFTResolution":
+
+                    var handler = PropertyChanged;
+                    if (handler != null)
+                        PropertyChanged(sender, new PropertyChangedEventArgs(e.PropertyName));
+
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+
+        #endregion
     }
 }

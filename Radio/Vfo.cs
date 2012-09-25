@@ -235,6 +235,15 @@ namespace SDRSharp.Radio
             }
         }
 
+        public bool IsSquelchOpen
+        {
+            get
+            {
+                return (_actualDetectorType == DetectorType.NFM && _fmDetector.IsSquelchOpen) ||
+                       (_actualDetectorType == DetectorType.AM && _amDetector.IsSquelchOpen);
+            }
+        }
+
         public int DecimationStageCount
         {
             get { return _decimationStageCount; }

@@ -5,7 +5,7 @@ using SDRSharp.Radio.PortAudio;
 namespace SDRSharp.Radio
 {
     public unsafe delegate void BufferNeededDelegate(Complex* iqBuffer, float* audioBuffer, int length);
-
+    
     public unsafe sealed class StreamControl : IDisposable
     {
         private enum InputType
@@ -34,12 +34,13 @@ namespace SDRSharp.Radio
         private WavePlayer _wavePlayer;
         private WaveRecorder _waveRecorder;
         private WaveDuplex _waveDuplex;
-        private WaveFile _waveFile;
+        private WaveFile _waveFile;      
+
         private ComplexFifoStream _iqStream;
         private FloatFifoStream _audioStream;
         private Thread _waveReadThread;
         private Thread _dspThread;
-
+      
         private float _audioGain;
         private float _outputGain;
         private int _inputDevice;
@@ -54,11 +55,20 @@ namespace SDRSharp.Radio
         private InputType _inputType;
         private IFrontendController _frontend;
 
+        private readonly StreamHookManager _streamHookManager;        
+      
         public event BufferNeededDelegate BufferNeeded;
-    
-        public StreamControl()
+
+        public StreamControl(): this(null)
+        {
+
+        }
+
+        public StreamControl(StreamHookManager streamHookManager)
         {
             AudioGain = 10.0f;
+
+            _streamHookManager = streamHookManager;
         }
 
         ~StreamControl()
@@ -166,7 +176,9 @@ namespace SDRSharp.Radio
         private void PlayerFiller(float* buffer, int frameCount)
         {
             var sampleCount = frameCount * 2;
-            var count = _audioStream.Read(buffer, 0, sampleCount);
+            var audioStream = _streamHookManager == null ? _audioStream : _streamHookManager.LastAudioStream;
+            
+            var count = audioStream.Read(buffer, 0, sampleCount);
             ScaleAudio(buffer, count);
             for (var i = count; i < sampleCount; i++)
             {
@@ -250,6 +262,8 @@ namespace SDRSharp.Radio
 
             #endregion
 
+            var audioStream = _streamHookManager == null ? _audioStream : _streamHookManager.FirstAudioStream;
+            
             while (IsPlaying)
             {
                 var total = 0;
@@ -260,12 +274,16 @@ namespace SDRSharp.Radio
                     total += _iqStream.Read(_dspInPtr + total, len); // Blocking read
                 }
 
+                ProcessIQHooks();
+
                 ProcessIQ();
 
-                _audioStream.Write(_dspOutPtr, _dspOutBuffer.Length);
+                ProcessAudioHooks();
+
+                audioStream.Write(_dspOutPtr, _dspOutBuffer.Length);
             }
         }
-
+      
         private void ProcessIQ()
         {
             if (BufferNeeded != null)
@@ -278,6 +296,22 @@ namespace SDRSharp.Radio
             }
         }
 
+        private void ProcessAudioHooks()
+        {
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.ProcessAudio(_dspOutPtr, _dspOutBuffer.Length);
+            }
+        }
+
+        private void ProcessIQHooks()
+        {
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.ProcessIQHook(_dspInPtr, _dspInBuffer.Length);
+            }
+        }
+        
         private static void FillIQ(float* source, Complex* destination, int length)
         {
             for (var i = 0; i < length; i++)
@@ -296,9 +330,10 @@ namespace SDRSharp.Radio
                 _dspInPtr[i].Imag = temp;
             }
         }
-
+        
         public void Stop()
         {
+                                                               
             if (_inputType == InputType.Plugin && _frontend != null)
             {
                 _frontend.Stop();
@@ -333,11 +368,23 @@ namespace SDRSharp.Radio
             {
                 _audioStream.Close();
             }
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.CloseStreams();
+                _streamHookManager.Stop();                
+            }
+                                    
             if (_dspThread != null)
             {
                 _dspThread.Join();
                 _dspThread = null;
             }
+
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.StopIQObserverThread();
+            }
+
             if (_waveFile != null)
             {
                 _waveFile.Dispose();
@@ -347,14 +394,19 @@ namespace SDRSharp.Radio
             {
                 _iqStream.Dispose();
                 _iqStream = null;
-            }
+            }           
             if (_audioStream != null)
             {
                 _audioStream.Dispose();
                 _audioStream = null;
             }
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.DisposeStreams();                
+            }
+          
             _dspOutBuffer = null;
-            _iqInBuffer = null;
+            _iqInBuffer = null;            
         }
 
         public void Play()
@@ -363,6 +415,24 @@ namespace SDRSharp.Radio
             {
                 return;
             }
+
+            #region Stream Hooks 
+            
+            if (_streamHookManager != null)
+            {               
+                _streamHookManager.InitStreams(_inputBufferSize, _outputBufferSize);
+                                
+                if (_streamHookManager.HaveIqObservers)
+                {
+                    _streamHookManager.StartIQObserverThread(_inputBufferSize);
+                }
+
+                _streamHookManager.OutputSampleRate = _outputSampleRate;
+                _streamHookManager.InputSampleRate = _inputSampleRate;
+            }
+
+            #endregion
+
             switch (_inputType)
             {
                 case InputType.SoundCard:
@@ -372,18 +442,27 @@ namespace SDRSharp.Radio
                     }
                     else
                     {
-                        _iqStream = new ComplexFifoStream(true);
-                        _audioStream = new FloatFifoStream(_outputBufferSize);
+                        _iqStream = new ComplexFifoStream(true);                        
+                        if (_streamHookManager == null)
+                        {
+                            _audioStream = new FloatFifoStream(_outputBufferSize);
+                        }
                         _waveRecorder = new WaveRecorder(_inputDevice, _inputSampleRate, _inputBufferSize, RecorderFiller);
                         _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                         _dspThread = new Thread(DSPProc);
                         _dspThread.Start();
+                        
+                       
                     }
                     break;
 
                 case InputType.WaveFile:
-                    _iqStream = new ComplexFifoStream(true);
-                    _audioStream = new FloatFifoStream(_outputBufferSize);
+                    _iqStream = new ComplexFifoStream(true);                    
+                    if (_streamHookManager == null)
+                    {
+                        _audioStream = new FloatFifoStream(_outputBufferSize);
+                    }
+                        
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                     _waveReadThread = new Thread(WaveFileFiller);
                     _waveReadThread.Start();
@@ -392,13 +471,22 @@ namespace SDRSharp.Radio
                     break;
 
                 case InputType.Plugin:
-                    _iqStream = new ComplexFifoStream(true);
-                    _audioStream = new FloatFifoStream(_outputBufferSize);
+                    _iqStream = new ComplexFifoStream(true);                    
+                    if (_streamHookManager == null)
+                    {
+                        _audioStream = new FloatFifoStream(_outputBufferSize);
+                    }
+                        
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                     _frontend.Start(FrontendFiller);
                     _dspThread = new Thread(DSPProc);
                     _dspThread.Start();
                     break;
+            }
+
+            if (_streamHookManager != null)
+            {
+                _streamHookManager.Start();
             }
         }
 
@@ -504,6 +592,6 @@ namespace SDRSharp.Radio
             }
 
             return (int) Math.Log(result, 2.0);
-        }
+        }    
     }
 }

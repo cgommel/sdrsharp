@@ -4,6 +4,14 @@ using System.Collections.Generic;
 
 namespace SDRSharp.Radio
 {
+
+    public enum FifoStreamBlockingMode
+    {
+        None,
+        BlockingRead,
+        BlockingWrite
+    };
+
     public unsafe sealed class ComplexFifoStream : IDisposable
     {
         private const int BlockSize = 65536 / 8; // 64k / sizeof(Complex)
@@ -16,7 +24,7 @@ namespace SDRSharp.Radio
         private readonly AutoResetEvent _event;
         private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
         private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
-
+        
         public ComplexFifoStream() : this(false)
         {
         }
@@ -82,7 +90,7 @@ namespace SDRSharp.Radio
         {
             Flush();
             if (_event != null)
-            {
+            {                
                 _terminated = true;
                 _event.Set();
             }
@@ -110,7 +118,7 @@ namespace SDRSharp.Radio
         {
             if (_event != null)
             {
-                if (_size == 0)
+                while (_size == 0 && !_terminated)
                 {
                     _event.WaitOne();
                 }
@@ -209,6 +217,7 @@ namespace SDRSharp.Radio
 
     public unsafe sealed class FloatFifoStream : IDisposable
     {
+
         private const int BlockSize = 65536 / 4; // 64k / sizeof(float)
         private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
 
@@ -217,6 +226,7 @@ namespace SDRSharp.Radio
         private int _writePos;
         private bool _terminated;
         private readonly int _maxSize;
+        private readonly FifoStreamBlockingMode _blockingMode;   
         private readonly AutoResetEvent _event;
         private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
         private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
@@ -225,13 +235,20 @@ namespace SDRSharp.Radio
         {
         }
 
-        public FloatFifoStream(int maxSize)
+        public FloatFifoStream(int maxSize): this(maxSize,FifoStreamBlockingMode.BlockingWrite)
+        {           
+        }
+
+        public FloatFifoStream(int maxSize, FifoStreamBlockingMode blockingMode)
         {
-            if (maxSize > 0)
+
+            if (blockingMode != FifoStreamBlockingMode.None)
             {
-                _maxSize = maxSize;
                 _event = new AutoResetEvent(true);
-            }                
+            }
+
+            _maxSize = maxSize;
+            _blockingMode = blockingMode;
         }
 
         ~FloatFifoStream()
@@ -309,6 +326,18 @@ namespace SDRSharp.Radio
         public int Read(float* buf, int ofs, int count)
         {
             int result;
+            
+            if (_blockingMode == FifoStreamBlockingMode.BlockingRead && _event != null)
+            {
+                while (_size==0 && !_terminated)
+                {
+                    _event.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return 0;
+                }
+            }                        
             lock (this)
             {
                 result = Peek(buf, ofs, count);
@@ -343,6 +372,10 @@ namespace SDRSharp.Radio
                     left -= toWrite;
                 }
                 _size += count;
+                if (_blockingMode == FifoStreamBlockingMode.BlockingRead && _event != null)
+                {
+                    _event.Set();
+                }
             }
         }
 
@@ -370,7 +403,7 @@ namespace SDRSharp.Radio
                     sizeLeft -= toFeed;
                     _size -= toFeed;
                 }
-                if (_event != null)
+                if (_blockingMode == FifoStreamBlockingMode.BlockingWrite && _event != null)
                 {
                     _event.Set();
                 }

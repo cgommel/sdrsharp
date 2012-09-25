@@ -7,6 +7,7 @@ namespace SDRSharp.Radio
         private float _avg;
         private float _powerThreshold;
         private int _squelchThreshold;
+        private bool _isSquelchOpen;
 
         public AmDetector()
         {
@@ -26,6 +27,11 @@ namespace SDRSharp.Radio
             }
         }
 
+        public bool IsSquelchOpen
+        {
+            get { return _isSquelchOpen; }
+        }
+
         public void Demodulate(Complex* iq, float* audio, int length)
         {
             for (var i = 0; i < length; i++)
@@ -41,7 +47,10 @@ namespace SDRSharp.Radio
                 {
                     audio[i] = 0f;
                 }
+                
             }
+
+            _isSquelchOpen = _avg > _powerThreshold;
         }
     }
 }
