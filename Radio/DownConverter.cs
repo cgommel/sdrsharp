@@ -11,7 +11,6 @@ namespace SDRSharp.Radio
         private double _sampleRate;
         private double _frequency;
         private int _completedCount;
-        private bool _configureNeeded;
 
         public DownConverter(int phaseCount)
         {
@@ -34,7 +33,7 @@ namespace SDRSharp.Radio
                 if (_sampleRate != value)
                 {
                     _sampleRate = value;
-                    _configureNeeded = true;
+                    Configure();
                 }
             }
         }
@@ -47,46 +46,48 @@ namespace SDRSharp.Radio
                 if (_frequency != value)
                 {
                     _frequency = value;
-                    _configureNeeded = true;
+                    Configure();
                 }
             }
         }
 
         private void Configure()
         {
-            var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
-
-            var targetSin = Math.Sin(targetAngularFrequency);
-            var targetCos = Math.Cos(targetAngularFrequency);
+            if (_sampleRate == default(double))
+            {
+                return;
+            }
 
             var threadFrequency = _frequency * _oscillators.Length;
-
-            var vectR = _oscillators[0].StateReal;
-            var vectI = _oscillators[0].StateImag;
 
             for (var i = 0; i < _oscillators.Length; i++)
             {
                 _oscillators[i].SampleRate = _sampleRate;
                 _oscillators[i].Frequency = threadFrequency;
-                _oscillators[i].StateReal = vectR;
-                _oscillators[i].StateImag = vectI;
+            }
 
+            var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
+            var targetSin = Math.Sin(targetAngularFrequency);
+            var targetCos = Math.Cos(targetAngularFrequency);
+
+            var vectR = _oscillators[0].StateReal;
+            var vectI = _oscillators[0].StateImag;
+
+            for (var i = 1; i < _oscillators.Length; i++)
+            {
                 var outR = vectR * targetCos - vectI * targetSin;
                 var outI = vectI * targetCos + vectR * targetSin;
                 var oscGn = 1.95 - (vectR * vectR + vectI * vectI);
                 vectR = oscGn * outR;
                 vectI = oscGn * outI;
+
+                _oscillators[i].StateReal = vectR;
+                _oscillators[i].StateImag = vectI;
             }
         }
 
         public void Process(Complex* buffer, int length)
         {
-            if (_configureNeeded)
-            {
-                Configure();
-                _configureNeeded = false;
-            }
-
             _completedCount = 0;
 
             for (var i = 1; i < _oscillators.Length; i++)
