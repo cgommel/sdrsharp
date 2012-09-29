@@ -20,7 +20,6 @@ namespace SDRSharp.Radio
 
         private static readonly int _processorCount = Environment.ProcessorCount;
         private static readonly int _minOutputSampleRate = Utils.GetIntSetting("minOutputSampleRate", 24000);
-        private static readonly float _inputGain = (float) (0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
 
         private float* _dspOutPtr;
         private UnsafeBuffer _dspOutBuffer;
@@ -43,6 +42,7 @@ namespace SDRSharp.Radio
       
         private float _audioGain;
         private float _outputGain;
+        private float _inputGain = (float)(0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
         private int _inputDevice;
         private double _inputSampleRate;
         private int _inputBufferSize;
@@ -93,6 +93,12 @@ namespace SDRSharp.Radio
                 _audioGain = value;
                 _outputGain = (float) Math.Pow(value / 10.0, 10);
             }
+        }
+
+        public float InputGain
+        {
+            get { return _inputGain; }
+            set { _inputGain = value; }
         }
 
         public bool SwapIQ
@@ -165,7 +171,8 @@ namespace SDRSharp.Radio
 
             #endregion
 
-            FillIQ(buffer, _dspInPtr, frameCount);
+            Utils.Memcpy(_dspInPtr, buffer, frameCount * sizeof(Complex));
+            ScaleIQ(_dspInPtr, frameCount);
 
             ProcessIQ();
 
@@ -211,8 +218,8 @@ namespace SDRSharp.Radio
 
             #endregion
 
-            FillIQ(buffer, _iqInPtr, frameCount);
-
+            Utils.Memcpy(_iqInPtr, buffer, frameCount * sizeof(Complex));
+            ScaleIQ(_iqInPtr, frameCount);
             _iqStream.Write(_iqInPtr, frameCount);
         }
 
@@ -220,6 +227,7 @@ namespace SDRSharp.Radio
         {
             if (_iqStream.Length < _inputBufferSize * 4)
             {
+                ScaleIQ(samples, len);
                 _iqStream.Write(samples, len);
             }
         }
@@ -234,6 +242,7 @@ namespace SDRSharp.Radio
                     if (_iqStream.Length < _inputBufferSize * 4)
                     {
                         _waveFile.Read(waveInPtr, waveInBuffer.Length);
+                        ScaleIQ(waveInPtr, waveInBuffer.Length);
                         _iqStream.Write(waveInPtr, waveInBuffer.Length);
                     }
                     else
@@ -249,6 +258,15 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 buffer[i] *= _outputGain;
+            }
+        }
+
+        private void ScaleIQ(Complex* buffer, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                buffer[i].Real *= _inputGain;
+                buffer[i].Imag *= _inputGain;
             }
         }
 
@@ -314,15 +332,6 @@ namespace SDRSharp.Radio
             if (_streamHookManager != null)
             {
                 _streamHookManager.ProcessIQHook(_dspInPtr, _dspInBuffer.Length);
-            }
-        }
-        
-        private static void FillIQ(float* source, Complex* destination, int length)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                destination[i].Real = source[i * 2] * _inputGain;
-                destination[i].Imag = source[i * 2 + 1] * _inputGain;
             }
         }
 

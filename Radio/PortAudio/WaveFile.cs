@@ -6,8 +6,6 @@ namespace SDRSharp.Radio.PortAudio
 {
 	public sealed unsafe class WaveFile : IDisposable
 	{
-	    private const float InputGain = 0.01f;
-
 		private readonly Stream _stream;
 	    private bool _isPCM;
 		private long _dataPos;
@@ -134,7 +132,7 @@ namespace SDRSharp.Radio.PortAudio
             {
                 if (_blockAlign == 6)
                 {
-                    const float scale = InputGain / 8388608.0f;
+                    const float scale = 1.0f / 8388608.0f;
                     var ptr = (Int24*) _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
@@ -145,7 +143,7 @@ namespace SDRSharp.Radio.PortAudio
                 }
                 else if (_blockAlign == 4)
                 {
-                    const float scale = InputGain / 32767.0f;
+                    const float scale = 1.0f / 32767.0f;
                     var ptr = (Int16*) _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
@@ -156,7 +154,7 @@ namespace SDRSharp.Radio.PortAudio
                 }
                 else if (_blockAlign == 2)
                 {
-                    const float scale = InputGain / 128.0f;
+                    const float scale = 1.0f / 128.0f;
                     var ptr = (sbyte*) _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
@@ -168,12 +166,11 @@ namespace SDRSharp.Radio.PortAudio
             }
             else
             {
-                const float scale = InputGain;
                 var ptr = (float*) _tempPtr;
                 for (var i = 0; i < length; i++)
                 {
-                    iqPtr->Real = *ptr++ * scale;
-                    iqPtr->Imag = *ptr++ * scale;
+                    iqPtr->Real = *ptr++;
+                    iqPtr->Imag = *ptr++;
                     iqPtr++;
                 }
             }

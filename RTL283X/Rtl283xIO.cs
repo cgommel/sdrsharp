@@ -8,7 +8,6 @@ namespace SDRSharp.RTL283X
     public unsafe class Rtl283xIO : IFrontendController, IDisposable
     {
         private SamplesAvailableDelegate _callback;
-        private AutoResetEvent _samplesEvent;
 
         public Rtl283xIO()
         {
@@ -40,9 +39,9 @@ namespace SDRSharp.RTL283X
                 throw new ApplicationException("No compatible devices detected");
             }
 
-            _samplesEvent = new AutoResetEvent(false);
+            //_samplesEvent = new AutoResetEvent(false);
 
-            NativeMethods.RTK_SetDABEventHandle(_samplesEvent.Handle);
+            //NativeMethods.RTK_SetDABEventHandle(_samplesEvent.Handle);
             //NativeMethods.RTK_SetDABEventHandle(IntPtr.Zero);
 
 

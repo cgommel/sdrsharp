@@ -12,7 +12,6 @@ namespace SDRSharp.RTLTCP
     public unsafe class RtlTcpIO : IFrontendController, IDisposable
     {
         private RTLTcpSettings _gui;
-        private const float INPUT_GAIN = 0.001f;
         private const double DEFAULT_SAMPLE_RATE = 2048000.0; //1024000.0;
         private const long DEFAULT_FREQUENCY = 100000000;
         private const string DEFAULT_HOSTNAME = "192.168.0.11";
@@ -257,10 +256,12 @@ namespace SDRSharp.RTLTCP
             }
             bufPtr = (Complex*)_b;
 
+            const float scale = 1.0f / 128.0f;
+
             for (int i = 0; i < sampleCount; i++)
             {
-                bufPtr[i].Real = (buffer[i * 2 + 1] - 128) / 128.0f * INPUT_GAIN;
-                bufPtr[i].Imag = (buffer[i * 2] - 128) / 128.0f * INPUT_GAIN;
+                bufPtr[i].Real = (buffer[i * 2 + 1] - 128) * scale ;
+                bufPtr[i].Imag = (buffer[i * 2] - 128) * scale;
             }
 
             lock (this)

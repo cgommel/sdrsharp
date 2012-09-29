@@ -9,7 +9,6 @@ namespace SDRSharp.SDRIQ
 {
     public unsafe class SdrIqDevice
     {
-        private const float InputGain = 0.01f;
         private const uint DefaultFrequency = 15000000;
         private const int DefaultSamplerate = 158730;
              
@@ -193,7 +192,7 @@ namespace SDRSharp.SDRIQ
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
-            const float scale = InputGain / 32767.0f;
+            const float scale = 1.0f / 32767.0f;
             var output = instance._iqPtr;
             for (int i = 0; i < sampleCount; i++)
             {

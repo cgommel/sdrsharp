@@ -32,8 +32,6 @@ namespace SDRSharp.Radio
 
     public unsafe static class ExtIO
     {
-        private const float InputGain = 0.01f;
-
         #region ExtIO Enums
 
         public enum HWTypes
@@ -440,7 +438,7 @@ namespace SDRSharp.Radio
                 /* 16 bit integer samples */
                 if (_hwType == HWTypes.Aud16BInt || _hwType == HWTypes.Sdr14)
                 {
-                    const float scale = InputGain / 32767.0f;
+                    const float scale = 1.0f / 32767.0f;
                     var input = (Int16*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {
@@ -452,7 +450,7 @@ namespace SDRSharp.Radio
                 /* 24 bit integer samples */
                 else if (_hwType == HWTypes.Aud24BInt)
                 {
-                    const float scale = InputGain / 8388608.0f;
+                    const float scale = 1.0f / 8388608.0f;
                     var input = (Int24*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {
@@ -464,7 +462,7 @@ namespace SDRSharp.Radio
                 /* 32 bit integer samples */
                 else if (_hwType == HWTypes.Aud32BInt)
                 {
-                    const float scale = InputGain / 2147483648.0f;
+                    const float scale = 1.0f / 2147483648.0f;
                     var input = (Int32*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {
@@ -479,8 +477,8 @@ namespace SDRSharp.Radio
                     var input = (float*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {
-                        _iqPtr[i].Imag = *input++ * InputGain;
-                        _iqPtr[i].Real = *input++ * InputGain;
+                        _iqPtr[i].Imag = *input++;
+                        _iqPtr[i].Real = *input++;
                     }
                 }
 

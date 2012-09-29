@@ -7,7 +7,6 @@ namespace SDRSharp.RTLSDR
 {
     public unsafe sealed class RtlDevice : IDisposable
     {
-        private const float InputGain = 0.001f;
         private const uint DefaultFrequency = 105500000;
         private const int DefaultSamplerate = 2048000;
 
@@ -274,7 +273,7 @@ namespace SDRSharp.RTLSDR
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
-            const float scale = InputGain / 128.0f;
+            const float scale = 1.0f / 128.0f;
             var ptr = instance._iqPtr;
             for (var i = 0; i < sampleCount; i++)
             {
