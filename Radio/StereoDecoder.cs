@@ -13,7 +13,7 @@ namespace SDRSharp.Radio
 
         private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
         private static readonly float _pllPhaseAdjM = (float) Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
-        private static readonly float _pllPhaseAdjB = (float) Utils.GetDoubleSetting("pllPhaseAdjB", -2.25);
+        private static readonly float _pllPhaseAdjB = (float) Utils.GetDoubleSetting("pllPhaseAdjB", -1.75);
         private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
         private readonly SharpEvent _event = new SharpEvent(false);
