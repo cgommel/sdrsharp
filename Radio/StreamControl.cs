@@ -42,7 +42,7 @@ namespace SDRSharp.Radio
       
         private float _audioGain;
         private float _outputGain;
-        private float _inputGain = (float)(0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", 0)));
+        private float _inputGain = (float)(0.01f * Math.Pow(10, Utils.GetDoubleSetting("inputGain", -0.5)));
         private int _inputDevice;
         private double _inputSampleRate;
         private int _inputBufferSize;
