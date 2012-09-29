@@ -7,9 +7,9 @@ namespace SDRSharp.Radio
         private const int PllDefaultFrequency = 57000;
         private const int PllRange = 12;
         private const int PllBandwith = 1;
-        private const double PllLockTime = 0.5;
-        private const double PllLockThreshold = 3.2;
-        private const double RdsBitRate = 1187.5;
+        private const float PllLockTime = 0.5f;
+        private const float PllLockThreshold = 3.2f;
+        private const float RdsBitRate = 1187.5f;
 
         private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false);
         private readonly FirFilter _matchedFilter = new FirFilter();
@@ -75,7 +75,7 @@ namespace SDRSharp.Radio
             var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2400, WindowType.BlackmanHarris);
             _baseBandFilter.SetCoefficients(coefficients);
 
-            _pll.SampleRate = _demodulationSampleRate;
+            _pll.SampleRate = (float) _demodulationSampleRate;
             _pll.DefaultFrequency = 0;
             _pll.Range = PllRange;
             _pll.Bandwidth = PllBandwith;

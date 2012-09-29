@@ -8,35 +8,36 @@ namespace SDRSharp.Radio
 #endif
     public struct Pll
     {
-        private const double DefaultZeta = 0.707;
-        private const double DefaultLockTime = 0.5; // sec
-        private const double DefaultPhaseAdjM = 0;
-        private const double DefaultPhaseAdjB = -2.25;
-        private const double DefaultRange = 20;
-        private const double DefaultBandwidth = 10;
-        private const double DefaultLockThreshold = 3.2;
+        private const float DefaultZeta = 0.707f;
+        private const float DefaultLockTime = 0.5f; // sec
+        private const float DefaultPhaseAdjM = 0.0f;
+        private const float DefaultPhaseAdjB = -2.25f;
+        private const float DefaultRange = 20f;
+        private const float DefaultBandwidth = 10.0f;
+        private const float DefaultLockThreshold = 3.2f;
 
-        private double _sampleRate;
-        private double _phase;
-        private double _frequencyRadian;
-        private double _minFrequencyRadian;
-        private double _maxFrequencyRadian;
-        private double _defaultFrequency;
-        private double _range;
-        private double _bandwidth;
-        private double _alpha;
-        private double _beta;
-        private double _zeta;
-        private double _phaseAdj;
-        private double _phaseAdjM;
-        private double _phaseAdjB;
-        private double _lockAlpha;
-        private double _lockTime;
-        private double _phaseErrorAvg;
-        private double _adjustedPhase;
-        private double _lockThreshold;
+        private float _sampleRate;
+        private float _phase;
+        private float _frequencyRadian;
+        private float _minFrequencyRadian;
+        private float _maxFrequencyRadian;
+        private float _defaultFrequency;
+        private float _range;
+        private float _bandwidth;
+        private float _alpha;
+        private float _beta;
+        private float _zeta;
+        private float _phaseAdj;
+        private float _phaseAdjM;
+        private float _phaseAdjB;
+        private float _lockAlpha;
+        private float _lockOneMinusAlpha;
+        private float _lockTime;
+        private float _phaseErrorAvg;
+        private float _adjustedPhase;
+        private float _lockThreshold;
 
-        public Pll(double frequency)
+        public Pll(float frequency)
         {
             _sampleRate = 0;
             _phase = 0;
@@ -53,6 +54,7 @@ namespace SDRSharp.Radio
             _phaseAdjM = DefaultPhaseAdjM;
             _phaseAdjB = DefaultPhaseAdjB;
             _lockAlpha = 0;
+            _lockOneMinusAlpha = 1;
             _lockTime = DefaultLockTime;
             _phaseErrorAvg = 0;
             _adjustedPhase = 0;
@@ -60,17 +62,17 @@ namespace SDRSharp.Radio
             Configure();
         }
 
-        public double AdjustedPhase
+        public float AdjustedPhase
         {
             get { return _adjustedPhase; }
         }
 
-        public double Phase
+        public float Phase
         {
             get { return _phase; }
         }
 
-        public double SampleRate
+        public float SampleRate
         {
             get { return _sampleRate; }
             set
@@ -83,7 +85,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double DefaultFrequency
+        public float DefaultFrequency
         {
             get { return _defaultFrequency; }
             set
@@ -96,7 +98,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double Range
+        public float Range
         {
             get { return _range; }
             set
@@ -109,7 +111,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double Bandwidth
+        public float Bandwidth
         {
             get { return _bandwidth; }
             set
@@ -122,7 +124,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double LockTime
+        public float LockTime
         {
             get { return _lockTime; }
             set
@@ -135,7 +137,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double LockThreshold
+        public float LockThreshold
         {
             get { return _lockThreshold; }
             set
@@ -148,7 +150,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double Zeta
+        public float Zeta
         {
             get { return _zeta; }
             set
@@ -161,7 +163,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double PhaseAdjM
+        public float PhaseAdjM
         {
             get { return _phaseAdjM; }
             set
@@ -174,7 +176,7 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double PhaseAdjB
+        public float PhaseAdjB
         {
             get { return _phaseAdjB; }
             set
@@ -194,20 +196,21 @@ namespace SDRSharp.Radio
 
         private void Configure()
         {
-            _phase = 0.0;
-            var norm = 2 * Math.PI / _sampleRate;
+            _phase = 0.0f;
+            var norm = (float) (2.0 * Math.PI / _sampleRate);
             _frequencyRadian = _defaultFrequency * norm;
             _minFrequencyRadian = (_defaultFrequency - _range) * norm;
             _maxFrequencyRadian = (_defaultFrequency + _range) * norm;
-            _alpha = 2.0 * _zeta * _bandwidth * norm;
-            _beta = (_alpha * _alpha) / (4.0 * _zeta * _zeta);
+            _alpha = 2.0f * _zeta * _bandwidth * norm;
+            _beta = (_alpha * _alpha) / (4.0f * _zeta * _zeta);
             _phaseAdj = _phaseAdjM * _sampleRate + _phaseAdjB;
-            _lockAlpha = 1.0 - Math.Exp(-1.0 / (_sampleRate * _lockTime));
+            _lockAlpha = (float) (1.0 - Math.Exp(-1.0 / (_sampleRate * _lockTime)));
+            _lockOneMinusAlpha = 1.0f - _lockAlpha;
         }
 
         public Complex Process(float sample)
         {
-            var osc = Trig.SinCos((float) _phase);
+            var osc = Trig.SinCos(_phase);
 
             osc *= sample;
             var phaseError = -osc.FastArgument();
@@ -219,7 +222,7 @@ namespace SDRSharp.Radio
 
         public Complex Process(Complex sample)
         {
-            var osc = Trig.SinCos((float) _phase);
+            var osc = Trig.SinCos(_phase);
 
             osc *= sample;
             var phaseError = -osc.FastArgument();
@@ -229,7 +232,7 @@ namespace SDRSharp.Radio
             return osc;
         }
 
-        private void ProcessPhaseError(double phaseError)
+        private void ProcessPhaseError(float phaseError)
         {
             _frequencyRadian += _beta * phaseError;
 
@@ -242,9 +245,9 @@ namespace SDRSharp.Radio
                 _frequencyRadian = _minFrequencyRadian;
             }
 
-            _phaseErrorAvg = (1.0 - _lockAlpha) * _phaseErrorAvg + _lockAlpha * phaseError * phaseError;
+            _phaseErrorAvg = _lockOneMinusAlpha * _phaseErrorAvg + _lockAlpha * phaseError * phaseError;
             _phase += _frequencyRadian + _alpha * phaseError;
-            _phase %= 2.0 * Math.PI;
+            _phase %= (float) (2.0 * Math.PI);
             _adjustedPhase = _phase + _phaseAdj;
         }
     }

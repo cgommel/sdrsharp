@@ -7,13 +7,13 @@ namespace SDRSharp.Radio
         private const int DefaultPilotFrequency = 19000;
         private const int PllRange = 20;
         private const int PllBandwith = 10;
-        private const double PllThreshold = 1.0;
-        private const double PllLockTime = 0.5; // sec
-        private const double PllZeta = 0.707;
+        private const float PllThreshold = 1.0f;
+        private const float PllLockTime = 0.5f; // sec
+        private const float PllZeta = 0.707f;
 
         private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
-        private static readonly double _pllPhaseAdjM = Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
-        private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", -2.25);
+        private static readonly float _pllPhaseAdjM = (float) Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
+        private static readonly float _pllPhaseAdjB = (float) Utils.GetDoubleSetting("pllPhaseAdjB", -2.25);
         private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
         private readonly SharpEvent _event = new SharpEvent(false);
@@ -240,7 +240,7 @@ namespace SDRSharp.Radio
 
                 _pilotFilter = new IirFilter(IirFilterType.BandPass, DefaultPilotFrequency, _sampleRate, 500);
 
-                _pll.SampleRate = _sampleRate;
+                _pll.SampleRate = (float) _sampleRate;
                 _pll.DefaultFrequency = DefaultPilotFrequency;
                 _pll.Range = PllRange;
                 _pll.Bandwidth = PllBandwith;
