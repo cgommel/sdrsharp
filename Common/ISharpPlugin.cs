@@ -5,9 +5,8 @@ namespace SDRSharp.Common
 {
     public interface ISharpPlugin
     {
-
-        void Initialise(ISharpControl control);        
-        void Closing();
+        void Initialize(ISharpControl control);        
+        void Close();
 
         bool HasGui { get; }
         UserControl GuiControl { get; }

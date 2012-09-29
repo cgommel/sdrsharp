@@ -6,7 +6,7 @@ namespace SDRSharp.Radio
     public unsafe sealed class DownConverter
     {
         private readonly Oscillator[] _oscillators;
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
+        private readonly SharpEvent _event = new SharpEvent(false);
 
         private double _sampleRate;
         private double _frequency;

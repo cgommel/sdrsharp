@@ -176,10 +176,18 @@ namespace SDRSharp.Radio
         private void PlayerFiller(float* buffer, int frameCount)
         {
             var sampleCount = frameCount * 2;
-            var audioStream = _streamHookManager == null ? _audioStream : _streamHookManager.LastAudioStream;
-            
-            var count = audioStream.Read(buffer, 0, sampleCount);
+
+            //var total = 0;
+            //while (IsPlaying && total < sampleCount)
+            //{
+            //    var len = sampleCount - total;
+            //    total += _audioStream.Read(buffer, total, len);
+            //}
+
+            var count = _audioStream.Read(buffer, sampleCount);
+
             ScaleAudio(buffer, count);
+
             for (var i = count; i < sampleCount; i++)
             {
                 buffer[i] = 0.0f;
@@ -261,17 +269,14 @@ namespace SDRSharp.Radio
             }
 
             #endregion
-
-            var audioStream = _streamHookManager == null ? _audioStream : _streamHookManager.FirstAudioStream;
             
             while (IsPlaying)
             {
                 var total = 0;
                 while (IsPlaying && total < _dspInBuffer.Length)
                 {
-                    var len = Math.Max(1000, _iqStream.Length);
-                    len = Math.Min(len, _dspInBuffer.Length - total);
-                    total += _iqStream.Read(_dspInPtr + total, len); // Blocking read
+                    var len = _dspInBuffer.Length - total;
+                    total += _iqStream.Read(_dspInPtr, total, len); // Blocking read
                 }
 
                 ProcessIQHooks();
@@ -280,7 +285,7 @@ namespace SDRSharp.Radio
 
                 ProcessAudioHooks();
 
-                audioStream.Write(_dspOutPtr, _dspOutBuffer.Length);
+                _audioStream.Write(_dspOutPtr, _dspOutBuffer.Length); // Blocking write
             }
         }
       
@@ -333,7 +338,6 @@ namespace SDRSharp.Radio
         
         public void Stop()
         {
-                                                               
             if (_inputType == InputType.Plugin && _frontend != null)
             {
                 _frontend.Stop();
@@ -373,18 +377,15 @@ namespace SDRSharp.Radio
                 _streamHookManager.CloseStreams();
                 _streamHookManager.Stop();                
             }
-                                    
             if (_dspThread != null)
             {
                 _dspThread.Join();
                 _dspThread = null;
             }
-
             if (_streamHookManager != null)
             {
                 _streamHookManager.StopIQObserverThread();
             }
-
             if (_waveFile != null)
             {
                 _waveFile.Dispose();
@@ -395,18 +396,13 @@ namespace SDRSharp.Radio
                 _iqStream.Dispose();
                 _iqStream = null;
             }           
-            if (_audioStream != null)
-            {
-                _audioStream.Dispose();
-                _audioStream = null;
-            }
             if (_streamHookManager != null)
             {
                 _streamHookManager.DisposeStreams();                
             }
-          
+            _audioStream = null;
             _dspOutBuffer = null;
-            _iqInBuffer = null;            
+            _iqInBuffer = null;
         }
 
         public void Play()
@@ -442,27 +438,18 @@ namespace SDRSharp.Radio
                     }
                     else
                     {
-                        _iqStream = new ComplexFifoStream(true);                        
-                        if (_streamHookManager == null)
-                        {
-                            _audioStream = new FloatFifoStream(_outputBufferSize);
-                        }
+                        _iqStream = new ComplexFifoStream(BlockMode.BlockingRead);
+                        _audioStream = _streamHookManager == null ? new FloatFifoStream(BlockMode.BlockingWrite, _outputBufferSize) : _streamHookManager.FirstAudioStream;
                         _waveRecorder = new WaveRecorder(_inputDevice, _inputSampleRate, _inputBufferSize, RecorderFiller);
                         _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                         _dspThread = new Thread(DSPProc);
                         _dspThread.Start();
-                        
-                       
                     }
                     break;
 
                 case InputType.WaveFile:
-                    _iqStream = new ComplexFifoStream(true);                    
-                    if (_streamHookManager == null)
-                    {
-                        _audioStream = new FloatFifoStream(_outputBufferSize);
-                    }
-                        
+                    _iqStream = new ComplexFifoStream(BlockMode.BlockingRead);
+                    _audioStream = _streamHookManager == null ? new FloatFifoStream(BlockMode.BlockingWrite, _outputBufferSize) : _streamHookManager.FirstAudioStream;
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                     _waveReadThread = new Thread(WaveFileFiller);
                     _waveReadThread.Start();
@@ -471,12 +458,8 @@ namespace SDRSharp.Radio
                     break;
 
                 case InputType.Plugin:
-                    _iqStream = new ComplexFifoStream(true);                    
-                    if (_streamHookManager == null)
-                    {
-                        _audioStream = new FloatFifoStream(_outputBufferSize);
-                    }
-                        
+                    _iqStream = new ComplexFifoStream(BlockMode.BlockingRead);
+                    _audioStream = _streamHookManager == null ? new FloatFifoStream(BlockMode.BlockingWrite, _outputBufferSize) : _streamHookManager.FirstAudioStream;
                     _wavePlayer = new WavePlayer(_outputDevice, _outputSampleRate, _outputBufferSize / 2, PlayerFiller);
                     _frontend.Start(FrontendFiller);
                     _dspThread = new Thread(DSPProc);

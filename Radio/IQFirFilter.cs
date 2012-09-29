@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -8,7 +7,7 @@ namespace SDRSharp.Radio
         private readonly bool _isMultiThteaded;
         private readonly FirFilter _rFilter;
         private readonly FirFilter _iFilter;
-        private readonly AutoResetEvent _event;
+        private readonly SharpEvent _event;
 
         public IQFirFilter(float[] coefficients, bool isMultiThteaded)
         {
@@ -17,7 +16,7 @@ namespace SDRSharp.Radio
             _isMultiThteaded = isMultiThteaded;
             if (_isMultiThteaded)
             {
-                _event = new AutoResetEvent(false);
+                _event = new SharpEvent(false);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -421,7 +420,7 @@ namespace SDRSharp.Radio
         private readonly bool _isMultithreaded;
         private readonly FloatDecimator _rDecimator;
         private readonly FloatDecimator _iDecimator;
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
+        private readonly SharpEvent _event = new SharpEvent(false);
 
         public IQDecimator(int stageCount, double samplerate, bool useFastFilters, bool isMultithreaded)
         {

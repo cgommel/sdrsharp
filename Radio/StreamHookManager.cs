@@ -18,7 +18,7 @@ namespace SDRSharp.Radio
 
         private bool _iqObserverThreadRunning;
         private Thread _iqObserverThread;
-        private readonly AutoResetEvent _iqObserverEvent = new AutoResetEvent(false);
+        private readonly SharpEvent _iqObserverEvent = new SharpEvent(false);
         private UnsafeBuffer _iqObserverBuffer;
         private Complex* _iqObserverBufferPtr;
        
@@ -298,7 +298,7 @@ namespace SDRSharp.Radio
 
         private void InitAudioInterceptorStreams(int size)
         {
-            var chainHead = new FloatFifoStream(size);
+            var chainHead = new FloatFifoStream(BlockMode.BlockingWrite, size);
             lock (_audioInterceptors)
             {
                 if (_audioInterceptors.Count == 0)
@@ -308,13 +308,11 @@ namespace SDRSharp.Radio
                 }
                 else
                 {
-
                     var nextInputFifo = chainHead;
                     foreach (IAudioInterceptor interceptor in _audioInterceptors)
                     {
-
                         interceptor.Input = nextInputFifo;
-                        interceptor.Output = new FloatFifoStream(size);
+                        interceptor.Output = new FloatFifoStream(BlockMode.BlockingWrite, size);
 
                         interceptor.OutputBufferSize = size;
                         
@@ -323,7 +321,6 @@ namespace SDRSharp.Radio
 
                     _firstAudioStream = _audioInterceptors.First.Value.Input;
                     _lastAudioStream = _audioInterceptors.Last.Value.Output;
-
                 }
             }
         }

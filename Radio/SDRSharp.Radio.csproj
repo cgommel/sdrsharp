@@ -72,6 +72,7 @@
     <ErrorReport>prompt</ErrorReport>
     <DefineConstants>
     </DefineConstants>
+    <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -98,6 +99,7 @@
     <Compile Include="RdsDecoder.cs" />
     <Compile Include="RdsDetectorBank.cs" />
     <Compile Include="RdsDumpGroups.cs" />
+    <Compile Include="SharpEvent.cs" />
     <Compile Include="SharpThreadPool.cs" />
     <Compile Include="StereoDecoder.cs" />
     <Compile Include="StreamControl.cs" />
@@ -125,6 +127,7 @@
     <Compile Include="Oscillator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamHookManager.cs" />
+    <Compile Include="Trig.cs" />
     <Compile Include="UnsafeBuffer.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Vfo.cs" />

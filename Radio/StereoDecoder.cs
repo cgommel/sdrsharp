@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -14,10 +13,10 @@ namespace SDRSharp.Radio
 
         private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
         private static readonly double _pllPhaseAdjM = Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
-        private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", 0.0f);
+        private static readonly double _pllPhaseAdjB = Utils.GetDoubleSetting("pllPhaseAdjB", -2.25);
         private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
+        private readonly SharpEvent _event = new SharpEvent(false);
 
         private Pll _pll = new Pll(DefaultPilotFrequency);
         private IirFilter _pilotFilter;
@@ -158,7 +157,7 @@ namespace SDRSharp.Radio
             {
                 var pilot = _pilotFilter.Process(baseBand[i]);
                 _pll.Process(pilot);
-                _channelBPtr[i] = baseBand[i] * (float) Math.Sin(_pll.AdjustedPhase * 2.0);
+                _channelBPtr[i] = baseBand[i] * Trig.Sin((float) (_pll.AdjustedPhase * 2.0));
             }
 
             if (!_pll.IsLocked)

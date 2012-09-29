@@ -1,40 +1,56 @@
 ﻿using System;
-using System.Threading;
 using System.Collections.Generic;
 
 namespace SDRSharp.Radio
 {
-
-    public enum FifoStreamBlockingMode
+    public enum BlockMode
     {
         None,
         BlockingRead,
-        BlockingWrite
-    };
+        BlockingWrite,
+        BlockingReadWrite
+    }
 
     public unsafe sealed class ComplexFifoStream : IDisposable
     {
         private const int BlockSize = 65536 / 8; // 64k / sizeof(Complex)
-        private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
+        private const int MaxBlocksInCache = (4 * 1024 * 1024) / BlockSize;
 
         private int _size;
         private int _readPos;
         private int _writePos;
         private bool _terminated;
-        private readonly AutoResetEvent _event;
+        private readonly int _maxSize;  
+        private readonly SharpEvent _writeEvent;
+        private readonly SharpEvent _readEvent;
         private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
         private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
-        
-        public ComplexFifoStream() : this(false)
+
+        public ComplexFifoStream() : this(BlockMode.None)
         {
         }
 
-        public ComplexFifoStream(bool blockingRead)
+        public ComplexFifoStream(BlockMode blockMode) : this(blockMode, 0)
         {
-            if (blockingRead)
+        }
+
+        public ComplexFifoStream(BlockMode blockMode, int maxSize)
+        {
+            if (blockMode == BlockMode.BlockingRead || blockMode == BlockMode.BlockingReadWrite)
             {
-                _event = new AutoResetEvent(false);
+                _readEvent = new SharpEvent(false);
             }
+
+            if (blockMode == BlockMode.BlockingWrite || blockMode == BlockMode.BlockingReadWrite)
+            {
+                if (maxSize <= 0)
+                {
+                    throw new ArgumentException("MaxSize should be greater than zero when in blocking write mode", "maxSize");
+                }
+                _writeEvent = new SharpEvent(false);
+            }
+
+            _maxSize = maxSize;
         }
 
         ~ComplexFifoStream()
@@ -44,11 +60,7 @@ namespace SDRSharp.Radio
 
         public void Dispose()
         {
-            if (_event != null)
-            {
-                _terminated = true;
-                _event.Close();
-            }
+            Close();
             GC.SuppressFinalize(this);
         }
 
@@ -89,10 +101,14 @@ namespace SDRSharp.Radio
         public void Close()
         {
             Flush();
-            if (_event != null)
-            {                
-                _terminated = true;
-                _event.Set();
+            _terminated = true;
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
 
@@ -109,146 +125,204 @@ namespace SDRSharp.Radio
             }
         }
 
-        public int Read(Complex* buf, int count)
-        {
-            return Read(buf, 0, count);
-        }
-
         public int Read(Complex* buf, int ofs, int count)
         {
-            if (_event != null)
+            if (_readEvent != null)
             {
                 while (_size == 0 && !_terminated)
                 {
-                    _event.WaitOne();
+                    _readEvent.WaitOne();
                 }
                 if (_terminated)
                 {
                     return 0;
                 }
             }
+
+            int result;
+
             lock (this)
             {
-                int result = Peek(buf, ofs, count);
-                Advance(result);
-                return result;
+                result = DoPeek(buf, ofs, count);
+                DoAdvance(result);
             }
+
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+
+            return result;
         }
-        
+
         public void Write(Complex* buf, int ofs, int count)
         {
+            if (_writeEvent != null)
+            {
+                while (_size >= _maxSize && !_terminated)
+                {
+                    _writeEvent.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return;
+                }
+            }
+
             lock (this)
             {
-                int left = count;
+                var left = count;
                 while (left > 0)
                 {
                     int toWrite = Math.Min(BlockSize - _writePos, left);
                     var block = GetWBlock();
-                    var blockPtr = (Complex*) block.Address;
+                    var blockPtr = (Complex*) block;
                     Utils.Memcpy(blockPtr + _writePos, buf + ofs + count - left, toWrite * sizeof(Complex));
                     _writePos += toWrite;
                     left -= toWrite;
                 }
                 _size += count;
-                if (_event != null)
-                {
-                    _event.Set();
-                }
+            }
+
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
-        
+
+        public int Read(Complex* buf, int count)
+        {
+            return Read(buf, 0, count);
+        }
+
         public void Write(Complex* buf, int count)
         {
             Write(buf, 0, count);
         }
 
-        // extra stuff
+        private int DoAdvance(int count)
+        {
+            int sizeLeft = count;
+            while (sizeLeft > 0 && _size > 0)
+            {
+                if (_readPos == BlockSize)
+                {
+                    _readPos = 0;
+                    FreeBlock(_blocks[0]);
+                    _blocks.RemoveAt(0);
+                }
+                var toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
+                _readPos += toFeed;
+                sizeLeft -= toFeed;
+                _size -= toFeed;
+            }
+            return count - sizeLeft;
+        }
+
         public int Advance(int count)
         {
+            if (_readEvent != null)
+            {
+                while (_size == 0 && !_terminated)
+                {
+                    _readEvent.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return 0;
+                }
+            }
+
+            int result;
+
             lock (this)
             {
-                int sizeLeft = count;
-                while (sizeLeft > 0 && _size > 0)
-                {
-                    if (_readPos == BlockSize)
-                    {
-                        _readPos = 0;
-                        FreeBlock(_blocks[0]);
-                        _blocks.RemoveAt(0);
-                    }
-                    int toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
-                    _readPos += toFeed;
-                    sizeLeft -= toFeed;
-                    _size -= toFeed;
-                }
-                return count - sizeLeft;
+                result = DoAdvance(count);
             }
+
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+
+            return result;
+        }
+
+        private int DoPeek(Complex* buf, int ofs, int count)
+        {
+            var sizeLeft = count;
+            var tempBlockPos = _readPos;
+            var tempSize = _size;
+
+            var currentBlock = 0;
+            while (sizeLeft > 0 && tempSize > 0)
+            {
+                if (tempBlockPos == BlockSize)
+                {
+                    tempBlockPos = 0;
+                    currentBlock++;
+                }
+                var upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
+                var toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
+                var block = _blocks[currentBlock];
+                var blockPtr = (Complex*) block;
+                Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
+                sizeLeft -= toFeed;
+                tempBlockPos += toFeed;
+                tempSize -= toFeed;
+            }
+            return count - sizeLeft;
         }
 
         public int Peek(Complex* buf, int ofs, int count)
         {
             lock (this)
             {
-                int sizeLeft = count;
-                int tempBlockPos = _readPos;
-                int tempSize = _size;
-
-                int currentBlock = 0;
-                while (sizeLeft > 0 && tempSize > 0)
-                {
-                    if (tempBlockPos == BlockSize)
-                    {
-                        tempBlockPos = 0;
-                        currentBlock++;
-                    }
-                    int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
-                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    var block = _blocks[currentBlock];
-                    var blockPtr = (Complex*) block.Address;
-                    Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(Complex));
-                    sizeLeft -= toFeed;
-                    tempBlockPos += toFeed;
-                    tempSize -= toFeed;
-                }
-                return count - sizeLeft;
+                return DoPeek(buf, ofs, count);
             }
         }
     }
 
     public unsafe sealed class FloatFifoStream : IDisposable
     {
-
         private const int BlockSize = 65536 / 4; // 64k / sizeof(float)
-        private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
+        private const int MaxBlocksInCache = (2 * 1024 * 1024) / BlockSize;
 
         private int _size;
         private int _readPos;
         private int _writePos;
         private bool _terminated;
-        private readonly int _maxSize;
-        private readonly FifoStreamBlockingMode _blockingMode;   
-        private readonly AutoResetEvent _event;
+        private readonly int _maxSize;  
+        private readonly SharpEvent _writeEvent;
+        private readonly SharpEvent _readEvent;
         private readonly Stack<UnsafeBuffer> _usedBlocks = new Stack<UnsafeBuffer>();
         private readonly List<UnsafeBuffer> _blocks = new List<UnsafeBuffer>();
 
-        public FloatFifoStream() : this(0)
+        public FloatFifoStream() : this(BlockMode.None)
         {
         }
 
-        public FloatFifoStream(int maxSize): this(maxSize,FifoStreamBlockingMode.BlockingWrite)
-        {           
+        public FloatFifoStream(BlockMode blockMode) : this(blockMode, 0)
+        {
         }
 
-        public FloatFifoStream(int maxSize, FifoStreamBlockingMode blockingMode)
+        public FloatFifoStream(BlockMode blockMode, int maxSize)
         {
-
-            if (blockingMode != FifoStreamBlockingMode.None)
+            if (blockMode == BlockMode.BlockingRead || blockMode == BlockMode.BlockingReadWrite)
             {
-                _event = new AutoResetEvent(true);
+                _readEvent = new SharpEvent(false);
+            }
+
+            if (blockMode == BlockMode.BlockingWrite || blockMode == BlockMode.BlockingReadWrite)
+            {
+                if (maxSize <= 0)
+                {
+                    throw new ArgumentException("MaxSize should be greater than zero when in blocking write mode", "maxSize");
+                }
+                _writeEvent = new SharpEvent(false);
             }
 
             _maxSize = maxSize;
-            _blockingMode = blockingMode;
         }
 
         ~FloatFifoStream()
@@ -258,11 +332,7 @@ namespace SDRSharp.Radio
 
         public void Dispose()
         {
-            if (_event != null)
-            {
-                _terminated = true;
-                _event.Close();
-            }
+            Close();
             GC.SuppressFinalize(this);
         }
 
@@ -303,10 +373,14 @@ namespace SDRSharp.Radio
         public void Close()
         {
             Flush();
-            if (_event != null)
+            _terminated = true;
+            if (_writeEvent != null)
             {
-                _terminated = true;
-                _event.Set();
+                _writeEvent.Set();
+            }
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
 
@@ -325,43 +399,56 @@ namespace SDRSharp.Radio
 
         public int Read(float* buf, int ofs, int count)
         {
-            int result;
-            
-            if (_blockingMode == FifoStreamBlockingMode.BlockingRead && _event != null)
+            if (_readEvent != null)
             {
-                while (_size==0 && !_terminated)
+                while (_size == 0 && !_terminated)
                 {
-                    _event.WaitOne();
+                    _readEvent.WaitOne();
                 }
                 if (_terminated)
                 {
                     return 0;
                 }
-            }                        
+            }
+
+            int result;
+
             lock (this)
             {
-                result = Peek(buf, ofs, count);
-                Advance(result);
+                result = DoPeek(buf, ofs, count);
+                DoAdvance(result);
             }
+
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+
             return result;
+        }
+
+        public int Read(float* buf, int count)
+        {
+            return Read(buf, 0, count);
         }
 
         public void Write(float* buf, int ofs, int count)
         {
-            if (_event != null)
+            if (_writeEvent != null)
             {
                 while (_size >= _maxSize && !_terminated)
                 {
-                    _event.WaitOne();
+                    _writeEvent.WaitOne();
                 }
                 if (_terminated)
                 {
                     return;
                 }
             }
+
             lock (this)
             {
-                int left = count;
+                var left = count;
                 while (left > 0)
                 {
                     int toWrite = Math.Min(BlockSize - _writePos, left);
@@ -372,10 +459,11 @@ namespace SDRSharp.Radio
                     left -= toWrite;
                 }
                 _size += count;
-                if (_blockingMode == FifoStreamBlockingMode.BlockingRead && _event != null)
-                {
-                    _event.Set();
-                }
+            }
+
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
 
@@ -384,59 +472,85 @@ namespace SDRSharp.Radio
             Write(buf, 0, count);
         }
 
-        // extra stuff
+        private int DoAdvance(int count)
+        {
+            int sizeLeft = count;
+            while (sizeLeft > 0 && _size > 0)
+            {
+                if (_readPos == BlockSize)
+                {
+                    _readPos = 0;
+                    FreeBlock(_blocks[0]);
+                    _blocks.RemoveAt(0);
+                }
+                var toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
+                _readPos += toFeed;
+                sizeLeft -= toFeed;
+                _size -= toFeed;
+            }
+            return count - sizeLeft;
+        }
+
         public int Advance(int count)
         {
+            if (_readEvent != null)
+            {
+                while (_size == 0 && !_terminated)
+                {
+                    _readEvent.WaitOne();
+                }
+                if (_terminated)
+                {
+                    return 0;
+                }
+            }
+
+            int result;
+
             lock (this)
             {
-                int sizeLeft = count;
-                while (sizeLeft > 0 && _size > 0)
-                {
-                    if (_readPos == BlockSize)
-                    {
-                        _readPos = 0;
-                        FreeBlock(_blocks[0]);
-                        _blocks.RemoveAt(0);
-                    }
-                    var toFeed = _blocks.Count == 1 ? Math.Min(_writePos - _readPos, sizeLeft) : Math.Min(BlockSize - _readPos, sizeLeft);
-                    _readPos += toFeed;
-                    sizeLeft -= toFeed;
-                    _size -= toFeed;
-                }
-                if (_blockingMode == FifoStreamBlockingMode.BlockingWrite && _event != null)
-                {
-                    _event.Set();
-                }
-                return count - sizeLeft;
+                result = DoAdvance(count);
             }
+
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+
+            return result;
+        }
+
+        private int DoPeek(float* buf, int ofs, int count)
+        {
+            var sizeLeft = count;
+            var tempBlockPos = _readPos;
+            var tempSize = _size;
+
+            var currentBlock = 0;
+            while (sizeLeft > 0 && tempSize > 0)
+            {
+                if (tempBlockPos == BlockSize)
+                {
+                    tempBlockPos = 0;
+                    currentBlock++;
+                }
+                var upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
+                var toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
+                var block = _blocks[currentBlock];
+                var blockPtr = (float*) block;
+                Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(float));
+                sizeLeft -= toFeed;
+                tempBlockPos += toFeed;
+                tempSize -= toFeed;
+            }
+            return count - sizeLeft;
         }
 
         public int Peek(float* buf, int ofs, int count)
         {
             lock (this)
             {
-                int sizeLeft = count;
-                int tempBlockPos = _readPos;
-                int tempSize = _size;
-
-                int currentBlock = 0;
-                while (sizeLeft > 0 && tempSize > 0)
-                {
-                    if (tempBlockPos == BlockSize)
-                    {
-                        tempBlockPos = 0;
-                        currentBlock++;
-                    }
-                    int upper = currentBlock < _blocks.Count - 1 ? BlockSize : _writePos;
-                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    var block = _blocks[currentBlock];
-                    var blockPtr = (float*) block;
-                    Utils.Memcpy(buf + ofs + count - sizeLeft, blockPtr + tempBlockPos, toFeed * sizeof(float));
-                    sizeLeft -= toFeed;
-                    tempBlockPos += toFeed;
-                    tempSize -= toFeed;
-                }
-                return count - sizeLeft;
+                return DoPeek(buf, ofs, count);
             }
         }
     }

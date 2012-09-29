@@ -10,8 +10,8 @@ namespace SDRSharp.Radio
     {
         private const double DefaultZeta = 0.707;
         private const double DefaultLockTime = 0.5; // sec
-        private const double DefaultPhaseAdjM = -7.267e-6f;
-        private const double DefaultPhaseAdjB = 3.677f;
+        private const double DefaultPhaseAdjM = 0;
+        private const double DefaultPhaseAdjB = -2.25;
         private const double DefaultRange = 20;
         private const double DefaultBandwidth = 10;
         private const double DefaultLockThreshold = 3.2;
@@ -207,9 +207,7 @@ namespace SDRSharp.Radio
 
         public Complex Process(float sample)
         {
-            Complex osc;
-            osc.Real = (float) Math.Cos(_phase);
-            osc.Imag = (float) Math.Sin(_phase);
+            var osc = Trig.SinCos((float) _phase);
 
             osc *= sample;
             var phaseError = -osc.FastArgument();
@@ -221,9 +219,7 @@ namespace SDRSharp.Radio
 
         public Complex Process(Complex sample)
         {
-            Complex osc;
-            osc.Real = (float) Math.Cos(_phase);
-            osc.Imag = (float) Math.Sin(_phase);
+            var osc = Trig.SinCos((float) _phase);
 
             osc *= sample;
             var phaseError = -osc.FastArgument();

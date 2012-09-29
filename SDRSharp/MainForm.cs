@@ -38,7 +38,7 @@ namespace SDRSharp
         private readonly Vfo _vfo = new Vfo();
         private readonly StreamHookManager _streamHookManager = new StreamHookManager();
         private readonly StreamControl _streamControl;
-        private readonly ComplexFifoStream _fftStream = new ComplexFifoStream(true);
+        private readonly ComplexFifoStream _fftStream = new ComplexFifoStream(BlockMode.BlockingRead);
         private readonly UnsafeBuffer _iqBuffer = UnsafeBuffer.Create(MaxFFTBins, sizeof(Complex));
         private readonly Complex* _iqPtr;
         private readonly UnsafeBuffer _fftBuffer = UnsafeBuffer.Create(MaxFFTBins, sizeof(Complex));
@@ -49,7 +49,7 @@ namespace SDRSharp
         private readonly float* _fftSpectrumPtr;
         private readonly UnsafeBuffer _scaledFFTSpectrum = UnsafeBuffer.Create(MaxFFTBins, sizeof(byte));
         private readonly byte* _scaledFFTSpectrumPtr;
-        private readonly AutoResetEvent _fftEvent = new AutoResetEvent(false);
+        private readonly SharpEvent _fftEvent = new SharpEvent(false);
         private System.Windows.Forms.Timer _fftTimer;
         private System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
@@ -637,7 +637,7 @@ namespace SDRSharp
             
             foreach(var plugin in _sharpPlugins.Values)
             {
-                plugin.Closing();                
+                plugin.Close();
             }
             
             #endregion
@@ -1663,7 +1663,7 @@ namespace SDRSharp
 
                     _sharpPlugins.Add(key, plugin);
 
-                    plugin.Initialise(_sharpControlProxy);
+                    plugin.Initialize(_sharpControlProxy);
                     if (plugin.HasGui)
                     {
                         CreatePluginCollapsiblePanel(plugin);

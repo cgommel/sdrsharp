@@ -46,7 +46,7 @@ namespace SDRSharp.Radio
 
         public float FastArgument()
         {
-            return Utils.FastAtan2(Imag, Real);
+            return Trig.Atan2(Imag, Real);
         }
 
         public Complex Conjugate()

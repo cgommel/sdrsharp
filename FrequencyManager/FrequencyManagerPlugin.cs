@@ -27,12 +27,11 @@ namespace SDRSharp.FrequencyManager
             get { return _displayName; }
         }
 
-        public void Closing()
+        public void Close()
         {
-            
         }
 
-        public void Initialise(ISharpControl control)
+        public void Initialize(ISharpControl control)
         {
             _controlInterface = control;
             _frequencyManagerPanel = new FrequencyManagerPanel(_controlInterface); 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace SDRSharp.Radio
 {
@@ -23,7 +22,7 @@ namespace SDRSharp.Radio
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
         private readonly Random _rng = new Random();
-        private readonly AutoResetEvent _event = new AutoResetEvent(false);
+        private readonly SharpEvent _event = new SharpEvent(false);
 
         public IQBalancer()
         {
