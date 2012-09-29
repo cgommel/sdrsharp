@@ -9,15 +9,15 @@ namespace SDRSharp.Radio
         private const float BaseIncrement = 0.001f;
         private const float PowerThreshold = 20.0f; // in dB
 
-        private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
-        private bool _autoBalanceIQ;
+        private DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
+        private DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
         private float _gain = 1.0f;
         private float _phase;
         private float _averagePower;
         private float _powerRange;
         private Complex* _iqPtr;
-        private DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
-        private DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
+        private int _maxAutomaticPasses = Utils.GetIntSetting("automaticIQBalancePasses", 10);
+        private bool _autoBalanceIQ;
         private readonly bool _isMultithreaded;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;

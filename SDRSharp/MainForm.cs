@@ -71,6 +71,8 @@ namespace SDRSharp
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private SharpControlProxy _sharpControlProxy;
 
+        private readonly float _fftOffset = (float) Utils.GetDoubleSetting("fftOffset", -50.0);
+
         #endregion
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -754,7 +756,7 @@ namespace SDRSharp
 
                     // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
                     var fftGain = (float)(10.0 * Math.Log10((double) _actualFftBins / 2));
-                    var compensation = 24.0f - fftGain;
+                    var compensation = 24.0f - fftGain + _fftOffset;
 
                     #endregion
 
