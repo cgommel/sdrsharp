@@ -22,7 +22,7 @@ namespace SDRSharp.Radio
                 if (_squelchThreshold != value)
                 {
                     _squelchThreshold = value;
-                    _powerThreshold = (_squelchThreshold / 100f - 1.0f) * 70f - 70.0f;
+                    _powerThreshold = (_squelchThreshold / 100.0f - 1.0f) * 100f;
                 }
             }
         }
@@ -37,20 +37,25 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 var sample = iq[i].Modulus();
-                var power = (float) (20.0f * Math.Log10(1e-60 + sample));
-                _avg = 0.99f * _avg + 0.01f * Math.Max(power, -130.0f);
-                if (_avg > _powerThreshold)
+                if (_squelchThreshold == 0)
                 {
                     audio[i] = sample;
                 }
                 else
                 {
-                    audio[i] = 0f;
+                    var power = (float) (20.0f * Math.Log10(1e-60 + sample));
+                    _avg = 0.99f * _avg + 0.01f * power;
+                    _isSquelchOpen = _avg > _powerThreshold;
+                    if (_isSquelchOpen)
+                    {
+                        audio[i] = sample;
+                    }
+                    else
+                    {
+                        audio[i] = 0f;
+                    }
                 }
-                
             }
-
-            _isSquelchOpen = _avg > _powerThreshold;
         }
     }
 }
