@@ -473,7 +473,11 @@ namespace SDRSharp.Radio
                 _rawAudioPtr = (float*) _rawAudioBuffer;
             }
 
-            ScaleIQ(iqBuffer, length);
+            if (_actualDetectorType != DetectorType.WFM)
+            {
+                ScaleIQ(iqBuffer, length);
+            }
+
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
             if (_actualDetectorType != DetectorType.WFM)
