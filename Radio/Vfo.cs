@@ -474,14 +474,21 @@ namespace SDRSharp.Radio
             }
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
-            if (_filterAudio && _actualDetectorType != DetectorType.WFM)
+            if (_actualDetectorType != DetectorType.WFM)
             {
-                _audioFilter.Process(_rawAudioPtr, length);
-            }
+                if (_filterAudio)
+                {
+                    _audioFilter.Process(_rawAudioPtr, length);
+                }
 
-            if (_useAgc && _actualDetectorType != DetectorType.WFM && _actualDetectorType != DetectorType.NFM)
-            {
-                _agc.Process(_rawAudioPtr, length);
+                if (_actualDetectorType != DetectorType.NFM)
+                {
+                    ScaleAudio(_rawAudioPtr, length);
+                    if (_useAgc)
+                    {
+                        _agc.Process(_rawAudioPtr, length);
+                    }
+                }
             }
 
             if (_actualDetectorType == DetectorType.AM)
@@ -497,6 +504,14 @@ namespace SDRSharp.Radio
             else
             {
                 MonoToStereo(_rawAudioPtr, audioBuffer, length);
+            }
+        }
+
+        private static void ScaleAudio(float* buffer, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                buffer[i] *= 0.01f;
             }
         }
 
