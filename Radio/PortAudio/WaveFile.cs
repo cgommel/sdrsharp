@@ -155,11 +155,11 @@ namespace SDRSharp.Radio.PortAudio
                 else if (_blockAlign == 2)
                 {
                     const float scale = 1.0f / 128.0f;
-                    var ptr = (sbyte*) _tempPtr;
+                    var ptr = _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
-                        iqPtr->Real = *ptr++ * scale;
-                        iqPtr->Imag = *ptr++ * scale;
+                        iqPtr->Real = (*ptr++ - 128) * scale;
+                        iqPtr->Imag = (*ptr++ - 128) * scale;
                         iqPtr++;
                     }
                 }

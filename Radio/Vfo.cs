@@ -472,6 +472,8 @@ namespace SDRSharp.Radio
                 _rawAudioBuffer = UnsafeBuffer.Create(length, sizeof (float));
                 _rawAudioPtr = (float*) _rawAudioBuffer;
             }
+
+            ScaleIQ(iqBuffer, length);
             Demodulate(iqBuffer, _rawAudioPtr, length);
 
             if (_actualDetectorType != DetectorType.WFM)
@@ -481,13 +483,9 @@ namespace SDRSharp.Radio
                     _audioFilter.Process(_rawAudioPtr, length);
                 }
 
-                if (_actualDetectorType != DetectorType.NFM)
+                if (_actualDetectorType != DetectorType.NFM && _useAgc)
                 {
-                    ScaleAudio(_rawAudioPtr, length);
-                    if (_useAgc)
-                    {
-                        _agc.Process(_rawAudioPtr, length);
-                    }
+                    _agc.Process(_rawAudioPtr, length);
                 }
             }
 
@@ -507,11 +505,12 @@ namespace SDRSharp.Radio
             }
         }
 
-        private static void ScaleAudio(float* buffer, int length)
+        private static void ScaleIQ(Complex* buffer, int length)
         {
             for (var i = 0; i < length; i++)
             {
-                buffer[i] *= 0.01f;
+                buffer[i].Real *= 0.01f;
+                buffer[i].Imag *= 0.01f;
             }
         }
 

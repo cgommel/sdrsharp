@@ -9,11 +9,6 @@ namespace SDRSharp.Radio
         private int _squelchThreshold;
         private bool _isSquelchOpen;
 
-        public AmDetector()
-        {
-            _powerThreshold = -200.0f;
-        }
-
         public int SquelchThreshold
         {
             get { return _squelchThreshold; }
@@ -22,7 +17,7 @@ namespace SDRSharp.Radio
                 if (_squelchThreshold != value)
                 {
                     _squelchThreshold = value;
-                    _powerThreshold = (_squelchThreshold / 100.0f - 1.0f) * 100f;
+                    _powerThreshold = (_squelchThreshold / 100.0f - 1.0f) * 100f - 50.0f;
                 }
             }
         }
