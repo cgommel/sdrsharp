@@ -14,8 +14,8 @@ namespace SDRSharp.Radio
     /// </summary>
     public unsafe sealed class FmDetector
     {
-        private const float NarrowAFGain = 0.00001f;
-        private const float WideAFGain = 0.00001f;
+        private const float NarrowAFGain = 0.5f;
+        private const float FMGain = 0.00001f;
         private const float TimeConst = 0.000001f;
         
         private const int MinHissFrequency = 4000;
@@ -35,7 +35,6 @@ namespace SDRSharp.Radio
         private bool _isSquelchOpen;
         private float _noiseThreshold;
         private FmMode _mode;
-        private float _afGain = NarrowAFGain;
 
         public void Demodulate(Complex* iq, float* audio, int length)
         {
@@ -55,7 +54,7 @@ namespace SDRSharp.Radio
                 var a = f.Argument();
 
                 // Scale
-                audio[i] = a * _afGain;
+                audio[i] = a * FMGain;
 
                 _iqState = iq[i];
             }
@@ -63,6 +62,10 @@ namespace SDRSharp.Radio
             if (_mode == FmMode.Narrow)
             {
                 ProcessSquelch(audio, length);
+                for (var i = 0; i < length; i++)
+                {
+                    audio[i] *= NarrowAFGain;
+                }
             }
         }
 
@@ -73,7 +76,7 @@ namespace SDRSharp.Radio
                 if (_hissBuffer == null || _hissBuffer.Length != length)
                 {
                     _hissBuffer = UnsafeBuffer.Create(length, sizeof(float));
-                    _hissPtr = (float*)_hissBuffer;
+                    _hissPtr = (float*) _hissBuffer;
                 }
 
                 Utils.Memcpy(_hissPtr, audio, length * sizeof(float));
@@ -90,16 +93,14 @@ namespace SDRSharp.Radio
                     if (_noiseLevel > _noiseThreshold)
                     {
                         audio[i] = 0.0f;
-                    }      
+                    }
                 }
 
                 _isSquelchOpen = _noiseLevel < _noiseThreshold;
-
             }
             else
             {
                 _isSquelchOpen = true;
-
             }
         }
 
@@ -152,14 +153,7 @@ namespace SDRSharp.Radio
         public FmMode Mode
         {
             get { return _mode; }
-            set
-            {
-                if (_mode != value)
-                {
-                    _mode = value;
-                    _afGain = value == FmMode.Narrow ? NarrowAFGain : WideAFGain;
-                }
-            }
+            set { _mode = value; }
         }
     }
 }

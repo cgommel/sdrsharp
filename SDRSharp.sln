@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.Common", "Common\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.SDRIQ", "SDRIQ\SDRSharp.SDRIQ.csproj", "{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDRSharp.WavRecorder", "WavRecorder\SDRSharp.WavRecorder.csproj", "{EC625CDB-0D44-4D8A-8581-3C0DAB4D2EDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -78,6 +80,10 @@ Global
 		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Debug|x86.Build.0 = Debug|x86
 		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Release|x86.ActiveCfg = Release|x86
 		{5F3531D8-3C21-4CA1-B8DE-77B9B03421A9}.Release|x86.Build.0 = Release|x86
+		{EC625CDB-0D44-4D8A-8581-3C0DAB4D2EDA}.Debug|x86.ActiveCfg = Debug|x86
+		{EC625CDB-0D44-4D8A-8581-3C0DAB4D2EDA}.Debug|x86.Build.0 = Debug|x86
+		{EC625CDB-0D44-4D8A-8581-3C0DAB4D2EDA}.Release|x86.ActiveCfg = Release|x86
+		{EC625CDB-0D44-4D8A-8581-3C0DAB4D2EDA}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

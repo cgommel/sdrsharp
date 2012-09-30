@@ -14,6 +14,7 @@ namespace SDRSharp.Radio
         private const float PllThreshold = 1.0f;
         private const float PllLockTime = 0.5f; // sec
         private const float PllZeta = 0.707f;
+        private const float AudioGain = 0.2f;
 
         private static readonly float _deemphasisTime = (float) Utils.GetDoubleSetting("deemphasisTime", 50) * 1e-6f;
         private static readonly float _pllPhaseAdjM = (float) Utils.GetDoubleSetting("pllPhaseAdjM", 0.0f);
@@ -102,8 +103,9 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < length; i++)
             {
-                interleavedStereo[i * 2] = _channelAPtr[i];
-                interleavedStereo[i * 2 + 1] = _channelAPtr[i];
+                var sample = _channelAPtr[i] * AudioGain;
+                interleavedStereo[i * 2] = sample;
+                interleavedStereo[i * 2 + 1] = sample;
             }
 
             #endregion
@@ -185,8 +187,9 @@ namespace SDRSharp.Radio
 
                 for (var i = 0; i < audioLength; i++)
                 {
-                    interleavedStereo[i * 2] = _channelAPtr[i];
-                    interleavedStereo[i * 2 + 1] = _channelAPtr[i];
+                    var sample = _channelAPtr[i] * AudioGain;
+                    interleavedStereo[i * 2] = sample;
+                    interleavedStereo[i * 2 + 1] = sample;
                 }
 
                 #endregion
@@ -214,8 +217,8 @@ namespace SDRSharp.Radio
             {
                 var a = _channelAPtr[i];
                 var b = 2f * _channelBPtr[i];
-                interleavedStereo[i * 2]     = a + b;
-                interleavedStereo[i * 2 + 1] = a - b;
+                interleavedStereo[i * 2]     = (a + b) * AudioGain;
+                interleavedStereo[i * 2 + 1] = (a - b) * AudioGain;
             }
 
             #endregion

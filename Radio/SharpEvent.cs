@@ -62,6 +62,14 @@ namespace SDRSharp.Radio
                 _state = false;
             }
         }
+
+        public void Reset()
+        {
+            lock (this)
+            {
+                _state = false;
+            }
+        }
     }
 
 #else
