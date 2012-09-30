@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
+#if !__MonoCS__
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+#endif
     public unsafe sealed class StereoDecoder
     {
         private const int DefaultPilotFrequency = 19000;

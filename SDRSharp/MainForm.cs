@@ -71,7 +71,7 @@ namespace SDRSharp
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private SharpControlProxy _sharpControlProxy;
 
-        private readonly float _fftOffset = (float) Utils.GetDoubleSetting("fftOffset", -50.0);
+        private readonly float _fftOffset = (float) Utils.GetDoubleSetting("fftOffset", -40.0);
 
         #endregion
 
