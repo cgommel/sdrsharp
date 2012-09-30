@@ -33,17 +33,17 @@
             this.closeButton = new System.Windows.Forms.Button();
             this.deviceComboBox = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.rfGainTrackBar = new System.Windows.Forms.TrackBar();
+            this.tunerGainTrackBar = new System.Windows.Forms.TrackBar();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.samplerateComboBox = new System.Windows.Forms.ComboBox();
-            this.gainModeCheckBox = new System.Windows.Forms.CheckBox();
+            this.tunerAgcCheckBox = new System.Windows.Forms.CheckBox();
             this.gainLabel = new System.Windows.Forms.Label();
             this.frequencyCorrectionNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.tunerTypeLabel = new System.Windows.Forms.Label();
             this.rtlAgcCheckBox = new System.Windows.Forms.CheckBox();
-            ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tunerGainTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
@@ -82,15 +82,15 @@
             this.label1.TabIndex = 20;
             this.label1.Text = "Device";
             // 
-            // rfGainTrackBar
+            // tunerGainTrackBar
             // 
-            this.rfGainTrackBar.Enabled = false;
-            this.rfGainTrackBar.Location = new System.Drawing.Point(3, 161);
-            this.rfGainTrackBar.Maximum = 17;
-            this.rfGainTrackBar.Name = "rfGainTrackBar";
-            this.rfGainTrackBar.Size = new System.Drawing.Size(267, 45);
-            this.rfGainTrackBar.TabIndex = 4;
-            this.rfGainTrackBar.Scroll += new System.EventHandler(this.rfGainTrackBar_Scroll);
+            this.tunerGainTrackBar.Enabled = false;
+            this.tunerGainTrackBar.Location = new System.Drawing.Point(3, 161);
+            this.tunerGainTrackBar.Maximum = 10000;
+            this.tunerGainTrackBar.Name = "tunerGainTrackBar";
+            this.tunerGainTrackBar.Size = new System.Drawing.Size(267, 45);
+            this.tunerGainTrackBar.TabIndex = 4;
+            this.tunerGainTrackBar.Scroll += new System.EventHandler(this.tunerGainTrackBar_Scroll);
             // 
             // label2
             // 
@@ -131,18 +131,18 @@
             this.samplerateComboBox.TabIndex = 1;
             this.samplerateComboBox.SelectedIndexChanged += new System.EventHandler(this.samplerateComboBox_SelectedIndexChanged);
             // 
-            // gainModeCheckBox
+            // tunerAgcCheckBox
             // 
-            this.gainModeCheckBox.AutoSize = true;
-            this.gainModeCheckBox.Checked = true;
-            this.gainModeCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.gainModeCheckBox.Location = new System.Drawing.Point(12, 125);
-            this.gainModeCheckBox.Name = "gainModeCheckBox";
-            this.gainModeCheckBox.Size = new System.Drawing.Size(79, 17);
-            this.gainModeCheckBox.TabIndex = 3;
-            this.gainModeCheckBox.Text = "Tuner AGC";
-            this.gainModeCheckBox.UseVisualStyleBackColor = true;
-            this.gainModeCheckBox.CheckedChanged += new System.EventHandler(this.gainModeCheckBox_CheckedChanged);
+            this.tunerAgcCheckBox.AutoSize = true;
+            this.tunerAgcCheckBox.Checked = true;
+            this.tunerAgcCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.tunerAgcCheckBox.Location = new System.Drawing.Point(12, 125);
+            this.tunerAgcCheckBox.Name = "tunerAgcCheckBox";
+            this.tunerAgcCheckBox.Size = new System.Drawing.Size(79, 17);
+            this.tunerAgcCheckBox.TabIndex = 3;
+            this.tunerAgcCheckBox.Text = "Tuner AGC";
+            this.tunerAgcCheckBox.UseVisualStyleBackColor = true;
+            this.tunerAgcCheckBox.CheckedChanged += new System.EventHandler(this.tunerAgcCheckBox_CheckedChanged);
             // 
             // gainLabel
             // 
@@ -213,11 +213,11 @@
             this.Controls.Add(this.label4);
             this.Controls.Add(this.frequencyCorrectionNumericUpDown);
             this.Controls.Add(this.gainLabel);
-            this.Controls.Add(this.gainModeCheckBox);
+            this.Controls.Add(this.tunerAgcCheckBox);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.samplerateComboBox);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.rfGainTrackBar);
+            this.Controls.Add(this.tunerGainTrackBar);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.deviceComboBox);
             this.Controls.Add(this.closeButton);
@@ -232,7 +232,7 @@
             this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RtlSdrControllerDialog_FormClosing);
             this.VisibleChanged += new System.EventHandler(this.RtlSdrControllerDialog_VisibleChanged);
-            ((System.ComponentModel.ISupportInitialize)(this.rfGainTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tunerGainTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -245,11 +245,11 @@
         private System.Windows.Forms.Button closeButton;
         private System.Windows.Forms.ComboBox deviceComboBox;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TrackBar rfGainTrackBar;
+        private System.Windows.Forms.TrackBar tunerGainTrackBar;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox samplerateComboBox;
-        private System.Windows.Forms.CheckBox gainModeCheckBox;
+        private System.Windows.Forms.CheckBox tunerAgcCheckBox;
         private System.Windows.Forms.Label gainLabel;
         private System.Windows.Forms.NumericUpDown frequencyCorrectionNumericUpDown;
         private System.Windows.Forms.Label label4;

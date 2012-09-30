@@ -8,6 +8,7 @@ namespace SDRSharp.RTLSDR
     {
         private readonly RtlSdrControllerDialog _gui;
         private RtlDevice _rtlDevice;
+        private uint _frequency = 105500000;
         private Radio.SamplesAvailableDelegate _callback;
 
         public RtlSdrIO()
@@ -31,13 +32,10 @@ namespace SDRSharp.RTLSDR
 
         public void SelectDevice(uint index)
         {
-            if (_rtlDevice != null && _rtlDevice.Index == index)
-            {
-                return;
-            }
             Close();
             _rtlDevice = new RtlDevice(index);
             _rtlDevice.SamplesAvailable += rtlDevice_SamplesAvailable;
+            _rtlDevice.Frequency = _frequency;
             _gui.ConfigureGUI();
             _gui.ConfigureDevice();
         }
@@ -87,7 +85,15 @@ namespace SDRSharp.RTLSDR
                 throw new ApplicationException("No device selected");
             }
             _callback = callback;
-            _rtlDevice.Start();
+            try
+            {
+                _rtlDevice.Start();
+            }
+            catch
+            {
+                Open();
+                _rtlDevice.Start();
+            }
         }
 
         public void Stop()
@@ -122,12 +128,13 @@ namespace SDRSharp.RTLSDR
 
         public long Frequency
         {
-            get { return _rtlDevice == null ? 0 : _rtlDevice.Frequency; }
+            get { return _frequency; }
             set
             {
+                _frequency = (uint) value;
                 if (_rtlDevice != null)
                 {
-                    _rtlDevice.Frequency = (uint) value;
+                    _rtlDevice.Frequency = _frequency;
                 }
             }
         }

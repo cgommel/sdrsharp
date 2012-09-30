@@ -389,17 +389,14 @@ namespace SDRSharp
 
             #region VFO
 
+            DetectorType = (DetectorType) Utils.GetIntSetting("detectorType", (int) DetectorType.AM);
+            modeRadioButton_CheckStateChanged(null, null);
+
             filterOrderNumericUpDown.Value = Utils.GetIntSetting("filterOrder", 400);
             filterOrderNumericUpDown_ValueChanged(null, null);
 
             cwShiftNumericUpDown.Value = Utils.GetIntSetting("cwShift", Vfo.DefaultCwSideTone);
             cwShiftNumericUpDown_ValueChanged(null, null);
-
-            squelchNumericUpDown.Value = Utils.GetIntSetting("squelchThreshold", 50);
-            squelchNumericUpDown_ValueChanged(null, null);
-
-            useSquelchCheckBox.Checked = Utils.GetBooleanSetting("squelchEnabled");
-            useSquelchCheckBox_CheckedChanged(null, null);
 
             agcCheckBox.Checked = Utils.GetBooleanSetting("useAGC");
             agcCheckBox_CheckedChanged(null, null);
@@ -416,8 +413,11 @@ namespace SDRSharp
             agcUseHangCheckBox.Checked = Utils.GetBooleanSetting("agcHang");
             agcUseHangCheckBox_CheckedChanged(null, null);
 
-            DetectorType = (DetectorType) Utils.GetIntSetting("detectorType", (int) DetectorType.AM);
-            modeRadioButton_CheckStateChanged(null, null);
+            squelchNumericUpDown.Value = Utils.GetIntSetting("squelchThreshold", 50);
+            squelchNumericUpDown_ValueChanged(null, null);
+
+            useSquelchCheckBox.Checked = Utils.GetBooleanSetting("squelchEnabled");
+            useSquelchCheckBox_CheckedChanged(null, null);
 
             var filterBandwidth = Utils.GetIntSetting("filterBandwidth", -1);
             if (filterBandwidth >= 0)

@@ -8,7 +8,7 @@ namespace SDRSharp.RTLSDR
     public partial class RtlSdrControllerDialog : Form
     {
         private readonly RtlSdrIO _owner;
-        private readonly bool _initialized;
+        private bool _initialized;
 
         public RtlSdrControllerDialog(RtlSdrIO owner)
         {
@@ -20,7 +20,10 @@ namespace SDRSharp.RTLSDR
             deviceComboBox.Items.AddRange(devices);
 
             frequencyCorrectionNumericUpDown.Value = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
-            samplerateComboBox.SelectedIndex = 3;
+            samplerateComboBox.SelectedIndex = Utils.GetIntSetting("RTLSampleRate", 3);
+            rtlAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLChipAgc");
+            tunerAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLTunerAgc");
+            tunerGainTrackBar.Value = Utils.GetIntSetting("RTLTunerGain", 0);
 
             _initialized = true;
         }
@@ -43,6 +46,23 @@ namespace SDRSharp.RTLSDR
             {
                 samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
                 deviceComboBox.Enabled = !_owner.Device.IsStreaming;
+                if (!_owner.Device.IsStreaming)
+                {
+                    var devices = DeviceDisplay.GetActiveDevices();
+                    deviceComboBox.Items.Clear();
+                    deviceComboBox.Items.AddRange(devices);
+
+                    for (var i = 0; i < devices.Length; i++)
+                    {
+                        if (devices[i].Index == ((DeviceDisplay) deviceComboBox.Items[i]).Index)
+                        {
+                            _initialized = false;
+                            deviceComboBox.SelectedIndex = i;
+                            _initialized = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -73,15 +93,16 @@ namespace SDRSharp.RTLSDR
             }
         }
 
-        private void rfGainTrackBar_Scroll(object sender, EventArgs e)
+        private void tunerGainTrackBar_Scroll(object sender, EventArgs e)
         {
             if (!_initialized)
             {
                 return;
             }
-            var gain = _owner.Device.SupportedGains[rfGainTrackBar.Value];
+            var gain = _owner.Device.SupportedGains[tunerGainTrackBar.Value];
             _owner.Device.Gain = gain;
             gainLabel.Text = gain / 10.0 + " dB";
+            Utils.SaveSetting("RTLTunerGain", tunerGainTrackBar.Value);
         }
 
         private void samplerateComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -93,21 +114,23 @@ namespace SDRSharp.RTLSDR
             var samplerateString = samplerateComboBox.Items[samplerateComboBox.SelectedIndex].ToString().Split(' ')[0];
             var sampleRate = double.Parse(samplerateString, CultureInfo.InvariantCulture);
             _owner.Device.Samplerate = (uint) (sampleRate * 1000000.0);
+            Utils.SaveSetting("RTLSampleRate", samplerateComboBox.SelectedIndex);
         }
 
-        private void gainModeCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void tunerAgcCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             if (!_initialized)
             {
                 return;
             }
-            rfGainTrackBar.Enabled = !gainModeCheckBox.Checked;
-            _owner.Device.UseTunerAGC = gainModeCheckBox.Checked;
-            gainLabel.Visible = !gainModeCheckBox.Checked;
-            if (!gainModeCheckBox.Checked)
+            tunerGainTrackBar.Enabled = !tunerAgcCheckBox.Checked;
+            _owner.Device.UseTunerAGC = tunerAgcCheckBox.Checked;
+            gainLabel.Visible = !tunerAgcCheckBox.Checked;
+            if (!tunerAgcCheckBox.Checked)
             {
-                rfGainTrackBar_Scroll(null, null);
+                tunerGainTrackBar_Scroll(null, null);
             }
+            Utils.SaveSetting("RTLTunerAgc", tunerAgcCheckBox.Checked);
         }
 
         private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -127,12 +150,13 @@ namespace SDRSharp.RTLSDR
                 return;
             }
             _owner.Device.UseRtlAGC = rtlAgcCheckBox.Checked;
+            Utils.SaveSetting("RTLChipAgc", rtlAgcCheckBox.Checked);
         }
 
         public void ConfigureGUI()
         {
             tunerTypeLabel.Text = _owner.Device.TunerType.ToString();
-            rfGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
+            tunerGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
 
             for (var i = 0; i < deviceComboBox.Items.Count; i++)
             {
@@ -150,10 +174,10 @@ namespace SDRSharp.RTLSDR
             samplerateComboBox_SelectedIndexChanged(null, null);
             frequencyCorrectionNumericUpDown_ValueChanged(null, null);
             rtlAgcCheckBox_CheckedChanged(null, null);
-            gainModeCheckBox_CheckedChanged(null, null);
-            if (!gainModeCheckBox.Checked)
+            tunerAgcCheckBox_CheckedChanged(null, null);
+            if (!tunerAgcCheckBox.Checked)
             {
-                rfGainTrackBar_Scroll(null, null);
+                tunerGainTrackBar_Scroll(null, null);
             }
         }
     }
