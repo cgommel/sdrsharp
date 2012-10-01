@@ -63,7 +63,7 @@ namespace SDRSharp.Radio
             _osc.Frequency = PllDefaultFrequency;
 
             var decimationStageCount = 0;
-            while (_sampleRate > 8000 * Math.Pow(2.0, decimationStageCount))
+            while (_sampleRate >= 16000 * Math.Pow(2.0, decimationStageCount))
             {
                 decimationStageCount++;
             }
@@ -146,11 +146,11 @@ namespace SDRSharp.Radio
                 _dataPtr[i] = _pll.Process(_rawPtr[i]).Imag;
             }
 
-            if (!_pll.IsLocked)
-            {
-                _bitDecoder.Reset();
-                return;
-            }
+            //if (!_pll.IsLocked)
+            //{
+            //    _bitDecoder.Reset();
+            //    return;
+            //}
 
             // Matched filter
             _matchedFilter.Process(_dataPtr, length);
