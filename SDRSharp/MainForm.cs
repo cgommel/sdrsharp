@@ -14,6 +14,7 @@ using SDRSharp.Common;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
 using SDRSharp.Radio.PortAudio;
+using System.Collections.Specialized;
 
 namespace SDRSharp
 {
@@ -543,18 +544,18 @@ namespace SDRSharp
 
             #region Initialize the plugins
 
-            var frontendPlugins = (Hashtable)ConfigurationManager.GetSection("frontendPlugins");
+            var frontendPlugins = (NameValueCollection) ConfigurationManager.GetSection("frontendPlugins");
 
             foreach (string key in frontendPlugins.Keys)
             {
                 try
                 {
-                    var fullyQualifiedTypeName = (string)frontendPlugins[key];
+                    var fullyQualifiedTypeName = frontendPlugins[key];
                     var patterns = fullyQualifiedTypeName.Split(',');
                     var typeName = patterns[0];
                     var assemblyName = patterns[1];
                     var objectHandle = Activator.CreateInstance(assemblyName, typeName);
-                    var controller = (IFrontendController)objectHandle.Unwrap();
+                    var controller = (IFrontendController) objectHandle.Unwrap();
                     _frontendControllers.Add(key, controller);
                     iqSourceComboBox.Items.Add(key);
                 }
@@ -1716,7 +1717,7 @@ namespace SDRSharp
         private void InitialiseSharpPlugins()
         {
             _sharpControlProxy = new SharpControlProxy(this);
-            var sharpPlugins = (Hashtable) ConfigurationManager.GetSection("sharpPlugins");
+            var sharpPlugins = (NameValueCollection) ConfigurationManager.GetSection("sharpPlugins");
 
             if (sharpPlugins == null)
             {
@@ -1730,7 +1731,7 @@ namespace SDRSharp
             {
                 try
                 {
-                    var fullyQualifiedTypeName = (string) sharpPlugins[key];
+                    var fullyQualifiedTypeName = sharpPlugins[key];
                     var patterns = fullyQualifiedTypeName.Split(',');
                     var typeName = patterns[0];
                     var assemblyName = patterns[1];
