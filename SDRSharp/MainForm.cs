@@ -487,6 +487,8 @@ namespace SDRSharp
                 Size = _lastSize;
             }
 
+            panSplitContainer.SplitterDistance = Utils.GetIntSetting("splitterPosition", panSplitContainer.SplitterDistance);
+
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
             spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             
@@ -710,6 +712,7 @@ namespace SDRSharp
             Utils.SaveSetting("windowPosition", Utils.IntArrayToString(_lastLocation.X, _lastLocation.Y));
             Utils.SaveSetting("windowSize", Utils.IntArrayToString(_lastSize.Width, _lastSize.Height));
             Utils.SaveSetting("collapsiblePanelStates", Utils.IntArrayToString(GetCollapsiblePanelStates()));
+            Utils.SaveSetting("splitterPosition", panSplitContainer.SplitterDistance);
             Utils.SaveSetting("iqSource", iqSourceComboBox.SelectedIndex);
             Utils.SaveSetting("waveFile", "" + _waveFile);
             Utils.SaveSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);

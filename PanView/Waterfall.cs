@@ -659,7 +659,10 @@ namespace SDRSharp.PanView
             DrawGradient();
             BuildGradientVector();
             _performNeeded = true;
+            var oldMouseIn = _mouseIn;
+            _mouseIn = true;
             Perform();
+            _mouseIn = oldMouseIn;
         }
 
         private void DrawGradient()
