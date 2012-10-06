@@ -478,6 +478,10 @@ namespace SDRSharp
                 _lastLocation.Y = locationArray[1];
                 Location = _lastLocation;
             }
+            else
+            {
+                _lastLocation = Location;
+            }
 
             var sizeArray = Utils.GetIntArraySetting("windowSize", null);
             if (sizeArray != null)
@@ -485,6 +489,10 @@ namespace SDRSharp
                 _lastSize.Width = sizeArray[0];
                 _lastSize.Height = sizeArray[1];
                 Size = _lastSize;
+            }
+            else
+            {
+                _lastSize = Size;
             }
 
             panSplitContainer.SplitterDistance = Utils.GetIntSetting("splitterPosition", panSplitContainer.SplitterDistance);
