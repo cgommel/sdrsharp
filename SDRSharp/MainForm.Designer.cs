@@ -18,8 +18,6 @@ namespace SDRSharp
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
             this.playStopButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.fftContrastTrackBar = new System.Windows.Forms.TrackBar();
             this.fftZoomTrackBar = new System.Windows.Forms.TrackBar();
@@ -101,6 +99,8 @@ namespace SDRSharp
             this.iqSourceComboBox = new System.Windows.Forms.ComboBox();
             this.label17 = new System.Windows.Forms.Label();
             this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -165,57 +165,6 @@ namespace SDRSharp
             this.panSplitContainer.Size = new System.Drawing.Size(642, 663);
             this.panSplitContainer.SplitterDistance = 213;
             this.panSplitContainer.TabIndex = 13;
-            // 
-            // spectrumAnalyzer
-            // 
-            this.spectrumAnalyzer.Attack = 0.9D;
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
-            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
-            this.spectrumAnalyzer.Decay = 0.3D;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 10000;
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Frequency = ((long)(0));
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.MarkPeaks = false;
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(642, 213);
-            this.spectrumAnalyzer.SpectrumWidth = 48000;
-            this.spectrumAnalyzer.StatusText = null;
-            this.spectrumAnalyzer.StepSize = 1000;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = true;
-            this.spectrumAnalyzer.UseSnap = false;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
-            // 
-            // waterfall
-            // 
-            this.waterfall.Attack = 0.9D;
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
-            this.waterfall.CenterFrequency = ((long)(0));
-            this.waterfall.Contrast = 0;
-            this.waterfall.Decay = 0.5D;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 10000;
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Frequency = ((long)(0));
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(642, 446);
-            this.waterfall.SpectrumWidth = 48000;
-            this.waterfall.StepSize = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.TimestampInterval = 100;
-            this.waterfall.UseSmoothing = true;
-            this.waterfall.UseSnap = false;
-            this.waterfall.UseTimestamps = false;
-            this.waterfall.Zoom = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             // 
             // iqTimer
             // 
@@ -1326,6 +1275,57 @@ namespace SDRSharp
             this.fftSpeedTrackBar.Value = 50;
             this.fftSpeedTrackBar.ValueChanged += new System.EventHandler(this.fftSpeedTrackBar_ValueChanged);
             // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.Attack = 0.9D;
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
+            this.spectrumAnalyzer.Decay = 0.3D;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
+            this.spectrumAnalyzer.Frequency = ((long)(0));
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.MarkPeaks = false;
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(642, 213);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.StatusText = null;
+            this.spectrumAnalyzer.StepSize = 1000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = true;
+            this.spectrumAnalyzer.UseSnap = false;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.Attack = 0.9D;
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
+            this.waterfall.CenterFrequency = ((long)(0));
+            this.waterfall.Contrast = 0;
+            this.waterfall.Decay = 0.5D;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
+            this.waterfall.Frequency = ((long)(0));
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Size = new System.Drawing.Size(642, 446);
+            this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.StepSize = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.TimestampInterval = 100;
+            this.waterfall.UseSmoothing = true;
+            this.waterfall.UseSnap = false;
+            this.waterfall.UseTimestamps = false;
+            this.waterfall.Zoom = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1345,9 +1345,11 @@ namespace SDRSharp
             this.KeyPreview = true;
             this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "SDR#";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
+            this.Move += new System.EventHandler(this.MainForm_Move);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.panSplitContainer.Panel1.ResumeLayout(false);
             this.panSplitContainer.Panel2.ResumeLayout(false);
             this.panSplitContainer.ResumeLayout(false);

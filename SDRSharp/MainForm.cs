@@ -67,6 +67,9 @@ namespace SDRSharp
         private bool _extioChangingSamplerate;
         private bool _terminated;
         private string _waveFile;
+        private Point _lastLocation;
+        private Size _lastSize;
+        private bool _initializing;
 
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private SharpControlProxy _sharpControlProxy;
@@ -342,6 +345,8 @@ namespace SDRSharp
 
         private void InitializeGUI()
         {
+            _initializing = true;
+
             #region Tunning
 
             ThreadPool.QueueUserWorkItem(TuneThreadProc);
@@ -466,6 +471,22 @@ namespace SDRSharp
 
             WindowState = (FormWindowState) Utils.GetIntSetting("windowState", (int) FormWindowState.Normal);
 
+            var locationArray = Utils.GetIntArraySetting("windowPosition", null);
+            if (locationArray != null)
+            {
+                _lastLocation.X = locationArray[0];
+                _lastLocation.Y = locationArray[1];
+                Location = _lastLocation;
+            }
+
+            var sizeArray = Utils.GetIntArraySetting("windowSize", null);
+            if (sizeArray != null)
+            {
+                _lastSize.Width = sizeArray[0];
+                _lastSize.Height = sizeArray[1];
+                Size = _lastSize;
+            }
+
             waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
             spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             
@@ -574,7 +595,10 @@ namespace SDRSharp
             iqSourceComboBox.Items.Add("Other (Sound card)");
 
             #endregion
-           
+
+            #region Source selection
+
+            _waveFile = Utils.GetStringSetting("waveFile", string.Empty);
             var sourceIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
             iqSourceComboBox.SelectedIndex = sourceIndex < iqSourceComboBox.Items.Count ? sourceIndex : (iqSourceComboBox.Items.Count - 1);
             if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
@@ -590,6 +614,10 @@ namespace SDRSharp
                     frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
                 }
             }
+
+            #endregion
+
+            _initializing = false;
         }
 
         private void ExtIO_LOFreqChanged(int frequency)
@@ -679,7 +707,11 @@ namespace SDRSharp
             Utils.SaveSetting("sampleRate", sampleRateComboBox.Text);
             Utils.SaveSetting("audioGain", audioGainTrackBar.Value);
             Utils.SaveSetting("windowState", (int) WindowState);
+            Utils.SaveSetting("windowPosition", Utils.IntArrayToString(_lastLocation.X, _lastLocation.Y));
+            Utils.SaveSetting("windowSize", Utils.IntArrayToString(_lastSize.Width, _lastSize.Height));
+            Utils.SaveSetting("collapsiblePanelStates", Utils.IntArrayToString(GetCollapsiblePanelStates()));
             Utils.SaveSetting("iqSource", iqSourceComboBox.SelectedIndex);
+            Utils.SaveSetting("waveFile", "" + _waveFile);
             Utils.SaveSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);
             Utils.SaveSetting("vfo", (long) frequencyNumericUpDown.Value);
         }
@@ -895,7 +927,10 @@ namespace SDRSharp
                 centerFreqNumericUpDown.Value = 0;
                 frequencyNumericUpDown.Value = 0;
 
-                SelectWaveFile();
+                if (!_initializing)
+                {
+                    SelectWaveFile();
+                }
                 return;
             }
 
@@ -1635,6 +1670,34 @@ namespace SDRSharp
             waterfall.Zoom = spectrumAnalyzer.Zoom;
         }
 
+        private void MainForm_Move(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Normal)
+            {
+                _lastLocation = Location;
+            }
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Normal)
+            {
+                _lastSize = Size;
+            }
+        }
+
+        private int[] GetCollapsiblePanelStates()
+        {
+            var states = new List<int>();
+            var currentPanel = radioCollapsiblePanel;
+            while (currentPanel != null)
+            {
+                states.Add((int) currentPanel.PanelState);
+                currentPanel = currentPanel.NextPanel;
+            }
+            return states.ToArray();
+        }
+
         #endregion
         
         #region Plugin Methods
@@ -1674,6 +1737,17 @@ namespace SDRSharp
                 catch (Exception ex)
                 {
                     MessageBox.Show("Error loading '" + sharpPlugins[key] + "' - " + ex.Message);
+                }
+            }
+
+            var collapsiblePanelStates = Utils.GetIntArraySetting("collapsiblePanelStates", null);
+            if (collapsiblePanelStates != null)
+            {
+                CollapsiblePanel.CollapsiblePanel currentPanel = radioCollapsiblePanel;
+                for (var i = 0; i < collapsiblePanelStates.Length && currentPanel != null; i++)
+                {
+                    currentPanel.PanelState = (CollapsiblePanel.PanelStateOptions)collapsiblePanelStates[i];
+                    currentPanel = currentPanel.NextPanel;
                 }
             }
         }

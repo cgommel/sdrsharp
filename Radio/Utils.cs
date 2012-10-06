@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System;
+using System.Text;
 
 namespace SDRSharp.Radio
 {
@@ -188,6 +189,36 @@ namespace SDRSharp.Radio
                 return result;
             }
             return defaultValue;
+        }
+
+        public static string IntArrayToString(params int[] values)
+        {
+            var sb = new StringBuilder();
+            foreach (var value in values)
+            {
+                sb.Append(value);
+                sb.Append(',');
+            }
+            return sb.ToString().TrimEnd(',');
+        }
+
+        public static int[] GetIntArraySetting(string name, int[] defaultValue)
+        {
+            try
+            {
+                var strValue = ConfigurationManager.AppSettings[name];
+                var values = strValue.Split(',');
+                var result = new int[values.Length];
+                for (var i = 0; i < result.Length; i++ )
+                {
+                    result[i] = int.Parse(values[i]);
+                }
+                return result;
+            }
+            catch
+            {
+                return defaultValue;
+            }
         }
 
         public static string GetStringSetting(string name, string defaultValue)
