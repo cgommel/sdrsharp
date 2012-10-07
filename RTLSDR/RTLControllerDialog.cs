@@ -184,6 +184,7 @@ namespace SDRSharp.RTLSDR
         public void ConfigureDevice()
         {
             samplerateComboBox_SelectedIndexChanged(null, null);
+            samplingModeComboBox_SelectedIndexChanged(null, null);
             frequencyCorrectionNumericUpDown_ValueChanged(null, null);
             rtlAgcCheckBox_CheckedChanged(null, null);
             tunerAgcCheckBox_CheckedChanged(null, null);
