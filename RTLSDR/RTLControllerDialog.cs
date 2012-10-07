@@ -25,6 +25,10 @@ namespace SDRSharp.RTLSDR
             rtlAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLChipAgc");
             tunerAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLTunerAgc");
             tunerGainTrackBar.Value = Utils.GetIntSetting("RTLTunerGain", 0);
+            
+            tunerAgcCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
+            gainLabel.Visible = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+            tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
 
             _initialized = true;
         }
@@ -47,6 +51,8 @@ namespace SDRSharp.RTLSDR
             {
                 samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
                 deviceComboBox.Enabled = !_owner.Device.IsStreaming;
+                samplingModeComboBox.Enabled = !_owner.Device.IsStreaming;
+
                 if (!_owner.Device.IsStreaming)
                 {
                     var devices = DeviceDisplay.GetActiveDevices();
@@ -125,9 +131,9 @@ namespace SDRSharp.RTLSDR
             {
                 return;
             }
-            tunerGainTrackBar.Enabled = !tunerAgcCheckBox.Checked;
+            tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
             _owner.Device.UseTunerAGC = tunerAgcCheckBox.Checked;
-            gainLabel.Visible = !tunerAgcCheckBox.Checked;
+            gainLabel.Visible = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
             if (!tunerAgcCheckBox.Checked)
             {
                 tunerGainTrackBar_Scroll(null, null);
@@ -161,6 +167,11 @@ namespace SDRSharp.RTLSDR
             {
                 return;
             }
+
+            tunerAgcCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
+            gainLabel.Visible = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+            tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+
             _owner.Device.SamplingMode = (SamplingMode) samplingModeComboBox.SelectedIndex;
             Utils.SaveSetting("RTLSamplingMode", samplingModeComboBox.SelectedIndex);
         }
@@ -172,7 +183,7 @@ namespace SDRSharp.RTLSDR
 
             for (var i = 0; i < deviceComboBox.Items.Count; i++)
             {
-                var deviceDisplay = (DeviceDisplay)deviceComboBox.Items[i];
+                var deviceDisplay = (DeviceDisplay) deviceComboBox.Items[i];
                 if (deviceDisplay.Index == _owner.Device.Index)
                 {
                     deviceComboBox.SelectedIndex = i;
