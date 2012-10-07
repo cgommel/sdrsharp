@@ -11,9 +11,6 @@ namespace SDRSharp.SDRIQ
 
         public SdrIqIO()
         {
-
-            NativeMethods.sdriq_initialise();
-
             _gui = new SDRIQControllerDialog(this);
         }
 
@@ -24,25 +21,24 @@ namespace SDRSharp.SDRIQ
 
         public void Dispose()
         {
-
+            if (_gui != null)
+            {
+                _gui.Dispose();
+            }
             try
             {
                 NativeMethods.sdriq_destroy();
             }
-            catch
+            catch (DllNotFoundException)
             {
-                // Ignored
-            }
-
-            if (_gui != null)
-            {
-                _gui.Dispose();
             }
             GC.SuppressFinalize(this);
         }
 
         public void Open()
         {
+            NativeMethods.sdriq_destroy();
+            NativeMethods.sdriq_initialise();
             var devices = DeviceDisplay.GetActiveDevices();
             foreach (var device in devices)
             {
@@ -56,6 +52,7 @@ namespace SDRSharp.SDRIQ
                     // Just ignore it
                 }
             }
+            NativeMethods.sdriq_destroy();
             if (devices.Length > 0)
             {
                 throw new ApplicationException(devices.Length + " compatible devices have been found but are all busy");
@@ -65,10 +62,6 @@ namespace SDRSharp.SDRIQ
 
         public void SelectDevice(uint index)
         {
-            if (_device != null && _device.Index == index)
-            {
-                return;
-            }
             Close();
             _device = new SdrIqDevice(index);
             _device.SamplesAvailable += sdriqDevice_SamplesAvailable;
@@ -76,7 +69,7 @@ namespace SDRSharp.SDRIQ
             _gui.ConfigureDevice();
         }
 
-        public void Start(SDRSharp.Radio.SamplesAvailableDelegate callback)
+        public void Start(Radio.SamplesAvailableDelegate callback)
         {
             if (_device == null)
             {
@@ -84,7 +77,15 @@ namespace SDRSharp.SDRIQ
             }
             _callback = callback;
 
-            _device.Start();
+            try
+            {
+                _device.Start();
+            }
+            catch
+            {
+                Open();
+                _device.Start();
+            }
         }
 
         public void Stop()
@@ -125,7 +126,7 @@ namespace SDRSharp.SDRIQ
             {
                 if (_device != null)
                 {
-                    _device.Frequency = (uint)value;
+                    _device.Frequency = (uint) value;
                 }
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Runtime.InteropServices;
 
@@ -13,7 +12,7 @@ namespace SDRSharp.SDRIQ
         private const int DefaultSamplerate = 158730;
              
         private IntPtr _dev;
-        private uint _index;
+        private readonly uint _index;
         
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
@@ -29,19 +28,17 @@ namespace SDRSharp.SDRIQ
         private static readonly SdrIqReadAsyncDelegate _sdriqCallback = SdrIqSamplesAvailable;
         private readonly SamplesAvailableEventArgs _eventArgs = new SamplesAvailableEventArgs();
 
-        private static readonly int _readBlockCount = (int) Utils.GetIntSetting("SDRIQReadBlockCount", 1);
-        private static readonly uint _outFifoBlockCount = (uint)Utils.GetIntSetting("SDRIQOutFifoBlockCount", 0);
+        private static readonly int _readBlockCount = Utils.GetIntSetting("SDRIQReadBlockCount", 1);
+        private static readonly uint _outFifoBlockCount = (uint) Utils.GetIntSetting("SDRIQOutFifoBlockCount", 0);
         
         public SdrIqDevice(uint index)
         {
             _index = index;
-            
             var r = NativeMethods.sdriq_open(_index, _outFifoBlockCount, out _dev);
             if (r != 0)
             {
-                throw new ApplicationException("Cannot open SDR-IQ.");
+                throw new ApplicationException("Cannot open SDR-IQ");
             }
-            
             _gcHandle = GCHandle.Alloc(this);         
         }
 
@@ -172,7 +169,6 @@ namespace SDRSharp.SDRIQ
 
         private void StreamProc()
         {
-
             NativeMethods.sdriq_async_read(_dev, (IntPtr)_gcHandle, _sdriqCallback, _readBlockCount);           
         }
 
@@ -211,10 +207,8 @@ namespace SDRSharp.SDRIQ
                 _eventArgs.Buffer = buffer;
                 _eventArgs.Length = length;
                 SamplesAvailable(this, _eventArgs);
-                
             }
         }
-
     }
 
     public delegate void SamplesAvailableDelegate(object sender, SamplesAvailableEventArgs e);

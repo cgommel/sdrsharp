@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.ComponentModel;
 
 using System.Windows.Forms;
+using SDRSharp.Radio;
 
 namespace SDRSharp.SDRIQ
 {
     public partial class SDRIQControllerDialog : Form
     {
-        private SdrIqIO _owner;
+        private readonly SdrIqIO _owner;
         private readonly bool _initialized;
         
         public SDRIQControllerDialog(SdrIqIO owner)
@@ -22,9 +21,9 @@ namespace SDRSharp.SDRIQ
             deviceComboBox.Items.Clear();
             deviceComboBox.Items.AddRange(devices);
 
-            samplerateComboBox.SelectedIndex = 5;
-            ifGainTrackBar.Value = 5;
-            rfGainTrackBar.Value = 2;
+            samplerateComboBox.SelectedIndex = Utils.GetIntSetting("SDRIQSampleRate", 5);
+            ifGainTrackBar.Value = Utils.GetIntSetting("SDRIQIFGain", 5);
+            rfGainTrackBar.Value = Utils.GetIntSetting("SDRIQRFGain", 2);
 
             _initialized = true;
         }
@@ -39,7 +38,7 @@ namespace SDRSharp.SDRIQ
         {
             for (var i = 0; i < deviceComboBox.Items.Count; i++)
             {
-                var deviceDisplay = (DeviceDisplay)deviceComboBox.Items[i];
+                var deviceDisplay = (DeviceDisplay) deviceComboBox.Items[i];
                 if (deviceDisplay.Index == _owner.Device.Index)
                 {
                     deviceComboBox.SelectedIndex = i;
@@ -64,7 +63,8 @@ namespace SDRSharp.SDRIQ
             }
             var samplerateString = samplerateComboBox.Items[samplerateComboBox.SelectedIndex].ToString().Split(' ')[0];
             var sampleRate = uint.Parse(samplerateString, CultureInfo.InvariantCulture);
-            _owner.Device.Samplerate = (uint)sampleRate;
+            _owner.Device.Samplerate = sampleRate;
+            Utils.SaveSetting("SDRIQSampleRate", samplerateComboBox.SelectedIndex);
         }
 
         private void rfGainTrackBar_Scroll(object sender, EventArgs e)
@@ -76,6 +76,7 @@ namespace SDRSharp.SDRIQ
             var gain = (rfGainTrackBar.Maximum - rfGainTrackBar.Value) * -10;
             _owner.Device.RfGain = (sbyte)gain;
             rfGainLabel.Text = gain + " dB";
+            Utils.GetIntSetting("SDRIQRFGain", rfGainTrackBar.Value);
         }
 
         private void ifGainTrackBar_Scroll(object sender, EventArgs e)
@@ -86,7 +87,8 @@ namespace SDRSharp.SDRIQ
             }
             var gain = (sbyte)ifGainTrackBar.Value * 6;
             _owner.Device.IfGain = (sbyte)gain;
-            ifGainLabel.Text = gain +" dB";
+            ifGainLabel.Text = gain + " dB";
+            Utils.SaveSetting("SDRIQIFGain", ifGainTrackBar.Value);
         }
 
         private void deviceComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -95,7 +97,7 @@ namespace SDRSharp.SDRIQ
             {
                 return;
             }
-            var deviceDisplay = (DeviceDisplay)deviceComboBox.SelectedItem;
+            var deviceDisplay = (DeviceDisplay) deviceComboBox.SelectedItem;
             if (deviceDisplay != null)
             {
                 try
@@ -117,6 +119,22 @@ namespace SDRSharp.SDRIQ
             {
                 samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
                 deviceComboBox.Enabled = !_owner.Device.IsStreaming;
+
+                if (!_owner.Device.IsStreaming)
+                {
+                    var devices = DeviceDisplay.GetActiveDevices();
+                    deviceComboBox.Items.Clear();
+                    deviceComboBox.Items.AddRange(devices);
+
+                    for (var i = 0; i < devices.Length; i++)
+                    {
+                        if (devices[i].Index == ((DeviceDisplay) deviceComboBox.Items[i]).Index)
+                        {
+                            deviceComboBox.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -125,8 +143,6 @@ namespace SDRSharp.SDRIQ
             samplerateComboBox.Enabled = !_owner.Device.IsStreaming;
             deviceComboBox.Enabled = !_owner.Device.IsStreaming;
         }
-
-        
     }
 
     public class DeviceDisplay
