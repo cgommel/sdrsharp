@@ -30,6 +30,7 @@ namespace SDRSharp.RTLSDR
             tunerAgcCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
             gainLabel.Visible = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
             tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+            offsetTuningCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
 
             _initialized = true;
         }
@@ -172,6 +173,7 @@ namespace SDRSharp.RTLSDR
             tunerAgcCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
             gainLabel.Visible = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
             tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+            offsetTuningCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
 
             _owner.Device.SamplingMode = (SamplingMode) samplingModeComboBox.SelectedIndex;
             Utils.SaveSetting("RTLSamplingMode", samplingModeComboBox.SelectedIndex);
