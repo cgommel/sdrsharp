@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-
 using System.Windows.Forms;
 using SDRSharp.Radio;
 
@@ -157,7 +156,7 @@ namespace SDRSharp.SDRIQ
 
             for (var i = 0u; i < count; i++)
             {               
-                var name = "SDR-IQ #"+i+" S/N: " +NativeMethods.sdriq_get_serial_number(i);                
+                var name = "SDR-IQ #" + i + " S/N: " +NativeMethods.sdriq_get_serial_number(i);
                 result[i] = new DeviceDisplay { Index = i, Name = name };
             }
 
