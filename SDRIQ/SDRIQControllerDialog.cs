@@ -49,7 +49,6 @@ namespace SDRSharp.SDRIQ
         public void ConfigureDevice()
         {
             samplerateComboBox_SelectedIndexChanged(null, null);
-
             ifGainTrackBar_Scroll(null, null);
             rfGainTrackBar_Scroll(null, null);
         }

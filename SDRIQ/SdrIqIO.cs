@@ -8,6 +8,7 @@ namespace SDRSharp.SDRIQ
         private SdrIqDevice _device;
         private readonly SDRIQControllerDialog _gui;
         private Radio.SamplesAvailableDelegate _callback;
+        private uint _frequency = 15000000;
 
         public SdrIqIO()
         {
@@ -65,6 +66,7 @@ namespace SDRSharp.SDRIQ
             Close();
             _device = new SdrIqDevice(index);
             _device.SamplesAvailable += sdriqDevice_SamplesAvailable;
+            _device.Frequency = _frequency;
             _gui.ConfigureGUI();
             _gui.ConfigureDevice();
         }
@@ -121,9 +123,10 @@ namespace SDRSharp.SDRIQ
 
         public long Frequency
         {
-            get { return _device == null ? 0 : _device.Frequency; }
+            get { return _frequency; }
             set
             {
+                _frequency = (uint) value;
                 if (_device != null)
                 {
                     _device.Frequency = (uint) value;
