@@ -175,6 +175,14 @@ namespace SDRSharp.RTLSDR
             tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
             offsetTuningCheckBox.Enabled = samplingModeComboBox.SelectedIndex == 0;
 
+            if (samplingModeComboBox.SelectedIndex == 0)
+            {
+                offsetTuningCheckBox_CheckedChanged(null, null);
+            }
+            else
+            {
+                _owner.Device.UseOffsetTuning = false;
+            }
             _owner.Device.SamplingMode = (SamplingMode) samplingModeComboBox.SelectedIndex;
             Utils.SaveSetting("RTLSamplingMode", samplingModeComboBox.SelectedIndex);
         }
