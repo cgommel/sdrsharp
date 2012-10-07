@@ -80,6 +80,9 @@ namespace SDRSharp.RTLSDR
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_agc_mode", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_set_agc_mode(IntPtr dev, int on);
 
+        [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_direct_sampling", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int rtlsdr_set_direct_sampling(IntPtr dev, int on);
+
         [DllImport(LibRtlSdr, EntryPoint = "rtlsdr_set_sample_rate", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_set_sample_rate(IntPtr dev, uint rate);
 

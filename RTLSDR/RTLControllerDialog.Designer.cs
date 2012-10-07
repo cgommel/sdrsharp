@@ -43,6 +43,8 @@
             this.label4 = new System.Windows.Forms.Label();
             this.tunerTypeLabel = new System.Windows.Forms.Label();
             this.rtlAgcCheckBox = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.samplingModeComboBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.tunerGainTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyCorrectionNumericUpDown)).BeginInit();
             this.SuspendLayout();
@@ -55,10 +57,10 @@
             // closeButton
             // 
             this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.closeButton.Location = new System.Drawing.Point(184, 238);
+            this.closeButton.Location = new System.Drawing.Point(184, 280);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(75, 23);
-            this.closeButton.TabIndex = 6;
+            this.closeButton.TabIndex = 7;
             this.closeButton.Text = "Close";
             this.closeButton.UseVisualStyleBackColor = true;
             this.closeButton.Click += new System.EventHandler(this.closeButton_Click);
@@ -85,17 +87,17 @@
             // tunerGainTrackBar
             // 
             this.tunerGainTrackBar.Enabled = false;
-            this.tunerGainTrackBar.Location = new System.Drawing.Point(3, 161);
+            this.tunerGainTrackBar.Location = new System.Drawing.Point(3, 203);
             this.tunerGainTrackBar.Maximum = 10000;
             this.tunerGainTrackBar.Name = "tunerGainTrackBar";
             this.tunerGainTrackBar.Size = new System.Drawing.Size(267, 45);
-            this.tunerGainTrackBar.TabIndex = 4;
+            this.tunerGainTrackBar.TabIndex = 5;
             this.tunerGainTrackBar.Scroll += new System.EventHandler(this.tunerGainTrackBar_Scroll);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 145);
+            this.label2.Location = new System.Drawing.Point(12, 187);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(46, 13);
             this.label2.TabIndex = 22;
@@ -104,7 +106,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 58);
+            this.label3.Location = new System.Drawing.Point(12, 53);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(68, 13);
             this.label3.TabIndex = 24;
@@ -125,7 +127,7 @@
             "1.024 MSPS",
             "0.900001 MSPS",
             "0.25 MSPS"});
-            this.samplerateComboBox.Location = new System.Drawing.Point(12, 75);
+            this.samplerateComboBox.Location = new System.Drawing.Point(12, 70);
             this.samplerateComboBox.Name = "samplerateComboBox";
             this.samplerateComboBox.Size = new System.Drawing.Size(247, 21);
             this.samplerateComboBox.TabIndex = 1;
@@ -136,17 +138,17 @@
             this.tunerAgcCheckBox.AutoSize = true;
             this.tunerAgcCheckBox.Checked = true;
             this.tunerAgcCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.tunerAgcCheckBox.Location = new System.Drawing.Point(12, 125);
+            this.tunerAgcCheckBox.Location = new System.Drawing.Point(12, 167);
             this.tunerAgcCheckBox.Name = "tunerAgcCheckBox";
             this.tunerAgcCheckBox.Size = new System.Drawing.Size(79, 17);
-            this.tunerAgcCheckBox.TabIndex = 3;
+            this.tunerAgcCheckBox.TabIndex = 4;
             this.tunerAgcCheckBox.Text = "Tuner AGC";
             this.tunerAgcCheckBox.UseVisualStyleBackColor = true;
             this.tunerAgcCheckBox.CheckedChanged += new System.EventHandler(this.tunerAgcCheckBox_CheckedChanged);
             // 
             // gainLabel
             // 
-            this.gainLabel.Location = new System.Drawing.Point(191, 145);
+            this.gainLabel.Location = new System.Drawing.Point(191, 187);
             this.gainLabel.Name = "gainLabel";
             this.gainLabel.Size = new System.Drawing.Size(68, 13);
             this.gainLabel.TabIndex = 26;
@@ -156,7 +158,7 @@
             // 
             // frequencyCorrectionNumericUpDown
             // 
-            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(169, 207);
+            this.frequencyCorrectionNumericUpDown.Location = new System.Drawing.Point(169, 249);
             this.frequencyCorrectionNumericUpDown.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -169,14 +171,14 @@
             -2147483648});
             this.frequencyCorrectionNumericUpDown.Name = "frequencyCorrectionNumericUpDown";
             this.frequencyCorrectionNumericUpDown.Size = new System.Drawing.Size(90, 20);
-            this.frequencyCorrectionNumericUpDown.TabIndex = 5;
+            this.frequencyCorrectionNumericUpDown.TabIndex = 6;
             this.frequencyCorrectionNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.frequencyCorrectionNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyCorrectionNumericUpDown_ValueChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 209);
+            this.label4.Location = new System.Drawing.Point(12, 251);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(136, 13);
             this.label4.TabIndex = 28;
@@ -194,20 +196,45 @@
             // rtlAgcCheckBox
             // 
             this.rtlAgcCheckBox.AutoSize = true;
-            this.rtlAgcCheckBox.Location = new System.Drawing.Point(12, 102);
+            this.rtlAgcCheckBox.Location = new System.Drawing.Point(12, 144);
             this.rtlAgcCheckBox.Name = "rtlAgcCheckBox";
             this.rtlAgcCheckBox.Size = new System.Drawing.Size(72, 17);
-            this.rtlAgcCheckBox.TabIndex = 2;
+            this.rtlAgcCheckBox.TabIndex = 3;
             this.rtlAgcCheckBox.Text = "RTL AGC";
             this.rtlAgcCheckBox.UseVisualStyleBackColor = true;
             this.rtlAgcCheckBox.CheckedChanged += new System.EventHandler(this.rtlAgcCheckBox_CheckedChanged);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 97);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(80, 13);
+            this.label5.TabIndex = 31;
+            this.label5.Text = "Sampling Mode";
+            // 
+            // samplingModeComboBox
+            // 
+            this.samplingModeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.samplingModeComboBox.FormattingEnabled = true;
+            this.samplingModeComboBox.Items.AddRange(new object[] {
+            "Quadrature sampling (Zero IF)",
+            "Direct sampling (I branch)",
+            "Direct sampling (Q branch)"});
+            this.samplingModeComboBox.Location = new System.Drawing.Point(12, 114);
+            this.samplingModeComboBox.Name = "samplingModeComboBox";
+            this.samplingModeComboBox.Size = new System.Drawing.Size(247, 21);
+            this.samplingModeComboBox.TabIndex = 2;
+            this.samplingModeComboBox.SelectedIndexChanged += new System.EventHandler(this.samplingModeComboBox_SelectedIndexChanged);
             // 
             // RtlSdrControllerDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.closeButton;
-            this.ClientSize = new System.Drawing.Size(271, 271);
+            this.ClientSize = new System.Drawing.Size(271, 313);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.samplingModeComboBox);
             this.Controls.Add(this.rtlAgcCheckBox);
             this.Controls.Add(this.tunerTypeLabel);
             this.Controls.Add(this.label4);
@@ -255,6 +282,8 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label tunerTypeLabel;
         private System.Windows.Forms.CheckBox rtlAgcCheckBox;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ComboBox samplingModeComboBox;
     }
 }
 

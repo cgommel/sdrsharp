@@ -5,6 +5,13 @@ using SDRSharp.Radio;
 
 namespace SDRSharp.RTLSDR
 {
+    public enum SamplingMode
+    {
+        ZeroIF = 0,
+        DirectSamplingI,
+        DirectSamplingQ
+    }
+
     public unsafe sealed class RtlDevice : IDisposable
     {
         private const uint DefaultFrequency = 105500000;
@@ -20,6 +27,7 @@ namespace SDRSharp.RTLSDR
         private uint _centerFrequency = DefaultFrequency;
         private uint _sampleRate = DefaultSamplerate;
         private int _frequencyCorrection;
+        private SamplingMode _samplingMode;
 
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
@@ -189,6 +197,19 @@ namespace SDRSharp.RTLSDR
                 if (_dev != IntPtr.Zero)
                 {
                     NativeMethods.rtlsdr_set_tuner_gain_mode(_dev, _useTunerAGC ? 0 : 1);
+                }
+            }
+        }
+
+        public SamplingMode SamplingMode
+        {
+            get { return _samplingMode; }
+            set
+            {
+                _samplingMode = value;
+                if (_dev != IntPtr.Zero)
+                {
+                    NativeMethods.rtlsdr_set_direct_sampling(_dev, (int) _samplingMode);
                 }
             }
         }
