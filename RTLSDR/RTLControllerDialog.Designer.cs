@@ -218,7 +218,7 @@
             this.samplingModeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.samplingModeComboBox.FormattingEnabled = true;
             this.samplingModeComboBox.Items.AddRange(new object[] {
-            "Quadrature sampling (Zero IF)",
+            "Quadrature sampling",
             "Direct sampling (I branch)",
             "Direct sampling (Q branch)"});
             this.samplingModeComboBox.Location = new System.Drawing.Point(12, 114);

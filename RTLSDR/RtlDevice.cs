@@ -7,7 +7,7 @@ namespace SDRSharp.RTLSDR
 {
     public enum SamplingMode
     {
-        ZeroIF = 0,
+        Quadrature = 0,
         DirectSamplingI,
         DirectSamplingQ
     }
