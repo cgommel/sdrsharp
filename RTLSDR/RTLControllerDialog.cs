@@ -22,6 +22,7 @@ namespace SDRSharp.RTLSDR
             frequencyCorrectionNumericUpDown.Value = Utils.GetIntSetting("RTLFrequencyCorrection", 0);
             samplerateComboBox.SelectedIndex = Utils.GetIntSetting("RTLSampleRate", 3);
             samplingModeComboBox.SelectedIndex = Utils.GetIntSetting("RTLSamplingMode", 0);
+            offsetTuningCheckBox.Checked = Utils.GetBooleanSetting("RTLOffsetTuning");
             rtlAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLChipAgc");
             tunerAgcCheckBox.Checked = Utils.GetBooleanSetting("RTLTunerAgc");
             tunerGainTrackBar.Value = Utils.GetIntSetting("RTLTunerGain", 0);
@@ -176,10 +177,22 @@ namespace SDRSharp.RTLSDR
             Utils.SaveSetting("RTLSamplingMode", samplingModeComboBox.SelectedIndex);
         }
 
+        private void offsetTuningCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            _owner.Device.UseOffsetTuning = offsetTuningCheckBox.Checked;
+            Utils.SaveSetting("RTLOffsetTuning", offsetTuningCheckBox.Checked);
+        }
+
         public void ConfigureGUI()
         {
             tunerTypeLabel.Text = _owner.Device.TunerType.ToString();
             tunerGainTrackBar.Maximum = _owner.Device.SupportedGains.Length - 1;
+            offsetTuningCheckBox.Enabled = _owner.Device.SupportsOffsetTuning;
 
             for (var i = 0; i < deviceComboBox.Items.Count; i++)
             {
@@ -196,6 +209,7 @@ namespace SDRSharp.RTLSDR
         {
             samplerateComboBox_SelectedIndexChanged(null, null);
             samplingModeComboBox_SelectedIndexChanged(null, null);
+            offsetTuningCheckBox_CheckedChanged(null, null);
             frequencyCorrectionNumericUpDown_ValueChanged(null, null);
             rtlAgcCheckBox_CheckedChanged(null, null);
             tunerAgcCheckBox_CheckedChanged(null, null);

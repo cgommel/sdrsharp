@@ -28,6 +28,8 @@ namespace SDRSharp.RTLSDR
         private uint _sampleRate = DefaultSamplerate;
         private int _frequencyCorrection;
         private SamplingMode _samplingMode;
+        private bool _useOffsetTuning;
+        private bool _supportsOffsetTuning;
 
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
@@ -50,6 +52,7 @@ namespace SDRSharp.RTLSDR
             {
                 count = 0;
             }
+            _supportsOffsetTuning = NativeMethods.rtlsdr_set_offset_tuning(_dev, 0) != -2;
             _supportedGains = new int[count];
             if (count >= 0)
             {
@@ -210,6 +213,25 @@ namespace SDRSharp.RTLSDR
                 if (_dev != IntPtr.Zero)
                 {
                     NativeMethods.rtlsdr_set_direct_sampling(_dev, (int) _samplingMode);
+                }
+            }
+        }
+
+        public bool SupportsOffsetTuning
+        {
+            get { return _supportsOffsetTuning; }
+        }
+
+        public bool UseOffsetTuning
+        {
+            get { return _useOffsetTuning; }
+            set
+            {
+                _useOffsetTuning = value;
+
+                if (_dev != IntPtr.Zero)
+                {
+                    NativeMethods.rtlsdr_set_offset_tuning(_dev, _useOffsetTuning ? 1 : 0);
                 }
             }
         }
