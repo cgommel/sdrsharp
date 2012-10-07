@@ -8,25 +8,21 @@ namespace SDRSharp.SDRIQ
 {
     public unsafe class SdrIqDevice
     {
-        private const uint DefaultFrequency = 15000000;
+        public const uint DefaultFrequency = 15000000;
         private const int DefaultSamplerate = 158730;
              
         private IntPtr _dev;
         private readonly uint _index;
-        
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
         private Complex* _iqPtr;
-
         private uint _centerFrequency = DefaultFrequency;
         private uint _sampleRate = DefaultSamplerate;
         private sbyte _rfGain;
         private sbyte _ifGain;
-
         private Thread _worker;
-
-        private static readonly SdrIqReadAsyncDelegate _sdriqCallback = SdrIqSamplesAvailable;
         private readonly SamplesAvailableEventArgs _eventArgs = new SamplesAvailableEventArgs();
+        private static readonly SdrIqReadAsyncDelegate _sdriqCallback = SdrIqSamplesAvailable;
 
         private static readonly int _readBlockCount = Utils.GetIntSetting("SDRIQReadBlockCount", 1);
         private static readonly uint _outFifoBlockCount = (uint) Utils.GetIntSetting("SDRIQOutFifoBlockCount", 0);

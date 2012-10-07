@@ -8,7 +8,7 @@ namespace SDRSharp.SDRIQ
         private SdrIqDevice _device;
         private readonly SDRIQControllerDialog _gui;
         private Radio.SamplesAvailableDelegate _callback;
-        private uint _frequency = 15000000;
+        private uint _frequency = SdrIqDevice.DefaultFrequency;
 
         public SdrIqIO()
         {
