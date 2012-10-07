@@ -29,7 +29,7 @@ namespace SDRSharp.RTLSDR
         private int _frequencyCorrection;
         private SamplingMode _samplingMode;
         private bool _useOffsetTuning;
-        private bool _supportsOffsetTuning;
+        private readonly bool _supportsOffsetTuning;
 
         private GCHandle _gcHandle;
         private UnsafeBuffer _iqBuffer;
