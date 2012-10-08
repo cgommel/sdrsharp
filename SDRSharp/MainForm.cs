@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -974,12 +973,15 @@ namespace SDRSharp
                             break;
                         }
                     }
-                    sampleRateComboBox.Text = _frontendController.Samplerate.ToString();
+                    if (_frontendController.Samplerate > 0)
+                    {
+                        sampleRateComboBox.Text = _frontendController.Samplerate.ToString();
+                    }
                 }
                 if (_frontendController.Samplerate > 0)
                 {
-                    waterfall.SpectrumWidth = (int)_frontendController.Samplerate;
-                    spectrumAnalyzer.SpectrumWidth = (int)_frontendController.Samplerate;
+                    waterfall.SpectrumWidth = (int) _frontendController.Samplerate;
+                    spectrumAnalyzer.SpectrumWidth = (int) _frontendController.Samplerate;
                 }
                 _vfo.SampleRate = _frontendController.Samplerate;
                 _vfo.Frequency = 0;
