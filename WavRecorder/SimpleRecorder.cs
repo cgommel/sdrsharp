@@ -13,15 +13,16 @@ namespace SDRSharp.WavRecorder
 
     public unsafe class SimpleRecorder: IDisposable
     {
-        private const int BufferCount = 8;
         private const int DefaultAudioGain = 30;
+        
+        private static readonly int _bufferCount = Utils.GetIntSetting("RecordingBufferCount", 8);
         private readonly float _audioGain = (float) Math.Pow(DefaultAudioGain / 10.0, 10);
 
         private readonly SharpEvent _bufferEvent = new SharpEvent(false);
         
-        private readonly UnsafeBuffer[] _circularBuffers = new UnsafeBuffer[BufferCount];
-        private readonly Complex*[] _complexCircularBufferPtrs = new Complex*[BufferCount];
-        private readonly float*[] _floatCircularBufferPtrs = new float*[BufferCount];
+        private readonly UnsafeBuffer[] _circularBuffers = new UnsafeBuffer[_bufferCount];
+        private readonly Complex*[] _complexCircularBufferPtrs = new Complex*[_bufferCount];
+        private readonly float*[] _floatCircularBufferPtrs = new float*[_bufferCount];
         
         private int _circularBufferTail;
         private int _circularBufferHead;
@@ -147,7 +148,7 @@ namespace SDRSharp.WavRecorder
 
             Utils.Memcpy(_complexCircularBufferPtrs[_circularBufferHead], buffer, length * sizeof(Complex));
             _circularBufferHead++;
-            _circularBufferHead &= (BufferCount - 1);
+            _circularBufferHead &= (_bufferCount - 1);
             _bufferEvent.Set();
         }
 
@@ -173,7 +174,7 @@ namespace SDRSharp.WavRecorder
 
             Utils.Memcpy(_floatCircularBufferPtrs[_circularBufferHead], audio, length * sizeof(float));
             _circularBufferHead++;
-            _circularBufferHead &= (BufferCount - 1);
+            _circularBufferHead &= (_bufferCount - 1);
             _bufferEvent.Set();
         }
 
@@ -219,7 +220,7 @@ namespace SDRSharp.WavRecorder
                     _wavWriter.Write(_floatCircularBufferPtrs[_circularBufferTail], _circularBuffers[_circularBufferTail].Length);
 
                     _circularBufferTail++;
-                    _circularBufferTail &= (BufferCount - 1);
+                    _circularBufferTail &= (_bufferCount - 1);
                 }
             }
 
@@ -230,7 +231,7 @@ namespace SDRSharp.WavRecorder
                     _wavWriter.Write(_floatCircularBufferPtrs[_circularBufferTail], _circularBuffers[_circularBufferTail].Length);
                 }
                 _circularBufferTail++;
-                _circularBufferTail &= (BufferCount - 1);
+                _circularBufferTail &= (_bufferCount - 1);
             }
 
             if (_recordingMode == RecordingMode.Baseband)
@@ -257,7 +258,7 @@ namespace SDRSharp.WavRecorder
 
         private void CreateBuffers(int size)
         {
-            for (var i = 0; i < BufferCount; i++)
+            for (var i = 0; i < _bufferCount; i++)
             {
                 _circularBuffers[i] = UnsafeBuffer.Create(size, sizeof(Complex));
                 _complexCircularBufferPtrs[i] = (Complex*)_circularBuffers[i];
@@ -270,7 +271,7 @@ namespace SDRSharp.WavRecorder
         private void FreeBuffers()
         {
             _circularBufferLength = 0;
-            for (var i = 0; i < BufferCount; i++)
+            for (var i = 0; i < _bufferCount; i++)
             {
                 if (_circularBuffers[i] != null)
                 {

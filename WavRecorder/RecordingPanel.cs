@@ -171,16 +171,17 @@ namespace SDRSharp.WavRecorder
 
         private string MakeFileName()
         {
-            // Should not happen, but it is long afterall.
-            var absFrequency = Math.Abs(_control.CenterFrequency);
+            var tunedfrequency = _simpleRecorder.Mode == RecordingMode.Baseband ? Math.Abs(_control.CenterFrequency) : Math.Max(_control.Frequency, 0);                       
+            
+            var frequency = tunedfrequency >= 1000 ? (tunedfrequency / 1000L) : tunedfrequency;
 
-            var frequency = absFrequency >= 1000 ? (absFrequency / 1000L) : absFrequency;
-            var unit = absFrequency >= 1000 ? "kHz" : "Hz";
-            var dateString = DateTime.Now.ToString("yyyyMMdd");
-            var timeString = DateTime.Now.ToString("HHmmssZ");
+            var unit = tunedfrequency >= 1000 ? "kHz" : "Hz";
+            var suffix = _simpleRecorder.Mode == RecordingMode.Baseband? "IQ" : "AF";
+            var dateString = DateTime.UtcNow.ToString("yyyyMMdd");
+            var timeString = DateTime.UtcNow.ToString("HHmmssZ");
 
             var filename = Path.GetDirectoryName(Application.ExecutablePath);
-            filename = Path.Combine("" + filename, string.Format("SDRSharp_{0}_{1}_{2}{3}.wav", dateString, timeString, frequency, unit));
+            filename = Path.Combine("" + filename, string.Format("SDRSharp_{0}_{1}_{2}{3}_{4}.wav", dateString, timeString, frequency, unit,suffix));
 
             return filename;
         }
