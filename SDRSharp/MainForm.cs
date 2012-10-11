@@ -539,6 +539,12 @@ namespace SDRSharp
             useTimestampsCheckBox.Checked = Utils.GetBooleanSetting("useTimeMarkers");
             useTimestampCheckBox_CheckedChanged(null, null);
 
+            fftOffsetTrackBar.Value = Utils.GetIntSetting("fftDisplayOffset", 0);
+            fftOffsetTrackBar_Scroll(null, null);
+
+            fftRangeTrackBar.Value = Utils.GetIntSetting("fftDisplayRange", 13);
+            fftRangeTrackBar_Scroll(null, null);
+
             #endregion
 
             #region Initialize the plugins
@@ -725,6 +731,8 @@ namespace SDRSharp
             Utils.SaveSetting("waveFile", "" + _waveFile);
             Utils.SaveSetting("centerFrequency", (long) centerFreqNumericUpDown.Value);
             Utils.SaveSetting("vfo", (long) frequencyNumericUpDown.Value);
+            Utils.SaveSetting("fftDisplayOffset", fftOffsetTrackBar.Value);
+            Utils.SaveSetting("fftDisplayRange", fftRangeTrackBar.Value);
         }
 
         #endregion
@@ -809,7 +817,6 @@ namespace SDRSharp
                     Fourier.ApplyFFTWindow(_fftPtr, _fftWindowPtr, _actualFftBins);
                     Fourier.ForwardTransform(_fftPtr, _actualFftBins);
                     Fourier.SpectrumPower(_fftPtr, _fftSpectrumPtr, _actualFftBins, compensation);
-                    Fourier.ScaleFFT(_fftSpectrumPtr, _scaledFFTSpectrumPtr, _actualFftBins);
 
                     #endregion
 
@@ -831,11 +838,11 @@ namespace SDRSharp
         {
             if (!panSplitContainer.Panel1Collapsed)
             {
-                spectrumAnalyzer.Render(_scaledFFTSpectrumPtr, _fftSpectrumSamples);
+                spectrumAnalyzer.Render(_fftSpectrumPtr, _fftSpectrumSamples);
             }
             if (!panSplitContainer.Panel2Collapsed)
             {
-                waterfall.Render(_scaledFFTSpectrumPtr, _fftSpectrumSamples);
+                waterfall.Render(_fftSpectrumPtr, _fftSpectrumSamples);
             }
         }
 
@@ -1712,6 +1719,16 @@ namespace SDRSharp
             return states.ToArray();
         }
 
+        private void fftOffsetTrackBar_Scroll(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.DisplayOffset = - fftOffsetTrackBar.Value * 10;
+        }
+
+        private void fftRangeTrackBar_Scroll(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.DisplayRange = fftRangeTrackBar.Value * 10;
+        }
+
         #endregion
         
         #region Plugin Methods
@@ -1833,6 +1850,7 @@ namespace SDRSharp
 
         public void GetSpectrumSnapshot(byte[] destArray)
         {
+            Fourier.ScaleFFT(_fftSpectrumPtr, _scaledFFTSpectrumPtr, _fftSpectrumSamples, -130.0f, 0.0f);
             fixed (byte* destPtr = destArray)
             {
                 Fourier.SmoothCopy(_scaledFFTSpectrumPtr, destPtr, _fftSpectrumSamples, destArray.Length, 1.0f, 0);

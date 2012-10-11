@@ -78,20 +78,26 @@ namespace SDRSharp
             this.agcDecayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.displayCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
-            this.label25 = new System.Windows.Forms.Label();
-            this.useTimestampsCheckBox = new System.Windows.Forms.CheckBox();
-            this.label26 = new System.Windows.Forms.Label();
-            this.label24 = new System.Windows.Forms.Label();
-            this.label23 = new System.Windows.Forms.Label();
-            this.wDecayTrackBar = new System.Windows.Forms.TrackBar();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.fftOffsetTrackBar = new System.Windows.Forms.TrackBar();
+            this.fftRangeTrackBar = new System.Windows.Forms.TrackBar();
+            this.label27 = new System.Windows.Forms.Label();
+            this.label28 = new System.Windows.Forms.Label();
+            this.smoothingGroupBox = new System.Windows.Forms.GroupBox();
+            this.sAttackTrackBar = new System.Windows.Forms.TrackBar();
+            this.sDecayTrackBar = new System.Windows.Forms.TrackBar();
             this.wAttackTrackBar = new System.Windows.Forms.TrackBar();
+            this.wDecayTrackBar = new System.Windows.Forms.TrackBar();
+            this.label23 = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.label24 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
+            this.useTimestampsCheckBox = new System.Windows.Forms.CheckBox();
             this.label21 = new System.Windows.Forms.Label();
             this.fftResolutionComboBox = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.sDecayTrackBar = new System.Windows.Forms.TrackBar();
             this.label14 = new System.Windows.Forms.Label();
             this.viewComboBox = new System.Windows.Forms.ComboBox();
-            this.sAttackTrackBar = new System.Windows.Forms.TrackBar();
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -123,10 +129,14 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcThresholdNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).BeginInit();
             this.displayCollapsiblePanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
+            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fftOffsetTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftRangeTrackBar)).BeginInit();
+            this.smoothingGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
@@ -1014,39 +1024,169 @@ namespace SDRSharp
             // 
             // displayCollapsiblePanel
             // 
-            this.displayCollapsiblePanel.Controls.Add(this.label25);
+            this.displayCollapsiblePanel.Controls.Add(this.groupBox1);
+            this.displayCollapsiblePanel.Controls.Add(this.smoothingGroupBox);
             this.displayCollapsiblePanel.Controls.Add(this.useTimestampsCheckBox);
-            this.displayCollapsiblePanel.Controls.Add(this.label26);
-            this.displayCollapsiblePanel.Controls.Add(this.label24);
-            this.displayCollapsiblePanel.Controls.Add(this.label23);
-            this.displayCollapsiblePanel.Controls.Add(this.wDecayTrackBar);
-            this.displayCollapsiblePanel.Controls.Add(this.wAttackTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.label21);
             this.displayCollapsiblePanel.Controls.Add(this.fftResolutionComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label7);
-            this.displayCollapsiblePanel.Controls.Add(this.sDecayTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.label14);
             this.displayCollapsiblePanel.Controls.Add(this.viewComboBox);
-            this.displayCollapsiblePanel.Controls.Add(this.sAttackTrackBar);
             this.displayCollapsiblePanel.Controls.Add(this.gradientButton);
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
-            this.displayCollapsiblePanel.ExpandedHeight = 259;
+            this.displayCollapsiblePanel.ExpandedHeight = 429;
             this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 679);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(217, 279);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(217, 449);
             this.displayCollapsiblePanel.TabIndex = 24;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.fftOffsetTrackBar);
+            this.groupBox1.Controls.Add(this.fftRangeTrackBar);
+            this.groupBox1.Controls.Add(this.label27);
+            this.groupBox1.Controls.Add(this.label28);
+            this.groupBox1.Location = new System.Drawing.Point(0, 332);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(217, 111);
+            this.groupBox1.TabIndex = 32;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Spectrum";
+            // 
+            // fftOffsetTrackBar
+            // 
+            this.fftOffsetTrackBar.Location = new System.Drawing.Point(58, 19);
+            this.fftOffsetTrackBar.Maximum = 15;
+            this.fftOffsetTrackBar.Name = "fftOffsetTrackBar";
+            this.fftOffsetTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.fftOffsetTrackBar.TabIndex = 27;
+            this.fftOffsetTrackBar.Scroll += new System.EventHandler(this.fftOffsetTrackBar_Scroll);
+            // 
+            // fftRangeTrackBar
+            // 
+            this.fftRangeTrackBar.LargeChange = 10;
+            this.fftRangeTrackBar.Location = new System.Drawing.Point(58, 62);
+            this.fftRangeTrackBar.Maximum = 15;
+            this.fftRangeTrackBar.Minimum = 2;
+            this.fftRangeTrackBar.Name = "fftRangeTrackBar";
+            this.fftRangeTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.fftRangeTrackBar.TabIndex = 28;
+            this.fftRangeTrackBar.Value = 13;
+            this.fftRangeTrackBar.Scroll += new System.EventHandler(this.fftRangeTrackBar_Scroll);
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(8, 71);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(39, 13);
+            this.label27.TabIndex = 30;
+            this.label27.Text = "Range";
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(8, 27);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(35, 13);
+            this.label28.TabIndex = 29;
+            this.label28.Text = "Offset";
+            // 
+            // smoothingGroupBox
+            // 
+            this.smoothingGroupBox.Controls.Add(this.sAttackTrackBar);
+            this.smoothingGroupBox.Controls.Add(this.sDecayTrackBar);
+            this.smoothingGroupBox.Controls.Add(this.wAttackTrackBar);
+            this.smoothingGroupBox.Controls.Add(this.wDecayTrackBar);
+            this.smoothingGroupBox.Controls.Add(this.label23);
+            this.smoothingGroupBox.Controls.Add(this.label25);
+            this.smoothingGroupBox.Controls.Add(this.label24);
+            this.smoothingGroupBox.Controls.Add(this.label26);
+            this.smoothingGroupBox.Location = new System.Drawing.Point(0, 126);
+            this.smoothingGroupBox.Name = "smoothingGroupBox";
+            this.smoothingGroupBox.Size = new System.Drawing.Size(217, 200);
+            this.smoothingGroupBox.TabIndex = 31;
+            this.smoothingGroupBox.TabStop = false;
+            this.smoothingGroupBox.Text = "Smoothing";
+            // 
+            // sAttackTrackBar
+            // 
+            this.sAttackTrackBar.Location = new System.Drawing.Point(58, 19);
+            this.sAttackTrackBar.Maximum = 50;
+            this.sAttackTrackBar.Name = "sAttackTrackBar";
+            this.sAttackTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.sAttackTrackBar.TabIndex = 5;
+            this.sAttackTrackBar.TickFrequency = 5;
+            this.sAttackTrackBar.ValueChanged += new System.EventHandler(this.sAttackTrackBar_ValueChanged);
+            // 
+            // sDecayTrackBar
+            // 
+            this.sDecayTrackBar.Location = new System.Drawing.Point(58, 63);
+            this.sDecayTrackBar.Maximum = 50;
+            this.sDecayTrackBar.Name = "sDecayTrackBar";
+            this.sDecayTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.sDecayTrackBar.TabIndex = 6;
+            this.sDecayTrackBar.TickFrequency = 5;
+            this.sDecayTrackBar.ValueChanged += new System.EventHandler(this.sDecayTrackBar_ValueChanged);
+            // 
+            // wAttackTrackBar
+            // 
+            this.wAttackTrackBar.Location = new System.Drawing.Point(58, 107);
+            this.wAttackTrackBar.Maximum = 50;
+            this.wAttackTrackBar.Name = "wAttackTrackBar";
+            this.wAttackTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.wAttackTrackBar.TabIndex = 7;
+            this.wAttackTrackBar.TickFrequency = 5;
+            this.wAttackTrackBar.ValueChanged += new System.EventHandler(this.wAttackTrackBar_ValueChanged);
+            // 
+            // wDecayTrackBar
+            // 
+            this.wDecayTrackBar.Location = new System.Drawing.Point(58, 151);
+            this.wDecayTrackBar.Maximum = 50;
+            this.wDecayTrackBar.Name = "wDecayTrackBar";
+            this.wDecayTrackBar.Size = new System.Drawing.Size(153, 45);
+            this.wDecayTrackBar.TabIndex = 8;
+            this.wDecayTrackBar.TickFrequency = 5;
+            this.wDecayTrackBar.ValueChanged += new System.EventHandler(this.wDecayTrackBar_ValueChanged);
+            // 
+            // label23
+            // 
+            this.label23.AutoSize = true;
+            this.label23.Location = new System.Drawing.Point(6, 27);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(48, 13);
+            this.label23.TabIndex = 23;
+            this.label23.Text = "S-Attack";
             // 
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(6, 238);
+            this.label25.Location = new System.Drawing.Point(6, 157);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(52, 13);
             this.label25.TabIndex = 26;
             this.label25.Text = "W-Decay";
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(6, 71);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(48, 13);
+            this.label24.TabIndex = 24;
+            this.label24.Text = "S-Decay";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(6, 114);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(52, 13);
+            this.label26.TabIndex = 25;
+            this.label26.Text = "W-Attack";
             // 
             // useTimestampsCheckBox
             // 
@@ -1057,53 +1197,6 @@ namespace SDRSharp
             this.useTimestampsCheckBox.Text = "Use time markers";
             this.useTimestampsCheckBox.UseVisualStyleBackColor = true;
             this.useTimestampsCheckBox.CheckedChanged += new System.EventHandler(this.useTimestampCheckBox_CheckedChanged);
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(7, 203);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(52, 13);
-            this.label26.TabIndex = 25;
-            this.label26.Text = "W-Attack";
-            // 
-            // label24
-            // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(6, 167);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(48, 13);
-            this.label24.TabIndex = 24;
-            this.label24.Text = "S-Decay";
-            // 
-            // label23
-            // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(7, 132);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(48, 13);
-            this.label23.TabIndex = 23;
-            this.label23.Text = "S-Attack";
-            // 
-            // wDecayTrackBar
-            // 
-            this.wDecayTrackBar.Location = new System.Drawing.Point(57, 236);
-            this.wDecayTrackBar.Maximum = 50;
-            this.wDecayTrackBar.Name = "wDecayTrackBar";
-            this.wDecayTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.wDecayTrackBar.TabIndex = 8;
-            this.wDecayTrackBar.TickFrequency = 5;
-            this.wDecayTrackBar.ValueChanged += new System.EventHandler(this.wDecayTrackBar_ValueChanged);
-            // 
-            // wAttackTrackBar
-            // 
-            this.wAttackTrackBar.Location = new System.Drawing.Point(57, 200);
-            this.wAttackTrackBar.Maximum = 50;
-            this.wAttackTrackBar.Name = "wAttackTrackBar";
-            this.wAttackTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.wAttackTrackBar.TabIndex = 7;
-            this.wAttackTrackBar.TickFrequency = 5;
-            this.wAttackTrackBar.ValueChanged += new System.EventHandler(this.wAttackTrackBar_ValueChanged);
             // 
             // label21
             // 
@@ -1148,16 +1241,6 @@ namespace SDRSharp
             this.label7.TabIndex = 12;
             this.label7.Text = "View";
             // 
-            // sDecayTrackBar
-            // 
-            this.sDecayTrackBar.Location = new System.Drawing.Point(57, 164);
-            this.sDecayTrackBar.Maximum = 50;
-            this.sDecayTrackBar.Name = "sDecayTrackBar";
-            this.sDecayTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.sDecayTrackBar.TabIndex = 6;
-            this.sDecayTrackBar.TickFrequency = 5;
-            this.sDecayTrackBar.ValueChanged += new System.EventHandler(this.sDecayTrackBar_ValueChanged);
-            // 
             // label14
             // 
             this.label14.AutoSize = true;
@@ -1180,16 +1263,6 @@ namespace SDRSharp
             this.viewComboBox.Size = new System.Drawing.Size(135, 21);
             this.viewComboBox.TabIndex = 0;
             this.viewComboBox.SelectedIndexChanged += new System.EventHandler(this.viewComboBox_SelectedIndexChanged);
-            // 
-            // sAttackTrackBar
-            // 
-            this.sAttackTrackBar.Location = new System.Drawing.Point(57, 128);
-            this.sAttackTrackBar.Maximum = 50;
-            this.sAttackTrackBar.Name = "sAttackTrackBar";
-            this.sAttackTrackBar.Size = new System.Drawing.Size(156, 45);
-            this.sAttackTrackBar.TabIndex = 5;
-            this.sAttackTrackBar.TickFrequency = 5;
-            this.sAttackTrackBar.ValueChanged += new System.EventHandler(this.sAttackTrackBar_ValueChanged);
             // 
             // gradientButton
             // 
@@ -1281,6 +1354,8 @@ namespace SDRSharp
             this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
             this.spectrumAnalyzer.CenterFrequency = ((long)(0));
             this.spectrumAnalyzer.Decay = 0.3D;
+            this.spectrumAnalyzer.DisplayOffset = 0;
+            this.spectrumAnalyzer.DisplayRange = 130;
             this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.spectrumAnalyzer.FilterBandwidth = 10000;
             this.spectrumAnalyzer.FilterOffset = 100;
@@ -1376,10 +1451,16 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.agcDecayNumericUpDown)).EndInit();
             this.displayCollapsiblePanel.ResumeLayout(false);
             this.displayCollapsiblePanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fftOffsetTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftRangeTrackBar)).EndInit();
+            this.smoothingGroupBox.ResumeLayout(false);
+            this.smoothingGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sAttackTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1476,5 +1557,11 @@ namespace SDRSharp
         private CheckBox useTimestampsCheckBox;
         private Label label17;
         private TrackBar fftSpeedTrackBar;
+        private GroupBox groupBox1;
+        private TrackBar fftOffsetTrackBar;
+        private TrackBar fftRangeTrackBar;
+        private Label label27;
+        private Label label28;
+        private GroupBox smoothingGroupBox;
     }
 }

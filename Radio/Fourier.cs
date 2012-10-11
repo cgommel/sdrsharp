@@ -4,9 +4,6 @@ namespace SDRSharp.Radio
 {
     public static unsafe class Fourier
     {
-        public const float MaxPower = 0.0f;
-        public const float MinPower = -130.0f;
-
         public static void SpectrumPower(Complex* buffer, float* power, int length)
         {
             SpectrumPower(buffer, power, length, 0.0f);
@@ -48,53 +45,37 @@ namespace SDRSharp.Radio
             }
         }
 
-        public static void ScaleFFT(float* src, byte* dest, int length)
+        public static void ScaleFFT(float* src, byte* dest, int length, float minPower, float maxPower)
         {
             for (var i = 0; i < length; i++)
             {
                 var magnitude = src[i];
-                if (magnitude < MinPower)
+                if (magnitude < minPower)
                 {
-                    magnitude = MinPower;
+                    magnitude = minPower;
                 }
-                else if (magnitude > MaxPower)
+                else if (magnitude > maxPower)
                 {
-                    magnitude = MaxPower;
+                    magnitude = maxPower;
                 }
-                dest[i] = (byte)((magnitude - MinPower) * byte.MaxValue / (MaxPower - MinPower));
+                dest[i] = (byte) ((magnitude - minPower) * byte.MaxValue / (maxPower - minPower));
             }
         }
 
-        public static void ScaleFFT(float[] src, byte[] dest, int length)
+        public static void ScaleFFT(float[] src, byte[] dest, int length, float minPower, float maxPower)
         {
-            if (src == null)
-            {
-                throw new ArgumentNullException("src");
-            }
-            if (dest == null)
-            {
-                throw new ArgumentNullException("dest");
-            }
-            if (src.Length < length)
-            {
-                throw new ArgumentException("src.Length should be greater or equal to length");
-            }
-            if (dest.Length < length)
-            {
-                throw new ArgumentException("dest.Length should be greater or equal to length");
-            }
             for (var i = 0; i < length; i++)
             {
                 var magnitude = src[i];
-                if (magnitude < MinPower)
+                if (magnitude < minPower)
                 {
-                    magnitude = MinPower;
+                    magnitude = minPower;
                 }
-                else if (magnitude > MaxPower)
+                else if (magnitude > maxPower)
                 {
-                    magnitude = MaxPower;
+                    magnitude = maxPower;
                 }
-                dest[i] = (byte)((magnitude - MinPower) * byte.MaxValue / (MaxPower - MinPower));
+                dest[i] = (byte) ((magnitude - minPower) * byte.MaxValue / (maxPower - minPower));
             }
         }
 

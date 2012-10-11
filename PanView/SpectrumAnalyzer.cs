@@ -14,6 +14,7 @@ namespace SDRSharp.PanView
         private const int AxisMargin = 30;
         private const int CarrierPenWidth = 1;
         private const int GradientAlpha = 180;
+
         public const float DefaultCursorHeight = 32.0f;
 
         private readonly static Color _spectrumColor = Utils.GetColorSetting("spectrumAnalyzerColor", Color.DarkGray);
@@ -26,6 +27,7 @@ namespace SDRSharp.PanView
         private byte[] _spectrum;
         private bool[] _peaks;
         private byte[] _temp;
+        private byte[] _scaledPowerSpectrum;
         private Bitmap _bkgBuffer;
         private Bitmap _buffer;
         private Graphics _graphics;
@@ -59,6 +61,8 @@ namespace SDRSharp.PanView
         private bool _markPeaks;
         private float _trackingPower;
         private string _statusText;
+        private int _displayRange = 130;
+        private int _displayOffset;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = Utils.GetGradientBlend(GradientAlpha, "spectrumAnalyzerGradient");
 
@@ -184,6 +188,32 @@ namespace SDRSharp.PanView
                     _displayCenterFrequency += delta;
                     
                     _centerFrequency = value;
+                    _drawBackgroundNeeded = true;
+                }
+            }
+        }
+
+        public int DisplayRange
+        {
+            get { return _displayRange; }
+            set
+            {
+                if (_displayRange != value)
+                {
+                    _displayRange = value;
+                    _drawBackgroundNeeded = true;
+                }
+            }
+        }
+
+        public int DisplayOffset
+        {
+            get { return _displayOffset; }
+            set
+            {
+                if (_displayOffset != value)
+                {
+                    _displayOffset = value;
                     _drawBackgroundNeeded = true;
                 }
             }
@@ -456,30 +486,33 @@ namespace SDRSharp.PanView
             }
         }
 
-        public unsafe void Render(byte* spectrum, int length)
+        public unsafe void Render(float* powerSpectrum, int length)
         {
+            if (_scaledPowerSpectrum == null || _scaledPowerSpectrum.Length != length)
+            {
+                _scaledPowerSpectrum = new byte[length];
+            }
+            fixed (byte* scaledPowerSpectrumPtr = _scaledPowerSpectrum)
+            {
+                var displayOffset = _displayOffset / 10 * 10;
+                var displayRange = _displayRange / 10 * 10;
+                Fourier.ScaleFFT(powerSpectrum, scaledPowerSpectrumPtr, length, displayOffset - displayRange, displayOffset);
+            }
             var scaledLength = (int) (length / _scale);
             var offset = (int) ((length - scaledLength) / 2.0 + length * (double) (_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
             if (_useSmoothing)
             {
-                fixed (byte* tempPtr = _temp)
-                {
-                    Fourier.SmoothCopy(spectrum, tempPtr, length, _temp.Length, _scale, offset);
-                }
+                Fourier.SmoothCopy(_scaledPowerSpectrum, _temp, length, _scale, offset);
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
-                    _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
+                    _spectrum[i] = (byte) Math.Round(_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }
             else
             {
-                fixed (byte* spectrumPtr = _spectrum)
-                {
-                    Fourier.SmoothCopy(spectrum, spectrumPtr, length, _spectrum.Length, _scale, offset);
-                }
+                Fourier.SmoothCopy(_scaledPowerSpectrum, _spectrum, length, _scale, offset);
             }
-
             _performNeeded = true;
         }
 
@@ -537,15 +570,19 @@ namespace SDRSharp.PanView
 
                 gridPen.DashStyle = DashStyle.Dash;
 
+                var powerMarkerCount = _displayRange / 10;
+
                 // Power axis
-                var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 13.0f;
-                for (var i = 1; i <= 13; i++)
+                var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) powerMarkerCount;
+                for (var i = 1; i <= powerMarkerCount; i++)
                 {
                     graphics.DrawLine(gridPen, AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement), ClientRectangle.Width - AxisMargin, (int)(ClientRectangle.Height - AxisMargin - i * yIncrement));
                 }
-                for (var i = 0; i <= 13; i++)
+
+                var displayOffset = _displayOffset / 10 * 10;
+                for (var i = 0; i <= powerMarkerCount; i++)
                 {
-                    var db = (-(13 - i) * 10).ToString();
+                    var db = (displayOffset - (powerMarkerCount - i) * 10).ToString();
                     var sizeF = graphics.MeasureString(db, font);
                     var width = sizeF.Width;
                     var height = sizeF.Height;
@@ -635,11 +672,10 @@ namespace SDRSharp.PanView
                 for (var i = 0; i < _spectrum.Length; i++)
                 {
                     var strenght = _spectrum[i];
-                    var newX = (int) (AxisMargin + i * xIncrement);
-                    var newY = (int) (ClientRectangle.Height - AxisMargin - strenght * yIncrement);
-                    
-                    _points[i + 1].X = newX;
-                    _points[i + 1].Y = newY;
+                    var x = (int) (AxisMargin + i * xIncrement);
+                    var y = (int) (ClientRectangle.Height - AxisMargin - strenght * yIncrement);
+                    _points[i + 1].X = x;
+                    _points[i + 1].Y = y;
                 }
                 if (_fillSpectrumAnalyzer)
                 {
@@ -674,7 +710,7 @@ namespace SDRSharp.PanView
             e.Graphics.DrawImageUnscaled(_buffer, 0, 0);
         }
 
-        protected unsafe override void OnResize(EventArgs e)
+        protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
             if (ClientRectangle.Width > 0 && ClientRectangle.Height > 0)
@@ -887,8 +923,9 @@ namespace SDRSharp.PanView
             {
                 _trackingFrequency = (_trackingFrequency + Math.Sign(_trackingFrequency) * _stepSize / 2) / _stepSize * _stepSize;
             }
-            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / 130f;
-            _trackingPower  = -130f - (_trackingY + AxisMargin - ClientRectangle.Height) / yIncrement;
+            var displayRange = _displayRange / 10 * 10;
+            var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) displayRange;
+            _trackingPower = -displayRange - (_trackingY + AxisMargin - ClientRectangle.Height) / yIncrement;
 
 
             if (_changingFrequency)

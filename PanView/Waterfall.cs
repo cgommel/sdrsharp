@@ -22,6 +22,8 @@ namespace SDRSharp.PanView
     {
         private const float TrackingFontSize = 16.0f;
         private const float TimestampFontSize = 14.0f;
+        private const float MinPower = -130.0f;
+        private const float MaxPower = 0.0f;
         private const int CarrierPenWidth = 1;
         private const int AxisMargin = 30;
 
@@ -41,7 +43,8 @@ namespace SDRSharp.PanView
         private int _filterOffset;
         private float _xIncrement;
         private byte[] _temp;
-        private byte[] _spectrum;
+        private byte[] _powerSpectrum;
+        private byte[] _scaledPowerSpectrum;
         private long _centerFrequency;
         private long _spectrumWidth;
         private int _stepSize;
@@ -74,8 +77,8 @@ namespace SDRSharp.PanView
 
         public Waterfall()
         {
-            _spectrum = new byte[ClientRectangle.Width - 2 * AxisMargin];
-            _temp = new byte[_spectrum.Length];
+            _powerSpectrum = new byte[ClientRectangle.Width - 2 * AxisMargin];
+            _temp = new byte[_powerSpectrum.Length];
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _buffer2 = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
             _graphics = Graphics.FromImage(_buffer);
@@ -363,30 +366,30 @@ namespace SDRSharp.PanView
             return f;
         }
 
-        public unsafe void Render(byte* spectrum, int length)
+        public unsafe void Render(float* powerSpectrum, int length)
         {
+            if (_scaledPowerSpectrum == null || _scaledPowerSpectrum.Length != length)
+            {
+                _scaledPowerSpectrum = new byte[length];
+            }
+            fixed (byte* scaledPowerSpectrumPtr = _scaledPowerSpectrum)
+            {
+                Fourier.ScaleFFT(powerSpectrum, scaledPowerSpectrumPtr, length, MinPower, MaxPower);
+            }
             var scaledLength = (int)(length / _scale);
-            var offset = (int) ((length - scaledLength) / 2.0 + length * (double) (_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
-
+            var offset = (int)((length - scaledLength) / 2.0 + length * (double)(_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
             if (_useSmoothing)
             {
-                fixed (byte* tempPtr = _temp)
+                Fourier.SmoothCopy(_scaledPowerSpectrum, _temp, length, _scale, offset);
+                for (var i = 0; i < _powerSpectrum.Length; i++)
                 {
-                    Fourier.SmoothCopy(spectrum, tempPtr, length, _temp.Length, _scale, offset);
-                }
-                for (var i = 0; i < _spectrum.Length; i++)
-                {
-                    var ratio = _spectrum[i] < _temp[i] ? Attack : Decay;
-                    _spectrum[i] = (byte) (_spectrum[i] * (1 - ratio) + _temp[i] * ratio);
+                    var ratio = _powerSpectrum[i] < _temp[i] ? Attack : Decay;
+                    _powerSpectrum[i] = (byte) Math.Round(_powerSpectrum[i] * (1 - ratio) + _temp[i] * ratio);
                 }
             }
             else
             {
-
-                fixed (byte* spectrumPtr = _spectrum)
-                {
-                    Fourier.SmoothCopy(spectrum, spectrumPtr, length, _spectrum.Length, _scale, offset);
-                }
+                Fourier.SmoothCopy(_scaledPowerSpectrum, _powerSpectrum, length, _scale, offset);
             }
 
             Draw();
@@ -465,7 +468,7 @@ namespace SDRSharp.PanView
 
         private unsafe void DrawSpectrum()
         {
-            if (_spectrum == null || _spectrum.Length == 0)
+            if (_powerSpectrum == null || _powerSpectrum.Length == 0)
             {
                 return;
             }
@@ -479,9 +482,9 @@ namespace SDRSharp.PanView
             {
                 ptr = (int*) ((long) bits.Scan0 - bits.Stride * (bits.Height - 1)) + AxisMargin;
             }
-            for (var i = 0; i < _spectrum.Length; i++)
+            for (var i = 0; i < _powerSpectrum.Length; i++)
             {
-                var colorIndex = (int)((_spectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / byte.MaxValue);
+                var colorIndex = (int)((_powerSpectrum[i] + _contrast * 50.0 / 25.0) * _gradientPixels.Length / byte.MaxValue);
                 colorIndex = Math.Max(colorIndex, 0);
                 colorIndex = Math.Min(colorIndex, _gradientPixels.Length - 1);
                 
@@ -626,9 +629,9 @@ namespace SDRSharp.PanView
                 return;
             }
             var temp = new byte[ClientRectangle.Width - 2 * AxisMargin];
-            Fourier.SmoothCopy(_spectrum, temp, _spectrum.Length, (_temp.Length + temp.Length) / (float)_temp.Length, 0);
-            _spectrum = temp;
-            _temp = new byte[_spectrum.Length];
+            Fourier.SmoothCopy(_powerSpectrum, temp, _powerSpectrum.Length, (_temp.Length + temp.Length) / (float)_temp.Length, 0);
+            _powerSpectrum = temp;
+            _temp = new byte[_powerSpectrum.Length];
             
             var oldBuffer = _buffer;
             _buffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
