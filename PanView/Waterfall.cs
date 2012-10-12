@@ -608,8 +608,9 @@ namespace SDRSharp.PanView
 
         private unsafe void CopyMainBuffer()
         {
-            var data1 = _buffer.LockBits(ClientRectangle, ImageLockMode.ReadOnly, _buffer.PixelFormat);
-            var data2 = _buffer2.LockBits(ClientRectangle, ImageLockMode.WriteOnly, _buffer2.PixelFormat);
+            var rect = new Rectangle(0, 0, _buffer.Width, _buffer.Height);
+            var data1 = _buffer.LockBits(rect, ImageLockMode.ReadOnly, _buffer.PixelFormat);
+            var data2 = _buffer2.LockBits(rect, ImageLockMode.WriteOnly, _buffer2.PixelFormat);
             Utils.Memcpy((void*) data2.Scan0, (void*) data1.Scan0, Math.Abs(data1.Stride) * data1.Height);
             _buffer.UnlockBits(data1);
             _buffer2.UnlockBits(data2);
