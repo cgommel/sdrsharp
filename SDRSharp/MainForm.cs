@@ -356,7 +356,9 @@ namespace SDRSharp
             #region Audio devices
 
             var defaultIndex = 0;
+            var savedIndex = -1;
             var devices = AudioDevice.GetDevices(DeviceDirection.Input);
+            var savedDeviceName = Utils.GetStringSetting("inputDevice", string.Empty);
             for (var i = 0; i < devices.Count; i++)
             {
                 inputDeviceComboBox.Items.Add(devices[i]);
@@ -364,14 +366,19 @@ namespace SDRSharp
                 {
                     defaultIndex = i;
                 }
+                if (devices[i].ToString() == savedDeviceName)
+                {
+                    savedIndex = i;
+                }
             }
             if (inputDeviceComboBox.Items.Count > 0)
             {
-                inputDeviceComboBox.SelectedIndex = defaultIndex;
+                inputDeviceComboBox.SelectedIndex = savedIndex >= 0 ? savedIndex : defaultIndex;
             }
 
             defaultIndex = 0;
             devices = AudioDevice.GetDevices(DeviceDirection.Output);
+            savedDeviceName = Utils.GetStringSetting("outputDevice", string.Empty);
             for (int i = 0; i < devices.Count; i++)
             {
                 outputDeviceComboBox.Items.Add(devices[i]);
@@ -379,16 +386,17 @@ namespace SDRSharp
                 {
                     defaultIndex = i;
                 }
+                if (devices[i].ToString() == savedDeviceName)
+                {
+                    savedIndex = i;
+                }
             }
             if (outputDeviceComboBox.Items.Count > 0)
             {
-                outputDeviceComboBox.SelectedIndex = defaultIndex;
+                outputDeviceComboBox.SelectedIndex = savedIndex >= 0 ? savedIndex : defaultIndex;
             }
 
-            _streamControl.AudioGain = 30.0f;
             _streamControl.BufferNeeded += ProcessBuffer;
-            
-            sampleRateComboBox.SelectedIndex = 7;
 
             #endregion
 
@@ -733,6 +741,8 @@ namespace SDRSharp
             Utils.SaveSetting("vfo", (long) frequencyNumericUpDown.Value);
             Utils.SaveSetting("fftDisplayOffset", fftOffsetTrackBar.Value);
             Utils.SaveSetting("fftDisplayRange", fftRangeTrackBar.Value);
+            Utils.SaveSetting("inputDevice", inputDeviceComboBox.SelectedItem);
+            Utils.SaveSetting("outputDevice", outputDeviceComboBox.SelectedItem);
         }
 
         #endregion
