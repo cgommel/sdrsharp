@@ -66,8 +66,8 @@ namespace SDRSharp.PanView
         private int _zoom;
         private bool _useSmoothing;
         private bool _useSnap;
-        private float _trackingY;
-        private float _trackingX;
+        private int _trackingY;
+        private int _trackingX;
         private long _trackingFrequency;
         private bool _useTimestamps;
         private int _scanlines;
@@ -520,7 +520,7 @@ namespace SDRSharp.PanView
             float bandpassOffset;
             var bandpassWidth = 0f;
             var cursorWidth = Math.Max((_filterBandwidth + _filterOffset) * _xIncrement, 2);
-            var xCarrier = (float)ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
+            var xCarrier = (float) ClientRectangle.Width / 2 + (_frequency - _displayCenterFrequency) * _xIncrement;
 
             switch (_bandType)
             {
@@ -556,14 +556,14 @@ namespace SDRSharp.PanView
                     _graphics2.FillRectangle(transparentBrush, (int) _lower + 1, 0, (int) bandpassWidth, ClientRectangle.Height);
                     if (xCarrier >= AxisMargin && xCarrier <= ClientRectangle.Width - AxisMargin)
                     {
-                        _graphics2.DrawLine(carrierPen, (int) xCarrier, 0, (int) xCarrier, ClientRectangle.Height);
+                        _graphics2.DrawLine(carrierPen, xCarrier, 0, xCarrier, ClientRectangle.Height);
                     }
                 }
                 if (_trackingX >= AxisMargin && _trackingX <= ClientRectangle.Width - AxisMargin)
                 {
                     if (!_changingFrequency && !_changingCenterFrequency && !_changingBandwidth)
                     {
-                        _graphics2.DrawLine(hotTrackPen, (int) _trackingX, 0, (int) _trackingX, ClientRectangle.Height);
+                        _graphics2.DrawLine(hotTrackPen, _trackingX, 0, _trackingX, ClientRectangle.Height);
                     }
 
                     string fstring;

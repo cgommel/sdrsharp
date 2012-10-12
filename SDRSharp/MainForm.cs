@@ -783,7 +783,7 @@ namespace SDRSharp
                 var samplesToConsume = (int) (_actualFftBins * _fftOverlapRatio);
                 _fftSamplesPerFrame = Math.Min(samplesToConsume, _actualFftBins);
                 var excessSamples = samplesToConsume - _fftSamplesPerFrame;
-                _maxIQSamples = (int) (samplesToConsume / (double) _fftTimer.Interval * _streamControl.BufferSizeInMs);
+                _maxIQSamples = (int) (samplesToConsume / (double) _fftTimer.Interval * _streamControl.BufferSizeInMs * 1.5);
 
                 #endregion
 
