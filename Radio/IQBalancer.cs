@@ -20,8 +20,10 @@ namespace SDRSharp.Radio
         private float _averagePower;
         private float _powerRange;
         private Complex* _iqPtr;
-        private DcRemover _dcRemoverI = new DcRemover(DcTimeConst);
-        private DcRemover _dcRemoverQ = new DcRemover(DcTimeConst);
+        private readonly DcRemover* _dcRemoverI;
+        private readonly UnsafeBuffer _dcRemoverIBuffer;
+        private readonly DcRemover* _dcRemoverQ;
+        private readonly UnsafeBuffer _dcRemoverQBuffer;
         private readonly bool _isMultithreaded;
         private readonly float* _windowPtr;
         private readonly UnsafeBuffer _windowBuffer;
@@ -30,6 +32,12 @@ namespace SDRSharp.Radio
 
         public IQBalancer()
         {
+            _dcRemoverIBuffer = UnsafeBuffer.Create(sizeof(DcRemover));
+            _dcRemoverI = (DcRemover*) _dcRemoverIBuffer;
+            _dcRemoverI->Init(DcTimeConst);
+            _dcRemoverQBuffer = UnsafeBuffer.Create(sizeof(DcRemover));
+            _dcRemoverQ = (DcRemover*) _dcRemoverQBuffer;
+            _dcRemoverQ->Init(DcTimeConst);
             var window = FilterBuilder.MakeWindow(WindowType.Hamming, FFTBins);
             _windowBuffer = UnsafeBuffer.Create(window);
             _windowPtr = (float*) _windowBuffer;
@@ -62,8 +70,8 @@ namespace SDRSharp.Radio
         {
             _phase = 0.0f;
             _gain = 1.0f;
-            _dcRemoverI.Reset();
-            _dcRemoverQ.Reset();
+            _dcRemoverI->Reset();
+            _dcRemoverQ->Reset();
         }
 
         public void Process(Complex* iq, int length)
@@ -88,18 +96,18 @@ namespace SDRSharp.Radio
                     delegate
                     {
                         // I branch
-                        _dcRemoverI.ProcessInterleaved(iPtr, length);
+                        _dcRemoverI->ProcessInterleaved(iPtr, length);
                         _event.Set();
                     });
             }
             else
             {
                 // I branch
-                _dcRemoverI.ProcessInterleaved(iPtr, length);
+                _dcRemoverI->ProcessInterleaved(iPtr, length);
             }
 
             // Q branch
-            _dcRemoverQ.ProcessInterleaved(qPtr, length);
+            _dcRemoverQ->ProcessInterleaved(qPtr, length);
 
             if (_isMultithreaded)
             {
@@ -142,8 +150,12 @@ namespace SDRSharp.Radio
 
         private float Utility(float phase, float gain)
         {
-            var fftPtr = stackalloc Complex[FFTBins];
-            var spectrumPtr = stackalloc float[FFTBins];
+            var rawFFTPtr = stackalloc byte[FFTBins * sizeof(Complex) + 16];
+            var fftPtr = (Complex*) (((long) rawFFTPtr + 15) & ~15);
+
+            var rawSpectrumPtr = stackalloc byte[FFTBins * sizeof(float) + 16];
+            var spectrumPtr = (float*) (((long) rawSpectrumPtr + 15) & ~15);
+
             Utils.Memcpy(fftPtr, _iqPtr, FFTBins * sizeof(Complex));
             Adjust(fftPtr, FFTBins, phase, gain);
             Fourier.ApplyFFTWindow(fftPtr, _windowPtr, FFTBins);
@@ -172,8 +184,12 @@ namespace SDRSharp.Radio
 
         private void EstimatePower()
         {
-            var fftPtr = stackalloc Complex[FFTBins];
-            var spectrumPtr = stackalloc float[FFTBins];
+            var rawFFTPtr = stackalloc byte[FFTBins * sizeof(Complex) + 16];
+            var fftPtr = (Complex*) (((long) rawFFTPtr + 15) & ~15);
+
+            var rawSpectrumPtr = stackalloc byte[FFTBins * sizeof(float) + 16];
+            var spectrumPtr = (float*) (((long) rawSpectrumPtr + 15) & ~15);
+
             Utils.Memcpy(fftPtr, _iqPtr, FFTBins * sizeof(Complex));
             Fourier.ApplyFFTWindow(fftPtr, _windowPtr, FFTBins);
             Fourier.ForwardTransform(fftPtr, FFTBins);

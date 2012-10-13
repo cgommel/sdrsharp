@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
@@ -8,6 +9,9 @@ namespace SDRSharp.Radio
         void ProcessInterleaved(float* buffer, int length);
     }
 
+#if !__MonoCS__
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+#endif
     public unsafe sealed class FirFilter : IDisposable, IFilter
     {
         private const double Epsilon = 1e-6;
