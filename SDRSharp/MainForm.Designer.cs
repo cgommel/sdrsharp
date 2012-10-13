@@ -107,6 +107,7 @@ namespace SDRSharp
             this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
             this.waterfall = new SDRSharp.PanView.Waterfall();
+            this.scrollPanel = new System.Windows.Forms.Panel();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -138,6 +139,7 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).BeginInit();
+            this.scrollPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // openDlg
@@ -233,16 +235,15 @@ namespace SDRSharp
             // 
             // controlPanel
             // 
-            this.controlPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.controlPanel.AutoScroll = true;
+            this.controlPanel.AutoSize = true;
+            this.controlPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.controlPanel.Controls.Add(this.radioCollapsiblePanel);
             this.controlPanel.Controls.Add(this.audioCollapsiblePanel);
             this.controlPanel.Controls.Add(this.displayCollapsiblePanel);
             this.controlPanel.Controls.Add(this.agcCollapsiblePanel);
-            this.controlPanel.Location = new System.Drawing.Point(12, 42);
+            this.controlPanel.Location = new System.Drawing.Point(0, 0);
             this.controlPanel.Name = "controlPanel";
-            this.controlPanel.Size = new System.Drawing.Size(238, 663);
+            this.controlPanel.Size = new System.Drawing.Size(220, 1131);
             this.controlPanel.TabIndex = 25;
             // 
             // radioCollapsiblePanel
@@ -1401,13 +1402,24 @@ namespace SDRSharp
             this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
             this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             // 
+            // scrollPanel
+            // 
+            this.scrollPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.scrollPanel.AutoScroll = true;
+            this.scrollPanel.Controls.Add(this.controlPanel);
+            this.scrollPanel.Location = new System.Drawing.Point(12, 42);
+            this.scrollPanel.Name = "scrollPanel";
+            this.scrollPanel.Size = new System.Drawing.Size(238, 663);
+            this.scrollPanel.TabIndex = 28;
+            // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(962, 717);
+            this.Controls.Add(this.scrollPanel);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.fftSpeedTrackBar);
-            this.Controls.Add(this.controlPanel);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
             this.Controls.Add(this.fftZoomTrackBar);
@@ -1462,6 +1474,8 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).EndInit();
+            this.scrollPanel.ResumeLayout(false);
+            this.scrollPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1563,5 +1577,6 @@ namespace SDRSharp
         private Label label27;
         private Label label28;
         private GroupBox smoothingGroupBox;
+        private Panel scrollPanel;
     }
 }
