@@ -924,8 +924,9 @@ namespace SDRSharp.PanView
                 _trackingFrequency = (_trackingFrequency + Math.Sign(_trackingFrequency) * _stepSize / 2) / _stepSize * _stepSize;
             }
             var displayRange = _displayRange / 10 * 10;
+            var displayOffset = _displayOffset / 10 * 10;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) displayRange;
-            _trackingPower = -displayRange - (_trackingY + AxisMargin - ClientRectangle.Height) / yIncrement;
+            _trackingPower = displayOffset - displayRange - (_trackingY + AxisMargin - ClientRectangle.Height) / yIncrement;
 
 
             if (_changingFrequency)
