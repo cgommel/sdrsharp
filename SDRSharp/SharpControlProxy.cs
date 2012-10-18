@@ -550,8 +550,7 @@ namespace SDRSharp
         {
 
             switch (e.PropertyName)
-            {
-                case "SelectedFrontendName":
+            {              
                 case "AudioGain":
                 case "FilterAudio":
                 case "Frequency":

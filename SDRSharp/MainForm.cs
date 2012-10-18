@@ -1156,6 +1156,8 @@ namespace SDRSharp
             {
                 _vfo.RdsReset();
             }
+
+            NotifyPropertyChanged("Frequency");
         }
 
         private void centerFreqNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -1188,6 +1190,8 @@ namespace SDRSharp
             {
                 _vfo.RdsReset();
             }
+
+            NotifyPropertyChanged("CenterFrequency");
         }
 
         private void TuneThreadProc(object state)
@@ -1423,6 +1427,8 @@ namespace SDRSharp
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
+
+            NotifyPropertyChanged("DetectorType");
         }
         
         private void fmStereoCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -1584,6 +1590,8 @@ namespace SDRSharp
         private void swapIQCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _streamControl.SwapIQ = swapIQCheckBox.Checked;
+
+            NotifyPropertyChanged("SwapIq");
         }
 
         #endregion
@@ -1653,6 +1661,8 @@ namespace SDRSharp
         private void sAttackTrackBar_ValueChanged(object sender, EventArgs e)
         {
             spectrumAnalyzer.Attack = sAttackTrackBar.Value / (double) sAttackTrackBar.Maximum;
+
+            NotifyPropertyChanged("SAttack");
         }
 
         private void sDecayTrackBar_ValueChanged(object sender, EventArgs e)
