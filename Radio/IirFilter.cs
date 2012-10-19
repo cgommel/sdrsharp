@@ -15,21 +15,21 @@ namespace SDRSharp.Radio
     /// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
-    public sealed unsafe class IirFilter
+    public unsafe struct IirFilter
     {
-        private readonly float _a0;
-        private readonly float _a1;
-        private readonly float _a2;
-        private readonly float _b0;
-        private readonly float _b1;
-        private readonly float _b2;
+        private float _a0;
+        private float _a1;
+        private float _a2;
+        private float _b0;
+        private float _b1;
+        private float _b2;
 
         private float _x1;
         private float _x2;
         private float _y1;
         private float _y2;
 
-        public IirFilter(IirFilterType filterType, double frequency, double sampleRate, int qualityFactor)
+        public void Init(IirFilterType filterType, double frequency, double sampleRate, int qualityFactor)
         {
             var w0 = 2.0 * Math.PI * frequency / sampleRate;
             var alpha = Math.Sin(w0) / (2.0 * qualityFactor);
@@ -54,7 +54,8 @@ namespace SDRSharp.Radio
                     _a2 = (float) (  1.0 - alpha);
                     break;
 
-                case IirFilterType.BandPass:
+                //case IirFilterType.BandPass:
+                default:
                     _b0 = (float) (alpha);
                     _b1 = 0.0f;
                     _b2 = (float) (-alpha);
@@ -78,6 +79,11 @@ namespace SDRSharp.Radio
             _b2 /= _a0;
             _a1 /= _a0;
             _a2 /= _a0;
+
+            _x1 = 0;
+            _x2 = 0;
+            _y1 = 0;
+            _y2 = 0;
         }
 
         public float Process(float sample)

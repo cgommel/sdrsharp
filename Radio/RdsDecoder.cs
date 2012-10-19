@@ -94,7 +94,8 @@ namespace SDRSharp.Radio
             }
             _matchedFilter.SetCoefficients(coefficients);
 
-            _syncFilter = new IirFilter(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
+            _syncFilter = new IirFilter();
+            _syncFilter.Init(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
         }
 
         public void Reset()

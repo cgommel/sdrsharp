@@ -23,8 +23,10 @@ namespace SDRSharp.Radio
 
         private readonly SharpEvent _event = new SharpEvent(false);
 
-        private Pll _pll = new Pll(DefaultPilotFrequency);
-        private IirFilter _pilotFilter;
+        private Pll* _pll;
+        private IirFilter* _pilotFilter;
+        private UnsafeBuffer _pllBuffer;
+        private UnsafeBuffer _pilotFilterBuffer;
         private UnsafeBuffer _channelABuffer;
         private UnsafeBuffer _channelBBuffer;
         private float* _channelAPtr;
@@ -48,7 +50,7 @@ namespace SDRSharp.Radio
 
         public bool IsPllLocked
         {
-            get { return _pll.IsLocked; }
+            get { return _pll->IsLocked; }
         }
 
         public void Process(float* baseBand, float* interleavedStereo, int length)
@@ -161,12 +163,12 @@ namespace SDRSharp.Radio
             
             for (var i = 0; i < length; i++)
             {
-                var pilot = _pilotFilter.Process(baseBand[i]);
-                _pll.Process(pilot);
-                _channelBPtr[i] = baseBand[i] * Trig.Sin((float) (_pll.AdjustedPhase * 2.0));
+                var pilot = _pilotFilter->Process(baseBand[i]);
+                _pll->Process(pilot);
+                _channelBPtr[i] = baseBand[i] * Trig.Sin((float) (_pll->AdjustedPhase * 2.0));
             }
 
-            if (!_pll.IsLocked)
+            if (!_pll->IsLocked)
             {
                 if (_isMultiThreaded)
                 {
@@ -245,17 +247,22 @@ namespace SDRSharp.Radio
             {
                 _sampleRate = sampleRate;
 
-                _pilotFilter = new IirFilter(IirFilterType.BandPass, DefaultPilotFrequency, _sampleRate, 500);
+                _pilotFilterBuffer = UnsafeBuffer.Create(sizeof(IirFilter));
+                _pilotFilter = (IirFilter*) _pilotFilterBuffer;
+                _pilotFilter->Init(IirFilterType.BandPass, DefaultPilotFrequency, _sampleRate, 500);
 
-                _pll.SampleRate = (float) _sampleRate;
-                _pll.DefaultFrequency = DefaultPilotFrequency;
-                _pll.Range = PllRange;
-                _pll.Bandwidth = PllBandwith;
-                _pll.Zeta = PllZeta;
-                _pll.PhaseAdjM = _pllPhaseAdjM;
-                _pll.PhaseAdjB = _pllPhaseAdjB;
-                _pll.LockTime = PllLockTime;
-                _pll.LockThreshold = PllThreshold;
+
+                _pllBuffer = UnsafeBuffer.Create(sizeof(Pll));
+                _pll = (Pll*) _pllBuffer;
+                _pll->SampleRate = (float) _sampleRate;
+                _pll->DefaultFrequency = DefaultPilotFrequency;
+                _pll->Range = PllRange;
+                _pll->Bandwidth = PllBandwith;
+                _pll->Zeta = PllZeta;
+                _pll->PhaseAdjM = _pllPhaseAdjM;
+                _pll->PhaseAdjB = _pllPhaseAdjB;
+                _pll->LockTime = PllLockTime;
+                _pll->LockThreshold = PllThreshold;
                 
                 var outputSampleRate = sampleRate / _audioDecimationFactor;
                 var coefficients = FilterBuilder.MakeBandPassKernel(outputSampleRate, 250, Vfo.MinBCAudioFrequency, Vfo.MaxBCAudioFrequency, WindowType.BlackmanHarris);
