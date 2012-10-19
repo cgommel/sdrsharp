@@ -11,10 +11,11 @@ namespace SDRSharp.Radio
         Notch
     }
 
-    /// <summary>
-    /// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-    /// </summary>
+    // http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+
+#if !__MonoCS__
     [StructLayout(LayoutKind.Sequential, Pack = 16)]
+#endif
     public unsafe struct IirFilter
     {
         private float _a0;
