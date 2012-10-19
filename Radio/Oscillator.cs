@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace SDRSharp.Radio
 {
 #if !__MonoCS__
-    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 80)]
 #endif
     public unsafe struct Oscillator
     {

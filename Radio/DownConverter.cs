@@ -5,7 +5,9 @@ namespace SDRSharp.Radio
 {
     public unsafe sealed class DownConverter
     {
-        private readonly Oscillator[] _oscillators;
+        private readonly int _phaseCount;
+        private readonly UnsafeBuffer _oscillatorsBuffer;
+        private readonly Oscillator* _oscillators;
         private readonly SharpEvent _event = new SharpEvent(false);
 
         private double _sampleRate;
@@ -14,11 +16,9 @@ namespace SDRSharp.Radio
 
         public DownConverter(int phaseCount)
         {
-            _oscillators = new Oscillator[phaseCount];
-            for (var i = 0; i < phaseCount; i++)
-            {
-                _oscillators[i] = new Oscillator();
-            }
+            _phaseCount = phaseCount;
+            _oscillatorsBuffer = UnsafeBuffer.Create(sizeof(Oscillator) * phaseCount);
+            _oscillators = (Oscillator*) _oscillatorsBuffer;
         }
 
         public DownConverter() : this(Environment.ProcessorCount)
@@ -58,9 +58,9 @@ namespace SDRSharp.Radio
                 return;
             }
 
-            var threadFrequency = _frequency * _oscillators.Length;
+            var threadFrequency = _frequency * _phaseCount;
 
-            for (var i = 0; i < _oscillators.Length; i++)
+            for (var i = 0; i < _phaseCount; i++)
             {
                 _oscillators[i].SampleRate = _sampleRate;
                 _oscillators[i].Frequency = threadFrequency;
@@ -73,7 +73,7 @@ namespace SDRSharp.Radio
             var vectR = _oscillators[0].StateReal;
             var vectI = _oscillators[0].StateImag;
 
-            for (var i = 1; i < _oscillators.Length; i++)
+            for (var i = 1; i < _phaseCount; i++)
             {
                 var outR = vectR * targetCos - vectI * targetSin;
                 var outI = vectI * targetCos + vectR * targetSin;
@@ -90,25 +90,25 @@ namespace SDRSharp.Radio
         {
             _completedCount = 0;
 
-            for (var i = 1; i < _oscillators.Length; i++)
+            for (var i = 1; i < _phaseCount; i++)
             {
                 DSPThreadPool.QueueUserWorkItem(
                     delegate (object parameter)
                         {
                             var index = (int) parameter;
-                            _oscillators[index].Mix(buffer, length, index, _oscillators.Length);
+                            _oscillators[index].Mix(buffer, length, index, _phaseCount);
                             Interlocked.Increment(ref _completedCount);
                             _event.Set();
                         }, i);
             }
 
-            _oscillators[0].Mix(buffer, length, 0, _oscillators.Length);
+            _oscillators[0].Mix(buffer, length, 0, _phaseCount);
 
-            if (_oscillators.Length > 1)
+            if (_phaseCount > 1)
             {
                 Interlocked.Increment(ref _completedCount);
 
-                while (_completedCount < _oscillators.Length)
+                while (_completedCount < _phaseCount)
                 {
                     _event.WaitOne();
                 }
