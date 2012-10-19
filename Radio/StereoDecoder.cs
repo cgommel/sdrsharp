@@ -22,10 +22,10 @@ namespace SDRSharp.Radio
         private static readonly bool _isMultiThreaded = Environment.ProcessorCount > 1;
 
         private readonly SharpEvent _event = new SharpEvent(false);
+        private readonly Pll* _pll;
+        private readonly UnsafeBuffer _pllBuffer;
 
-        private Pll* _pll;
         private IirFilter* _pilotFilter;
-        private UnsafeBuffer _pllBuffer;
         private UnsafeBuffer _pilotFilterBuffer;
         private UnsafeBuffer _channelABuffer;
         private UnsafeBuffer _channelBBuffer;
@@ -41,6 +41,12 @@ namespace SDRSharp.Radio
         private float _deemphasisAvgL;
         private float _deemphasisAvgR;
         private bool _forceMono;
+
+        public StereoDecoder()
+        {
+            _pllBuffer = UnsafeBuffer.Create(sizeof(Pll));
+            _pll = (Pll*)_pllBuffer;
+        }
 
         public bool ForceMono
         {
@@ -252,8 +258,6 @@ namespace SDRSharp.Radio
                 _pilotFilter->Init(IirFilterType.BandPass, DefaultPilotFrequency, _sampleRate, 500);
 
 
-                _pllBuffer = UnsafeBuffer.Create(sizeof(Pll));
-                _pll = (Pll*) _pllBuffer;
                 _pll->SampleRate = (float) _sampleRate;
                 _pll->DefaultFrequency = DefaultPilotFrequency;
                 _pll->Range = PllRange;
