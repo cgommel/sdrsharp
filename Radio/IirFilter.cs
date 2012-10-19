@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SDRSharp.Radio
 {
@@ -13,6 +14,7 @@ namespace SDRSharp.Radio
     /// <summary>
     /// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
     /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public sealed unsafe class IirFilter
     {
         private readonly float _a0;
