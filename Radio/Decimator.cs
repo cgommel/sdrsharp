@@ -665,7 +665,7 @@ namespace SDRSharp.Radio
             {
                 var even = buffer[i];
                 var odd = buffer[i + 2];
-                buffer[j] = (float) (0.125 * (odd + _xEven + 3.0 * (_xOdd + even)));
+                buffer[j] = 0.125f * (odd + _xEven + 3.0f * (_xOdd + even));
                 _xOdd = odd;
                 _xEven = even;
             }
