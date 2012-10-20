@@ -485,7 +485,8 @@ namespace SDRSharp.Radio
         private readonly int _stageCount;
         private readonly int _threadCount;
         private readonly int _cicCount;
-        private readonly CicDecimator[,] _cicDecimators;
+        private readonly UnsafeBuffer _cicDecimatorsBuffer;
+        private readonly CicDecimator* _cicDecimators;
         private readonly FirFilter[] _firFilters;
 
         public FloatDecimator(int stageCount) : this(stageCount, 0, DecimationFilterType.Audio, 1)
@@ -525,12 +526,13 @@ namespace SDRSharp.Radio
                     break;
             }
 
-            _cicDecimators = new CicDecimator[threadCount, _cicCount];
+            _cicDecimatorsBuffer = UnsafeBuffer.Create(threadCount * _cicCount, sizeof(CicDecimator));
+            _cicDecimators = (CicDecimator*) _cicDecimatorsBuffer;
             for (var i = 0; i < threadCount; i++)
             {
                 for (var j = 0; j < _cicCount; j++)
                 {
-                    _cicDecimators[i, j] = new CicDecimator();
+                    _cicDecimators[i * threadCount + j] = new CicDecimator();
                 }
             }
 
@@ -571,7 +573,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicDecimators[contextId, n].Process(chunk, chunkLength);
+                _cicDecimators[contextId * _threadCount + n].Process(chunk, chunkLength);
 
                 #endregion
 
@@ -602,7 +604,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicDecimators[contextId, n].ProcessInterleaved(chunk, chunkLength);
+                _cicDecimators[contextId * _threadCount + n].ProcessInterleaved(chunk, chunkLength);
 
                 #endregion
 
@@ -625,7 +627,7 @@ namespace SDRSharp.Radio
     }
 
 #if !__MonoCS__
-    [StructLayout(LayoutKind.Sequential, Pack = 16)]
+    [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 32)]
 #endif
     public unsafe struct CicDecimator
     {
