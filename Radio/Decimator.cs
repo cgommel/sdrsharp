@@ -526,13 +526,13 @@ namespace SDRSharp.Radio
                     break;
             }
 
-            _cicDecimatorsBuffer = UnsafeBuffer.Create(threadCount * _cicCount, sizeof(CicDecimator));
+            _cicDecimatorsBuffer = UnsafeBuffer.Create(_threadCount * _cicCount, sizeof(CicDecimator));
             _cicDecimators = (CicDecimator*) _cicDecimatorsBuffer;
-            for (var i = 0; i < threadCount; i++)
+            for (var i = 0; i < _threadCount; i++)
             {
                 for (var j = 0; j < _cicCount; j++)
                 {
-                    _cicDecimators[i * threadCount + j] = new CicDecimator();
+                    _cicDecimators[i * _cicCount + j] = new CicDecimator();
                 }
             }
 
@@ -573,7 +573,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicDecimators[contextId * _threadCount + n].Process(chunk, chunkLength);
+                _cicDecimators[contextId * _cicCount + n].Process(chunk, chunkLength);
 
                 #endregion
 
@@ -604,7 +604,7 @@ namespace SDRSharp.Radio
 
                 #region Filter and down-sample
 
-                _cicDecimators[contextId * _threadCount + n].ProcessInterleaved(chunk, chunkLength);
+                _cicDecimators[contextId * _cicCount + n].ProcessInterleaved(chunk, chunkLength);
 
                 #endregion
 
