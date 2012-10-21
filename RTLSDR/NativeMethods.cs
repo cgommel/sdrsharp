@@ -13,7 +13,8 @@ namespace SDRSharp.RTLSDR
         E4000,
         FC0012,
         FC0013,
-        FC2580
+        FC2580,
+        R820T
     }
 
     public class NativeMethods
