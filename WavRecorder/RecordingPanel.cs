@@ -12,7 +12,10 @@ namespace SDRSharp.WavRecorder
         private readonly ISharpControl _control;
         private readonly RecordingIQObserver _iqObserver = new RecordingIQObserver();
         private readonly RecordingAudioProcessor _audioProcessor = new RecordingAudioProcessor();
-        private readonly SimpleRecorder _simpleRecorder;
+        
+        private readonly SimpleRecorder _audioRecorder;
+        private readonly SimpleRecorder _basebandRecorder;
+
         private WavSampleFormat _wavSampleFormat;
 
         private DateTime _startTime;
@@ -22,16 +25,17 @@ namespace SDRSharp.WavRecorder
             InitializeComponent();
 
             _control = control;
-            _control.PropertyChanged += PropertyChangedHandler;
-
+            
             _audioProcessor.Bypass = true;
             _iqObserver.Enabled = false;
 
             _control.RegisterStreamHook(_iqObserver);
             _control.RegisterStreamHook(_audioProcessor);
 
-            _simpleRecorder = new SimpleRecorder(_iqObserver, _audioProcessor);
-            _simpleRecorder.Mode = RecordingMode.Baseband;
+            _audioRecorder = new SimpleRecorder(_audioProcessor);
+            _basebandRecorder = new SimpleRecorder(_iqObserver);
+
+            _control.PropertyChanged += PropertyChangedHandler;
 
             InitializeGUI();
             ConfigureGUI();
@@ -43,14 +47,17 @@ namespace SDRSharp.WavRecorder
         {
             switch (e.PropertyName)
             {
-
                 case "StartRadio":
                     ConfigureGUI();
                     break;
                 case "StopRadio":
-                    if (_simpleRecorder.IsRecording)
+                    if (_audioRecorder.IsRecording)
                     {
-                        _simpleRecorder.StopRecording();
+                        _audioRecorder.StopRecording();
+                    }
+                    if (_basebandRecorder.IsRecording)
+                    {
+                        _basebandRecorder.StopRecording();
                     }
                     ConfigureGUI();
                     break;
@@ -63,36 +70,44 @@ namespace SDRSharp.WavRecorder
 
         private void recBtn_Click(object sender, EventArgs e)
         {
-            if (!_simpleRecorder.IsRecording)
+            if (!_basebandRecorder.IsRecording && !_audioRecorder.IsRecording)
             {
-                _simpleRecorder.FileName = MakeFileName();
-                _simpleRecorder.Format = _wavSampleFormat;
 
-                if (audioRadioBtn.Checked)
-                {
-                    _simpleRecorder.SampleRate = _audioProcessor.SampleRate;
-                }
-                else
-                {
-                    _simpleRecorder.SampleRate = _iqObserver.SampleRate;
-                }
+                PrepareRecorder();
 
                 try
-                {
-                    _simpleRecorder.StartRecording();
+                {                    
+                    if (audioCb.Checked)
+                    {
+                        _audioRecorder.StartRecording();
+                    }
+                    if (basebandCb.Checked)
+                    {
+                        _basebandRecorder.StartRecording();
+                    }
                 }
                 catch
                 {
+                    _audioRecorder.StopRecording();
+                    _basebandRecorder.StopRecording();
+
                     MessageBox.Show("Unable to start recording", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    
                     return;
                 }
 
                 _startTime = DateTime.Now;
-
             }
             else
-            {
-                _simpleRecorder.StopRecording();
+            {                
+                if (_audioRecorder.IsRecording)
+                {
+                    _audioRecorder.StopRecording();
+                }
+                if (_basebandRecorder.IsRecording)
+                {
+                    _basebandRecorder.StopRecording();
+                }
             }
 
             ConfigureGUI();
@@ -103,14 +118,25 @@ namespace SDRSharp.WavRecorder
             const float bytesToMb = 1.0f / 1048576.0f;
 
             var ts = DateTime.Now - _startTime;
-            var sizeInMB = (_simpleRecorder.BytesWritten * bytesToMb);
+            var sizeInMB = (_audioRecorder.BytesWritten * bytesToMb) + (_basebandRecorder.BytesWritten * bytesToMb);
 
             durationLbl.Text = string.Format("{0:00}:{1:00}:{2:00}", ts.Hours, ts.Minutes, ts.Seconds);
             sizeLbl.Text = string.Format("{0:f2} MB", sizeInMB);
+            skippedBufferCountLbl.Text = string.Format("{0}", (_basebandRecorder.SkippedBuffers + _audioRecorder.SkippedBuffers));
 
-            if (_simpleRecorder.IsStreamFull)
+            var needConfigure = false;
+            if (_audioRecorder.IsStreamFull)
             {
-                _simpleRecorder.StopRecording();
+                _audioRecorder.StopRecording();
+                needConfigure = true;
+            }
+            if (_basebandRecorder.IsStreamFull)
+            {
+                _basebandRecorder.StopRecording();
+                needConfigure = true;
+            }
+            if (needConfigure)
+            {
                 ConfigureGUI();
             }
         }
@@ -119,19 +145,7 @@ namespace SDRSharp.WavRecorder
         {
             _wavSampleFormat = (WavSampleFormat)sampleFormatCombo.SelectedIndex;
         }
-
-        private void SampleSource_CheckedChanged(object sender, EventArgs e)
-        {
-            if (audioRadioBtn.Checked)
-            {
-                _simpleRecorder.Mode = RecordingMode.Audio;
-            }
-            else
-            {
-                _simpleRecorder.Mode = RecordingMode.Baseband;
-            }
-        }
-
+        
         #endregion
 
         #region GUI Configuration
@@ -139,7 +153,6 @@ namespace SDRSharp.WavRecorder
         private void InitializeGUI()
         {
             sampleFormatCombo.SelectedIndex = 1;
-
             sampleFormatCombo_SelectedIndexChanged(null, null);
         }
 
@@ -149,9 +162,9 @@ namespace SDRSharp.WavRecorder
             {
                 recBtn.Enabled = true;
 
-                recBtn.Text = (_simpleRecorder.IsRecording ? "Stop" : "Record");
+                recBtn.Text = ((_audioRecorder.IsRecording || _basebandRecorder.IsRecording) ? "Stop" : "Record");
 
-                recDisplayTimer.Enabled = _simpleRecorder.IsRecording;
+                recDisplayTimer.Enabled = (_audioRecorder.IsRecording || _basebandRecorder.IsRecording);
             }
             else
             {
@@ -160,25 +173,26 @@ namespace SDRSharp.WavRecorder
                 recBtn.Text = "Record";
                 durationLbl.Text = "00:00:00";
                 sizeLbl.Text = "0 MB";
+                skippedBufferCountLbl.Text = "0";
             }
 
-            sampleFormatCombo.Enabled = !_simpleRecorder.IsRecording;
-            audioRadioBtn.Enabled = !_simpleRecorder.IsRecording;
-            basebandRadioBtn.Enabled = !_simpleRecorder.IsRecording;
+            sampleFormatCombo.Enabled = !(_audioRecorder.IsRecording||_basebandRecorder.IsRecording);
+            audioCb.Enabled = !(_audioRecorder.IsRecording || _basebandRecorder.IsRecording);
+            basebandCb.Enabled = !(_audioRecorder.IsRecording||_basebandRecorder.IsRecording);
         }
 
         #endregion
-
-        private string MakeFileName()
+        
+        private string MakeFileName(RecordingMode mode, DateTime time)
         {
-            var tunedfrequency = _simpleRecorder.Mode == RecordingMode.Baseband ? Math.Abs(_control.CenterFrequency) : Math.Max(_control.Frequency, 0);                       
+            var tunedfrequency = mode == RecordingMode.Baseband ? Math.Abs(_control.CenterFrequency) : Math.Max(_control.Frequency, 0);                       
             
             var frequency = tunedfrequency >= 1000 ? (tunedfrequency / 1000L) : tunedfrequency;
 
             var unit = tunedfrequency >= 1000 ? "kHz" : "Hz";
-            var suffix = _simpleRecorder.Mode == RecordingMode.Baseband? "IQ" : "AF";
-            var dateString = DateTime.UtcNow.ToString("yyyyMMdd");
-            var timeString = DateTime.UtcNow.ToString("HHmmssZ");
+            var suffix = mode == RecordingMode.Baseband? "IQ" : "AF";
+            var dateString = time.ToString("yyyyMMdd");
+            var timeString = time.ToString("HHmmssZ");
 
             var filename = Path.GetDirectoryName(Application.ExecutablePath);
             filename = Path.Combine("" + filename, string.Format("SDRSharp_{0}_{1}_{2}{3}_{4}.wav", dateString, timeString, frequency, unit,suffix));
@@ -186,11 +200,35 @@ namespace SDRSharp.WavRecorder
             return filename;
         }
 
-        public void AbortRecording()
+        private void PrepareRecorder()
         {
-            if (_simpleRecorder != null)
+            var startTime = DateTime.UtcNow;
+
+            if (audioCb.Checked)
             {
-                _simpleRecorder.StopRecording();
+                _audioRecorder.SampleRate = _audioProcessor.SampleRate;
+                _audioRecorder.FileName = MakeFileName(RecordingMode.Audio,startTime);
+                _audioRecorder.Format = _wavSampleFormat;
+            }
+
+            if (basebandCb.Checked)
+            {
+                _basebandRecorder.SampleRate = _iqObserver.SampleRate;
+                _basebandRecorder.FileName = MakeFileName(RecordingMode.Baseband,startTime);
+                _basebandRecorder.Format = _wavSampleFormat;
+            }
+
+        }
+
+        public void AbortRecording()
+        {            
+            if (_audioRecorder != null)
+            {
+                _audioRecorder.StopRecording();
+            }
+            if (_basebandRecorder != null)
+            {
+                _basebandRecorder.StopRecording();
             }
         }
     }

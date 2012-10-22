@@ -27,16 +27,18 @@ namespace SDRSharp.WavRecorder
         private int _circularBufferTail;
         private int _circularBufferHead;
         private int _circularBufferLength;
-        
+        private volatile int _circularBufferUsedCount;
+
+        private long _skippedBuffersCount;
         private bool _diskWriterRunning;        
         private string _fileName;
         private double _sampleRate;
-        private RecordingMode _recordingMode;
-
+        
         private WavSampleFormat _wavSampleFormat;
         private SimpleWavWriter _wavWriter;
         private Thread _diskWriter;
 
+        private readonly RecordingMode _recordingMode;
         private readonly RecordingIQObserver _iQObserver;
         private readonly RecordingAudioProcessor _audioProcessor;
 
@@ -55,17 +57,14 @@ namespace SDRSharp.WavRecorder
             get { return _wavWriter == null ? 0L : _wavWriter.Length; }            
         }
 
+        public long SkippedBuffers
+        {
+            get { return _wavWriter == null ? 0L : _skippedBuffersCount; }
+        }
+
         public RecordingMode Mode
         {
-            get { return _recordingMode; }
-            set
-            {
-                if (_diskWriterRunning)
-                {
-                    throw new ArgumentException("Recording mode cannot set be while recording");
-                }
-                _recordingMode = value;
-            }
+            get { return _recordingMode; }                        
         }
         
         public WavSampleFormat Format
@@ -110,10 +109,16 @@ namespace SDRSharp.WavRecorder
 
         #region Initialization and Termination
 
-        public SimpleRecorder(RecordingIQObserver iQObserver, RecordingAudioProcessor audioProcessor)
+        public SimpleRecorder(RecordingIQObserver iQObserver)
         {
             _iQObserver = iQObserver;
+            _recordingMode = RecordingMode.Baseband;
+        }
+
+        public SimpleRecorder(RecordingAudioProcessor audioProcessor)
+        {
             _audioProcessor = audioProcessor;
+            _recordingMode = RecordingMode.Audio;
         }
 
         ~SimpleRecorder()
@@ -146,9 +151,16 @@ namespace SDRSharp.WavRecorder
             
             #endregion
 
+            if (_circularBufferUsedCount == _bufferCount)
+            {
+                _skippedBuffersCount++;
+                return;
+            }
+
             Utils.Memcpy(_complexCircularBufferPtrs[_circularBufferHead], buffer, length * sizeof(Complex));
             _circularBufferHead++;
             _circularBufferHead &= (_bufferCount - 1);
+            _circularBufferUsedCount++;
             _bufferEvent.Set();
         }
 
@@ -172,9 +184,16 @@ namespace SDRSharp.WavRecorder
 
             #endregion
 
+            if (_circularBufferUsedCount == _bufferCount)
+            {
+                _skippedBuffersCount++;
+                return;
+            }
+
             Utils.Memcpy(_floatCircularBufferPtrs[_circularBufferHead], audio, length * sizeof(float));
             _circularBufferHead++;
             _circularBufferHead &= (_bufferCount - 1);
+            _circularBufferUsedCount++;
             _bufferEvent.Set();
         }
 
@@ -219,8 +238,9 @@ namespace SDRSharp.WavRecorder
 
                     _wavWriter.Write(_floatCircularBufferPtrs[_circularBufferTail], _circularBuffers[_circularBufferTail].Length);
 
+                    _circularBufferUsedCount--;
                     _circularBufferTail++;
-                    _circularBufferTail &= (_bufferCount - 1);
+                    _circularBufferTail &= (_bufferCount - 1);                                        
                 }
             }
 
@@ -293,6 +313,8 @@ namespace SDRSharp.WavRecorder
             {
                 _circularBufferHead = 0;
                 _circularBufferTail = 0;
+
+                _skippedBuffersCount = 0;
                 
                 _bufferEvent.Reset();
 

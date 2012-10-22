@@ -39,9 +39,11 @@
             this.sizeLbl = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.audioRadioBtn = new System.Windows.Forms.RadioButton();
-            this.basebandRadioBtn = new System.Windows.Forms.RadioButton();
+            this.audioCb = new System.Windows.Forms.CheckBox();
+            this.basebandCb = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.skippedBufferCountLbl = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -52,7 +54,7 @@
             this.recBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.recBtn.Enabled = false;
-            this.recBtn.Location = new System.Drawing.Point(118, 161);
+            this.recBtn.Location = new System.Drawing.Point(118, 184);
             this.recBtn.Name = "recBtn";
             this.recBtn.Size = new System.Drawing.Size(119, 23);
             this.recBtn.TabIndex = 0;
@@ -135,64 +137,81 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(248, 208);
+            this.panel1.Size = new System.Drawing.Size(248, 230);
             this.panel1.TabIndex = 7;
             // 
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox2.Controls.Add(this.audioRadioBtn);
+            this.groupBox2.Controls.Add(this.audioCb);
+            this.groupBox2.Controls.Add(this.basebandCb);
             this.groupBox2.Controls.Add(this.sampleFormatCombo);
             this.groupBox2.Controls.Add(this.sampleFormatLbl);
-            this.groupBox2.Controls.Add(this.basebandRadioBtn);
-            this.groupBox2.Location = new System.Drawing.Point(6, 82);
+            this.groupBox2.Location = new System.Drawing.Point(6, 105);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(231, 73);
             this.groupBox2.TabIndex = 8;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Mode";
             // 
-            // audioRadioBtn
+            // audioCb
             // 
-            this.audioRadioBtn.AutoSize = true;
-            this.audioRadioBtn.Location = new System.Drawing.Point(112, 50);
-            this.audioRadioBtn.Name = "audioRadioBtn";
-            this.audioRadioBtn.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.audioRadioBtn.Size = new System.Drawing.Size(52, 17);
-            this.audioRadioBtn.TabIndex = 1;
-            this.audioRadioBtn.Text = "Audio";
-            this.audioRadioBtn.UseVisualStyleBackColor = true;
-            this.audioRadioBtn.CheckedChanged += new System.EventHandler(this.SampleSource_CheckedChanged);
+            this.audioCb.AutoSize = true;
+            this.audioCb.Location = new System.Drawing.Point(30, 50);
+            this.audioCb.Name = "audioCb";
+            this.audioCb.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.audioCb.Size = new System.Drawing.Size(53, 17);
+            this.audioCb.TabIndex = 7;
+            this.audioCb.Text = "Audio";
+            this.audioCb.UseVisualStyleBackColor = true;
             // 
-            // basebandRadioBtn
+            // basebandCb
             // 
-            this.basebandRadioBtn.AutoSize = true;
-            this.basebandRadioBtn.Checked = true;
-            this.basebandRadioBtn.Location = new System.Drawing.Point(10, 50);
-            this.basebandRadioBtn.Name = "basebandRadioBtn";
-            this.basebandRadioBtn.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.basebandRadioBtn.Size = new System.Drawing.Size(73, 17);
-            this.basebandRadioBtn.TabIndex = 0;
-            this.basebandRadioBtn.TabStop = true;
-            this.basebandRadioBtn.Text = "Baseband";
-            this.basebandRadioBtn.UseVisualStyleBackColor = true;
-            this.basebandRadioBtn.CheckedChanged += new System.EventHandler(this.SampleSource_CheckedChanged);
+            this.basebandCb.AutoSize = true;
+            this.basebandCb.Checked = true;
+            this.basebandCb.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.basebandCb.Location = new System.Drawing.Point(112, 50);
+            this.basebandCb.Name = "basebandCb";
+            this.basebandCb.Size = new System.Drawing.Size(74, 17);
+            this.basebandCb.TabIndex = 6;
+            this.basebandCb.Text = "Baseband";
+            this.basebandCb.UseVisualStyleBackColor = true;
             // 
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.skippedBufferCountLbl);
+            this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.sizeLbl);
             this.groupBox1.Controls.Add(this.durationLbl);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Location = new System.Drawing.Point(6, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(231, 73);
+            this.groupBox1.Size = new System.Drawing.Size(231, 96);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Status";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 72);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(84, 13);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "Dropped Buffers";
+            // 
+            // skippedBufferCountLbl
+            // 
+            this.skippedBufferCountLbl.AutoSize = true;
+            this.skippedBufferCountLbl.Location = new System.Drawing.Point(109, 72);
+            this.skippedBufferCountLbl.Name = "skippedBufferCountLbl";
+            this.skippedBufferCountLbl.Size = new System.Drawing.Size(13, 13);
+            this.skippedBufferCountLbl.TabIndex = 8;
+            this.skippedBufferCountLbl.Text = "0";
             // 
             // RecordingPanel
             // 
@@ -200,7 +219,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panel1);
             this.Name = "RecordingPanel";
-            this.Size = new System.Drawing.Size(248, 208);
+            this.Size = new System.Drawing.Size(248, 230);
             this.panel1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -223,7 +242,9 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.RadioButton audioRadioBtn;
-        private System.Windows.Forms.RadioButton basebandRadioBtn;
+        private System.Windows.Forms.CheckBox audioCb;
+        private System.Windows.Forms.CheckBox basebandCb;
+        private System.Windows.Forms.Label skippedBufferCountLbl;
+        private System.Windows.Forms.Label label1;
     }
 }

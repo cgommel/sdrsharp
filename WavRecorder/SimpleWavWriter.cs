@@ -56,7 +56,7 @@ namespace SDRSharp.WavRecorder
 
     public unsafe class SimpleWavWriter
     {
-        private const long MaxStreamLength = 2147483648;
+        private const long MaxStreamLength = int.MaxValue;
 
         private readonly string _filename;
         private readonly WavFormatHeader _format;
@@ -126,6 +126,7 @@ namespace SDRSharp.WavRecorder
 
         public void Close()
         {
+
             if (_outputStream != null)
             {
                 UpdateLength();
@@ -181,7 +182,7 @@ namespace SDRSharp.WavRecorder
         private void WritePCM8(float* data, int length)
         {
             
-            #region Buffers
+            #region Buffer
 
             if (_outputBuffer == null || _outputBuffer.Length != (length * 2))
             {
@@ -300,7 +301,7 @@ namespace SDRSharp.WavRecorder
                 _outputStream.Write((UInt32)(_outputStream.BaseStream.Length - 8));
                 _outputStream.Seek((int)_dataSizeOffs, SeekOrigin.Begin);
                 _outputStream.Write((UInt32)(_length));
-                _outputStream.BaseStream.Seek(_length, SeekOrigin.Begin);
+                _outputStream.BaseStream.Seek(0, SeekOrigin.End);
             }
         }
 
