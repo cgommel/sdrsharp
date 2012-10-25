@@ -14,10 +14,13 @@ namespace SDRSharp.Radio
         private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false);
         private readonly FirFilter _matchedFilter = new FirFilter();
         private readonly RdsDetectorBank _bitDecoder = new RdsDetectorBank();
+        private readonly Pll* _pll;
+        private readonly UnsafeBuffer _pllBuffer;
+        private readonly Oscillator* _osc;
+        private readonly UnsafeBuffer _oscBuffer;
+        private readonly IirFilter* _syncFilter;
+        private readonly UnsafeBuffer _syncFilterBuffer;
 
-        private Pll _pll = new Pll(PllDefaultFrequency);
-        private Oscillator _osc;
-        private IirFilter _syncFilter;
         private UnsafeBuffer _rawBuffer;
         private Complex* _rawPtr;
         private UnsafeBuffer _magBuffer;
@@ -33,6 +36,18 @@ namespace SDRSharp.Radio
         private float _lastData;
         private float _lastSyncSlope;
         private bool _lastBit;
+
+        public RdsDecoder()
+        {
+            _pllBuffer = UnsafeBuffer.Create(sizeof(Pll));
+            _pll = (Pll*) _pllBuffer;
+
+            _oscBuffer = UnsafeBuffer.Create(sizeof(Oscillator));
+            _osc = (Oscillator*) _oscBuffer;
+
+            _syncFilterBuffer = UnsafeBuffer.Create(sizeof(IirFilter));
+            _syncFilter = (IirFilter*) _syncFilterBuffer;
+        }
 
         public double SampleRate
         {
@@ -59,8 +74,8 @@ namespace SDRSharp.Radio
 
         private void Configure()
         {
-            _osc.SampleRate = _sampleRate;
-            _osc.Frequency = PllDefaultFrequency;
+            _osc->SampleRate = _sampleRate;
+            _osc->Frequency = PllDefaultFrequency;
 
             var decimationStageCount = 0;
             while (_sampleRate >= 16000 * Math.Pow(2.0, decimationStageCount))
@@ -74,13 +89,13 @@ namespace SDRSharp.Radio
 
             var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2400, WindowType.BlackmanHarris);
             _baseBandFilter.SetCoefficients(coefficients);
-
-            _pll.SampleRate = (float) _demodulationSampleRate;
-            _pll.DefaultFrequency = 0;
-            _pll.Range = PllRange;
-            _pll.Bandwidth = PllBandwith;
-            _pll.LockTime = PllLockTime;
-            _pll.LockThreshold = PllLockThreshold;
+            
+            _pll->SampleRate = (float) _demodulationSampleRate;
+            _pll->DefaultFrequency = 0;
+            _pll->Range = PllRange;
+            _pll->Bandwidth = PllBandwith;
+            _pll->LockTime = PllLockTime;
+            _pll->LockThreshold = PllLockThreshold;
 
             var matchedFilterLength = (int) (_demodulationSampleRate / RdsBitRate);
             coefficients = new float[matchedFilterLength * 2 + 1];
@@ -94,8 +109,7 @@ namespace SDRSharp.Radio
             }
             _matchedFilter.SetCoefficients(coefficients);
 
-            _syncFilter = new IirFilter();
-            _syncFilter.Init(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
+            _syncFilter->Init(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
         }
 
         public void Reset()
@@ -130,8 +144,8 @@ namespace SDRSharp.Radio
             // Downconvert
             for (var i = 0; i < length; i++)
             {
-                _osc.Tick();
-                _rawPtr[i] = _osc.Out * baseBand[i];
+                _osc->Tick();
+                _rawPtr[i] = _osc->Out * baseBand[i];
             }
 
             // Decimate
@@ -144,7 +158,7 @@ namespace SDRSharp.Radio
             // PLL
             for (var i = 0; i < length; i++)
             {
-                _dataPtr[i] = _pll.Process(_rawPtr[i]).Imag;
+                _dataPtr[i] = _pll->Process(_rawPtr[i]).Imag;
             }
 
             //if (!_pll.IsLocked)
@@ -163,7 +177,7 @@ namespace SDRSharp.Radio
             }
 
             // Synchronize to RDS bitrate
-            _syncFilter.Process(_magPtr, length);
+            _syncFilter->Process(_magPtr, length);
 
             // Detect RDS bits
             for (int i = 0; i < length; i++)
