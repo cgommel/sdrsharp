@@ -462,7 +462,7 @@ namespace SDRSharp.PanView
                 dest = (void*) bmpData.Scan0;
                 src = (void*) ((long) bmpData.Scan0 - bmpData.Stride);
             }
-            Utils.Memcpy(dest, src, (bmpData.Height - 1) * Math.Abs(bmpData.Stride));
+            Utils.Memmove(dest, src, (bmpData.Height - 1) * Math.Abs(bmpData.Stride));
             _buffer.UnlockBits(bmpData);
         }
 

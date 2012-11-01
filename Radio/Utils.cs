@@ -52,10 +52,10 @@ namespace SDRSharp.Radio
             }
         }
 
-#if LINUX
-        private const string Libc = "libc.so";
-#else
         private const string Libc = "msvcrt.dll";
+
+        [DllImport(Libc, EntryPoint = "memmove", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void* Memmove(void* dest, void* src, int len);
 
         [DllImport(Libc, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl)]
         public static extern void* Memcpy(void* dest, void* src, int len);
@@ -65,7 +65,6 @@ namespace SDRSharp.Radio
 
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod", SetLastError = true)]
         public static extern uint TimeEndPeriod(uint uMilliseconds);
-#endif
 
         public static double GetDoubleSetting(string name, double defaultValue)
         {
