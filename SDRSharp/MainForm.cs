@@ -1016,11 +1016,14 @@ namespace SDRSharp
                     _frontendController.Close();
                 }
                 _frontendController = null;
-                MessageBox.Show(
-                    frontendName + " is either not connected or its driver is not working properly.",
-                    "Information",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                if (!_initializing)
+                {
+                    MessageBox.Show(
+                        frontendName + " is either not connected or its driver is not working properly.",
+                        "Information",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
             }
         }
 
