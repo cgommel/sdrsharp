@@ -29,7 +29,6 @@ namespace SDRSharp
         private const int DefaultDSBBandwidth = 6000;
         private const int DefaultSSBBandwidth = 2400;
         private const int DefaultCWBandwidth = 300;
-        private const int MaxFFTBins = 1024 * 1024 * 4;
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -39,17 +38,18 @@ namespace SDRSharp
         private readonly StreamHookManager _streamHookManager = new StreamHookManager();
         private readonly StreamControl _streamControl;
         private readonly ComplexFifoStream _fftStream = new ComplexFifoStream(BlockMode.BlockingRead);
-        private readonly UnsafeBuffer _iqBuffer = UnsafeBuffer.Create(MaxFFTBins, sizeof(Complex));
-        private readonly Complex* _iqPtr;
-        private readonly UnsafeBuffer _fftBuffer = UnsafeBuffer.Create(MaxFFTBins, sizeof(Complex));
-        private readonly Complex* _fftPtr;
-        private readonly UnsafeBuffer _fftWindow = UnsafeBuffer.Create(MaxFFTBins, sizeof(float));
-        private readonly float* _fftWindowPtr;
-        private readonly UnsafeBuffer _fftSpectrum = UnsafeBuffer.Create(MaxFFTBins, sizeof(float));
-        private readonly float* _fftSpectrumPtr;
-        private readonly UnsafeBuffer _scaledFFTSpectrum = UnsafeBuffer.Create(MaxFFTBins, sizeof(byte));
-        private readonly byte* _scaledFFTSpectrumPtr;
         private readonly SharpEvent _fftEvent = new SharpEvent(false);
+        private readonly object _fftResolutionLockObject = new object();
+        private UnsafeBuffer _iqBuffer;
+        private Complex* _iqPtr;
+        private UnsafeBuffer _fftBuffer;
+        private Complex* _fftPtr;
+        private UnsafeBuffer _fftWindow;
+        private float* _fftWindowPtr;
+        private UnsafeBuffer _fftSpectrum;
+        private float* _fftSpectrumPtr;
+        private UnsafeBuffer _scaledFFTSpectrum;
+        private byte* _scaledFFTSpectrumPtr;
         private System.Windows.Forms.Timer _fftTimer;
         private System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
@@ -59,9 +59,8 @@ namespace SDRSharp
         private long _frequencyShift;
         private int _maxIQSamples;
         private int _fftBins;
-        private int _actualFftBins;
-        private int _fftSpectrumSamples;
         private bool _fftSpectrumAvailable;
+        private bool _fftSpectrumResized;
         private bool _fftBufferIsWaiting;
         private bool _extioChangingFrequency;
         private bool _extioChangingSamplerate;
@@ -331,11 +330,6 @@ namespace SDRSharp
 
         public MainForm()
         {
-            _iqPtr = (Complex*) _iqBuffer;
-            _fftPtr = (Complex*) _fftBuffer;
-            _fftWindowPtr = (float*) _fftWindow;
-            _fftSpectrumPtr = (float*) _fftSpectrum;
-            _scaledFFTSpectrumPtr = (byte*) _scaledFFTSpectrum;
             _streamControl = new StreamControl(_streamHookManager);
 
             InitializeComponent();
@@ -635,6 +629,8 @@ namespace SDRSharp
                 }
                 else
                 {
+                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value;
+                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value;
                     frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
                 }
             }
@@ -768,20 +764,14 @@ namespace SDRSharp
         {
             while (_streamControl.IsPlaying || _extioChangingSamplerate)
             {
+                Monitor.Enter(_fftResolutionLockObject);
+
                 #region Configure
 
-                if (_actualFftBins != _fftBins)
-                {
-                    for (var i = _actualFftBins; i < _fftBins; i++)
-                    {
-                        _iqPtr[i] = 0;
-                    }
-                }
-                _actualFftBins = _fftBins;
-                var fftRate = _actualFftBins / (_fftTimer.Interval * 0.001);
+                var fftRate = _fftBins / (_fftTimer.Interval * 0.001);
                 _fftOverlapRatio = _streamControl.SampleRate / fftRate;
-                var samplesToConsume = (int) (_actualFftBins * _fftOverlapRatio);
-                _fftSamplesPerFrame = Math.Min(samplesToConsume, _actualFftBins);
+                var samplesToConsume = (int)(_fftBins * _fftOverlapRatio);
+                _fftSamplesPerFrame = Math.Min(samplesToConsume, _fftBins);
                 var excessSamples = samplesToConsume - _fftSamplesPerFrame;
                 _maxIQSamples = (int) (samplesToConsume / (double) _fftTimer.Interval * _streamControl.BufferSizeInMs * 1.5);
 
@@ -789,9 +779,9 @@ namespace SDRSharp
 
                 #region Shift data for overlapped mode)
 
-                if (_fftSamplesPerFrame < _actualFftBins)
+                if (_fftSamplesPerFrame < _fftBins)
                 {
-                    Utils.Memcpy(_iqPtr, _iqPtr + _fftSamplesPerFrame, (_actualFftBins - _fftSamplesPerFrame) * sizeof(Complex));
+                    Utils.Memcpy(_iqPtr, _iqPtr + _fftSamplesPerFrame, (_fftBins - _fftSamplesPerFrame) * sizeof(Complex));
                 }
 
                 #endregion
@@ -804,7 +794,7 @@ namespace SDRSharp
                 while (_streamControl.IsPlaying && total < targetLength)
                 {
                     var len = targetLength - total;
-                    total += _fftStream.Read(_iqPtr, _actualFftBins - targetLength + total, len);
+                    total += _fftStream.Read(_iqPtr, _fftBins - targetLength + total, len);
                 }
 
                 _fftStream.Advance(excessSamples);
@@ -816,23 +806,25 @@ namespace SDRSharp
                     #region Process FFT gain
 
                     // http://www.designnews.com/author.asp?section_id=1419&doc_id=236273&piddl_msgid=522392
-                    var fftGain = (float)(10.0 * Math.Log10((double) _actualFftBins / 2));
+                    var fftGain = (float)(10.0 * Math.Log10((double) _fftBins / 2));
                     var compensation = 24.0f - fftGain + _fftOffset;
 
                     #endregion
 
-                    #region Calculate and scale FFT
+                    #region Calculate FFT
 
-                    Utils.Memcpy(_fftPtr, _iqPtr, _actualFftBins * sizeof(Complex));
-                    Fourier.ApplyFFTWindow(_fftPtr, _fftWindowPtr, _actualFftBins);
-                    Fourier.ForwardTransform(_fftPtr, _actualFftBins);
-                    Fourier.SpectrumPower(_fftPtr, _fftSpectrumPtr, _actualFftBins, compensation);
+                    Utils.Memcpy(_fftPtr, _iqPtr, _fftBins * sizeof(Complex));
+                    Fourier.ApplyFFTWindow(_fftPtr, _fftWindowPtr, _fftBins);
+                    Fourier.ForwardTransform(_fftPtr, _fftBins);
+                    Fourier.SpectrumPower(_fftPtr, _fftSpectrumPtr, _fftBins, compensation);
 
                     #endregion
 
-                    _fftSpectrumSamples = _actualFftBins;
+                    _fftSpectrumResized = false;
                     _fftSpectrumAvailable = true;
                 }
+
+                Monitor.Exit(_fftResolutionLockObject);
 
                 if (_fftStream.Length <= _maxIQSamples)
                 {
@@ -840,19 +832,22 @@ namespace SDRSharp
                     _fftEvent.WaitOne();
                 }
             }
-            _actualFftBins = 0;
             _fftStream.Flush();
         }
 
         private void RenderFFT()
         {
+            if (_fftSpectrumResized)
+            {
+                return;
+            }
             if (!panSplitContainer.Panel1Collapsed)
             {
-                spectrumAnalyzer.Render(_fftSpectrumPtr, _fftSpectrumSamples);
+                spectrumAnalyzer.Render(_fftSpectrumPtr, _fftBins);
             }
             if (!panSplitContainer.Panel2Collapsed)
             {
-                waterfall.Render(_fftSpectrumPtr, _fftSpectrumSamples);
+                waterfall.Render(_fftSpectrumPtr, _fftBins);
             }
         }
 
@@ -905,6 +900,21 @@ namespace SDRSharp
             {
                 Utils.Memcpy(_fftWindow, windowPtr, _fftBins * sizeof(float));
             }
+        }
+
+        private void InitFFTBuffers()
+        {
+            _iqBuffer = UnsafeBuffer.Create(_fftBins, sizeof(Complex));
+            _fftBuffer = UnsafeBuffer.Create(_fftBins, sizeof(Complex));
+            _fftWindow = UnsafeBuffer.Create(_fftBins, sizeof(float));
+            _fftSpectrum = UnsafeBuffer.Create(_fftBins, sizeof(float));
+            _scaledFFTSpectrum = UnsafeBuffer.Create(_fftBins, sizeof(byte));
+
+            _iqPtr = (Complex*) _iqBuffer;
+            _fftPtr = (Complex*) _fftBuffer;
+            _fftWindowPtr = (float*) _fftWindow;
+            _fftSpectrumPtr = (float*) _fftSpectrum;
+            _scaledFFTSpectrumPtr = (byte*) _scaledFFTSpectrum;
         }
 
         #endregion
@@ -1101,6 +1111,7 @@ namespace SDRSharp
                 fftZoomTrackBar_ValueChanged(null, null);
             }
 
+            _frequencySet = 0L;
             frequencyNumericUpDown_ValueChanged(null, null);
 
             BuildFFTWindow();
@@ -1624,8 +1635,13 @@ namespace SDRSharp
 
         private void fftResolutionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
-            BuildFFTWindow();
+            lock (_fftResolutionLockObject)
+            {
+                _fftBins = int.Parse(fftResolutionComboBox.SelectedItem.ToString());
+                InitFFTBuffers();
+                BuildFFTWindow();
+                _fftSpectrumResized = true;
+            }
 
             NotifyPropertyChanged("FFTResolution");
         }
@@ -1873,10 +1889,13 @@ namespace SDRSharp
 
         public void GetSpectrumSnapshot(byte[] destArray)
         {
-            Fourier.ScaleFFT(_fftSpectrumPtr, _scaledFFTSpectrumPtr, _fftSpectrumSamples, -130.0f, 0.0f);
-            fixed (byte* destPtr = destArray)
+            lock (_fftResolutionLockObject)
             {
-                Fourier.SmoothCopy(_scaledFFTSpectrumPtr, destPtr, _fftSpectrumSamples, destArray.Length, 1.0f, 0);
+                Fourier.ScaleFFT(_fftSpectrumPtr, _scaledFFTSpectrumPtr, _fftBins, -130.0f, 0.0f);
+                fixed (byte* destPtr = destArray)
+                {
+                    Fourier.SmoothCopy(_scaledFFTSpectrumPtr, destPtr, _fftBins, destArray.Length, 1.0f, 0);
+                }
             }
         }
 
