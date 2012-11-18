@@ -87,6 +87,14 @@ namespace SDRSharp.Radio
             _y2 = 0;
         }
 
+        public void Reset()
+        {
+            _x1 = 0;
+            _x2 = 0;
+            _y1 = 0;
+            _y2 = 0;
+        }
+
         public float Process(float sample)
         {
             var result = _b0 * sample + _b1 * _x1 + _b2 * _x2

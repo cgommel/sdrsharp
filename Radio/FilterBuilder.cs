@@ -90,26 +90,64 @@ namespace SDRSharp.Radio
             return w;
         }
 
-        public static float[] MakeLowPassKernel(double sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
+        public static float[] MakeSinc(double sampleRate, double frequency, int length)
         {
-            var cutoffRadians = 2 * Math.PI * cutoffFrequency / sampleRate;
-            
-            var h = new float[filterOrder + 1];
-            var w = MakeWindow(windowType, filterOrder + 1);
-
-            for (var i = 0; i <= filterOrder; i++)
+            if (length % 2 == 0)
             {
-                var n = i - filterOrder / 2;
+                throw new ArgumentException("Length should be odd", "length");
+            }
+
+            var freqInRad = 2.0 * Math.PI * frequency / sampleRate;
+            var h = new float[length];
+
+            for (var i = 0; i < length; i++)
+            {
+                var n = i - length / 2;
                 if (n == 0)
                 {
-                    h[i] = (float) cutoffRadians;
+                    h[i] = (float) freqInRad;
                 }
                 else
                 {
-                    h[i] = (float) (Math.Sin(cutoffRadians * n) / n) * w[i];
+                    h[i] = (float) (Math.Sin(freqInRad * n) / n);
                 }
             }
+
+            return h;
+        }
+
+        public static float[] MakeSin(double sampleRate, double frequency, int length)
+        {
+            if (length % 2 == 0)
+            {
+                throw new ArgumentException("Length should be odd", "length");
+            }
+
+            var freqInRad = 2.0 * Math.PI * frequency / sampleRate;
+            var h = new float[length];
+
+            var halfLength = length / 2;
+            for (var i = 0; i <= halfLength; i++)
+            {
+                var y = (float) Math.Sin(freqInRad * i);
+                h[halfLength + i] = y;
+                h[halfLength - i] = -y;
+            }
+
+            return h;
+        }
+
+        public static float[] MakeLowPassKernel(double sampleRate, int filterOrder, int cutoffFrequency, WindowType windowType)
+        {
+            filterOrder |= 1;
+
+            var h = MakeSinc(sampleRate, cutoffFrequency, filterOrder);
+            var w = MakeWindow(windowType, filterOrder);
+
+            ApplyWindow(h, w);
+
             Normalize(h);
+
             return h;
         }
 
@@ -147,6 +185,14 @@ namespace SDRSharp.Radio
             for (var i = 0; i < h.Length; i++)
             {
                 h[i] /= sum;
+            }
+        }
+
+        public static void ApplyWindow(float[] coefficients, float[] window)
+        {
+            for (var i = 0; i < coefficients.Length; i++)
+            {
+                coefficients[i] *= window[i];
             }
         }
 

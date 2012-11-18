@@ -78,7 +78,7 @@ namespace SDRSharp.Radio
             _osc->Frequency = PllDefaultFrequency;
 
             var decimationStageCount = 0;
-            while (_sampleRate >= 16000 * Math.Pow(2.0, decimationStageCount))
+            while (_sampleRate >= 20000 * Math.Pow(2.0, decimationStageCount))
             {
                 decimationStageCount++;
             }
@@ -87,7 +87,7 @@ namespace SDRSharp.Radio
             _decimationFactor = (int) Math.Pow(2.0, decimationStageCount);
             _demodulationSampleRate = _sampleRate / _decimationFactor;
 
-            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2400, WindowType.BlackmanHarris);
+            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2500, WindowType.BlackmanHarris);
             _baseBandFilter.SetCoefficients(coefficients);
             
             _pll->SampleRate = (float) _demodulationSampleRate;
@@ -97,16 +97,8 @@ namespace SDRSharp.Radio
             _pll->LockTime = PllLockTime;
             _pll->LockThreshold = PllLockThreshold;
 
-            var matchedFilterLength = (int) (_demodulationSampleRate / RdsBitRate);
-            coefficients = new float[matchedFilterLength * 2 + 1];
-            for (int i = 0; i <= matchedFilterLength; i++)
-            {
-                var t = i / _demodulationSampleRate;
-                var x = t * RdsBitRate;
-                var x64 = 64.0 * x;
-                coefficients[i + matchedFilterLength] = (float) (.75 * Math.Cos(2.0 * 2.0 * Math.PI * x) * ((1.0 / (1.0 / x - x64)) - (1.0 / (9.0 / x - x64))));
-                coefficients[matchedFilterLength - i] = (float) (-.75 * Math.Cos(2.0 * 2.0 * Math.PI * x) * ((1.0 / (1.0 / x - x64)) - (1.0 / (9.0 / x - x64))));
-            }
+            var matchedFilterLength = (int) (_demodulationSampleRate / RdsBitRate) | 1;
+            coefficients = FilterBuilder.MakeSin(_demodulationSampleRate, RdsBitRate, matchedFilterLength);
             _matchedFilter.SetCoefficients(coefficients);
 
             _syncFilter->Init(IirFilterType.BandPass, RdsBitRate, _demodulationSampleRate, 500);
@@ -115,6 +107,7 @@ namespace SDRSharp.Radio
         public void Reset()
         {
             _bitDecoder.Reset();
+            _syncFilter->Reset();
         }
 
         public void Process(float* baseBand, int length)
@@ -161,7 +154,7 @@ namespace SDRSharp.Radio
                 _dataPtr[i] = _pll->Process(_rawPtr[i]).Imag;
             }
 
-            //if (!_pll.IsLocked)
+            //if (!_pll->IsLocked)
             //{
             //    _bitDecoder.Reset();
             //    return;
@@ -170,10 +163,10 @@ namespace SDRSharp.Radio
             // Matched filter
             _matchedFilter.Process(_dataPtr, length);
 
-            // Recover signal energy
+            // Recover signal energy to sustain the oscillation in the IIR
             for (var i = 0; i < length; i++)
             {
-                _magPtr[i] = _dataPtr[i] * _dataPtr[i];
+                _magPtr[i] = Math.Abs(_dataPtr[i]);
             }
 
             // Synchronize to RDS bitrate
