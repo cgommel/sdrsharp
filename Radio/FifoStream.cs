@@ -98,18 +98,15 @@ namespace SDRSharp.Radio
             }
         }
 
+        public void Open()
+        {
+            _terminated = false;
+        }
+
         public void Close()
         {
-            Flush();
             _terminated = true;
-            if (_writeEvent != null)
-            {
-                _writeEvent.Set();
-            }
-            if (_readEvent != null)
-            {
-                _readEvent.Set();
-            }
+            Flush();
         }
 
         public void Flush()
@@ -122,6 +119,14 @@ namespace SDRSharp.Radio
                 _readPos = 0;
                 _writePos = 0;
                 _size = 0;
+            }
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
 
@@ -370,18 +375,15 @@ namespace SDRSharp.Radio
             }
         }
 
+        public void Open()
+        {
+            _terminated = false;
+        }
+
         public void Close()
         {
-            Flush();
             _terminated = true;
-            if (_writeEvent != null)
-            {
-                _writeEvent.Set();
-            }
-            if (_readEvent != null)
-            {
-                _readEvent.Set();
-            }
+            Flush();
         }
 
         public void Flush()
@@ -394,6 +396,14 @@ namespace SDRSharp.Radio
                 _readPos = 0;
                 _writePos = 0;
                 _size = 0;
+            }
+            if (_writeEvent != null)
+            {
+                _writeEvent.Set();
+            }
+            if (_readEvent != null)
+            {
+                _readEvent.Set();
             }
         }
 
