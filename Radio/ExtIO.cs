@@ -450,7 +450,7 @@ namespace SDRSharp.Radio
                 /* 24 bit integer samples */
                 else if (_hwType == HWTypes.Aud24BInt)
                 {
-                    const float scale = 1.0f / 8388608.0f;
+                    const float scale = 1.0f / 8388607.0f;
                     var input = (Int24*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {
@@ -462,7 +462,7 @@ namespace SDRSharp.Radio
                 /* 32 bit integer samples */
                 else if (_hwType == HWTypes.Aud32BInt)
                 {
-                    const float scale = 1.0f / 2147483648.0f;
+                    const float scale = 1.0f / 2147483647.0f;
                     var input = (Int32*) dataPtr;
                     for (var i = 0; i < len; i++)
                     {

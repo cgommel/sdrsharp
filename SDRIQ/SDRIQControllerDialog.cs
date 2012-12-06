@@ -74,7 +74,7 @@ namespace SDRSharp.SDRIQ
             var gain = (rfGainTrackBar.Maximum - rfGainTrackBar.Value) * -10;
             _owner.Device.RfGain = (sbyte)gain;
             rfGainLabel.Text = gain + " dB";
-            Utils.GetIntSetting("SDRIQRFGain", rfGainTrackBar.Value);
+            Utils.SaveSetting("SDRIQRFGain", rfGainTrackBar.Value);
         }
 
         private void ifGainTrackBar_Scroll(object sender, EventArgs e)

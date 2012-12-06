@@ -9,7 +9,7 @@ namespace SDRSharp.Radio
     public unsafe class IQBalancer
     {
         private const int FFTBins = 1024;
-        private const float DcTimeConst = 0.001f;
+        private const float DcTimeConst = 0.00001f;
         private const float BaseIncrement = 0.001f;
         private const float PowerThreshold = 20.0f; // in dB
 

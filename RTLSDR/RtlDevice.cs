@@ -316,7 +316,7 @@ namespace SDRSharp.RTLSDR
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
-            const float scale = 1.0f / 128.0f;
+            const float scale = 1.0f / 127.0f;
             var ptr = instance._iqPtr;
             for (var i = 0; i < sampleCount; i++)
             {

@@ -256,7 +256,7 @@ namespace SDRSharp.RTLTCP
             }
             bufPtr = (Complex*)_b;
 
-            const float scale = 1.0f / 128.0f;
+            const float scale = 1.0f / 127.0f;
 
             for (int i = 0; i < sampleCount; i++)
             {

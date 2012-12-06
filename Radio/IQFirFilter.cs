@@ -9,6 +9,10 @@ namespace SDRSharp.Radio
         private readonly FirFilter _iFilter;
         private readonly SharpEvent _event;
 
+        public IQFirFilter(float[] coefficients) : this (coefficients, false)
+        {
+        }
+
         public IQFirFilter(float[] coefficients, bool isMultiThteaded)
         {
             _rFilter = new FirFilter(coefficients);

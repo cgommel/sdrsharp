@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
 using SDRSharp.Radio;
 
@@ -10,6 +11,8 @@ namespace SDRSharp
         [STAThread]
         static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             if (Environment.OSVersion.Platform == PlatformID.Win32Windows || Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 var process = Process.GetCurrentProcess();
@@ -32,6 +35,11 @@ namespace SDRSharp
             DSPThreadPool.Terminate();
 
             Application.Exit(); // ExtIO may have some thread still running preventing the program from terminating
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            File.WriteAllText("crash.txt", ((Exception) e.ExceptionObject).StackTrace);
         }
     }
 }

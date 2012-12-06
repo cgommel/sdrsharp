@@ -196,8 +196,8 @@ namespace SDRSharp.WavRecorder
             
             for (var i = 0; i < length; i++)
             {             
-                _outputBuffer[(i * 2)] = (byte) ((*ptr++ * 128.0f) + 128);
-                _outputBuffer[(i * 2) + 1] = (byte) ((*ptr++ * 128.0f) + 128);                
+                _outputBuffer[(i * 2)] = (byte) ((*ptr++ * 127.0f) + 128);
+                _outputBuffer[(i * 2) + 1] = (byte) ((*ptr++ * 127.0f) + 128);
             }
 
             WriteStream(_outputBuffer);            
@@ -226,7 +226,7 @@ namespace SDRSharp.WavRecorder
                 _outputBuffer[(i * 4)] = (byte)(leftChannel & 0x00ff);
                 _outputBuffer[(i * 4) + 1] = (byte)(leftChannel >> 8);
                 _outputBuffer[(i * 4) + 2] = (byte)(rightChannel & 0x00ff);
-                _outputBuffer[(i * 4) + 3] = (byte)(rightChannel >> 8);                               
+                _outputBuffer[(i * 4) + 3] = (byte)(rightChannel >> 8);
             }
 
             WriteStream(_outputBuffer);

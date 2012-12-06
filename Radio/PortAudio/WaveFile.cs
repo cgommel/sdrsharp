@@ -75,7 +75,7 @@ namespace SDRSharp.Radio.PortAudio
 			_sampleRate = reader.ReadInt32();
 			_avgBytesPerSec = reader.ReadInt32();
 			_blockAlign = reader.ReadInt16();
-			_bitsPerSample = reader.ReadInt16(); 
+			_bitsPerSample = reader.ReadInt16();
 
 			// advance in the stream to skip the wave format block 
             len -= 16; // minimum format size
@@ -132,7 +132,7 @@ namespace SDRSharp.Radio.PortAudio
             {
                 if (_blockAlign == 6)
                 {
-                    const float scale = 1.0f / 8388608.0f;
+                    const float scale = 1.0f / 8388607.0f;
                     var ptr = (Int24*) _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
@@ -154,7 +154,7 @@ namespace SDRSharp.Radio.PortAudio
                 }
                 else if (_blockAlign == 2)
                 {
-                    const float scale = 1.0f / 128.0f;
+                    const float scale = 1.0f / 127.0f;
                     var ptr = _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
