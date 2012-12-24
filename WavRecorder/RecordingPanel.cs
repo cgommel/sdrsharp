@@ -185,7 +185,7 @@ namespace SDRSharp.WavRecorder
         
         private string MakeFileName(RecordingMode mode, DateTime time)
         {
-            var tunedfrequency = mode == RecordingMode.Baseband ? Math.Abs(_control.CenterFrequency) : Math.Max(_control.Frequency, 0);                       
+            var tunedfrequency = mode == RecordingMode.Baseband ? Math.Abs(_control.CenterFrequency + (_control.FrequencyShiftEnabled ? _control.FrequencyShift : 0)) : Math.Max(_control.Frequency, 0);                       
             
             var frequency = tunedfrequency >= 1000 ? (tunedfrequency / 1000L) : tunedfrequency;
 
