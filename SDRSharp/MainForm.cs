@@ -629,9 +629,10 @@ namespace SDRSharp
                 }
                 else
                 {
-                    frequencyNumericUpDown.Minimum = centerFreqNumericUpDown.Value;
-                    frequencyNumericUpDown.Maximum = centerFreqNumericUpDown.Value;
-                    frequencyNumericUpDown.Value = centerFreqNumericUpDown.Value;
+                    var newFrequency = centerFreqNumericUpDown.Value + _frequencyShift;
+                    frequencyNumericUpDown.Minimum = newFrequency;
+                    frequencyNumericUpDown.Maximum = newFrequency;
+                    frequencyNumericUpDown.Value = newFrequency;
                 }
             }
 
@@ -1100,8 +1101,8 @@ namespace SDRSharp
             spectrumAnalyzer.SpectrumWidth = (int)_streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            frequencyNumericUpDown.Maximum = (long) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2);
-            frequencyNumericUpDown.Minimum = (long) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2);
+            frequencyNumericUpDown.Maximum = (long) centerFreqNumericUpDown.Value + (int) (_streamControl.SampleRate / 2) + _frequencyShift;
+            frequencyNumericUpDown.Minimum = (long) centerFreqNumericUpDown.Value - (int) (_streamControl.SampleRate / 2) + _frequencyShift;
 
             if (centerFreqNumericUpDown.Value != oldCenterFrequency)
             {
