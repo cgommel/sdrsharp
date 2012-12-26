@@ -944,11 +944,12 @@ namespace SDRSharp
                 vfoFrequencyEdit_FrequencyChanged(null, null);
                 frequencyShiftCheckBox.Enabled = true;
                 frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
-                configureSourceButton.Visible = false;
+                configureSourceButton.Text = "Configure";
+                configureSourceButton.Enabled = false;
                 return;
             }
             
-            configureSourceButton.Visible = true;
+            configureSourceButton.Enabled = true;
 
             if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2)
             {
