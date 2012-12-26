@@ -9,7 +9,7 @@ namespace SDRSharp.FrequencyEdit
 
     internal sealed class FrequencyEditDigit : UserControl
     {
-        private const float MaskedDigitTransparency = 0.4f;
+        private const float MaskedDigitTransparency = 0.3f;
 
         public event OnDigitClickDelegate OnDigitClick;
 

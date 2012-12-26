@@ -27,22 +27,23 @@ namespace SDRSharp
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.cwuRadioButton = new System.Windows.Forms.RadioButton();
             this.frequencyShiftCheckBox = new System.Windows.Forms.CheckBox();
             this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.cwuRadioButton = new System.Windows.Forms.RadioButton();
             this.cwlRadioButton = new System.Windows.Forms.RadioButton();
+            this.nfmRadioButton = new System.Windows.Forms.RadioButton();
             this.useSquelchCheckBox = new System.Windows.Forms.CheckBox();
             this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
-            this.nfmRadioButton = new System.Windows.Forms.RadioButton();
             this.dsbRadioButton = new System.Windows.Forms.RadioButton();
             this.wfmRadioButton = new System.Windows.Forms.RadioButton();
+            this.amRadioButton = new System.Windows.Forms.RadioButton();
             this.snapFrequencyCheckBox = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
-            this.amRadioButton = new System.Windows.Forms.RadioButton();
-            this.cwShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.lsbRadioButton = new System.Windows.Forms.RadioButton();
+            this.cwShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.usbRadioButton = new System.Windows.Forms.RadioButton();
+            this.correctIQCheckBox = new System.Windows.Forms.CheckBox();
             this.label18 = new System.Windows.Forms.Label();
             this.stepSizeComboBox = new System.Windows.Forms.ComboBox();
             this.label16 = new System.Windows.Forms.Label();
@@ -53,7 +54,6 @@ namespace SDRSharp
             this.filterTypeComboBox = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.swapIQCheckBox = new System.Windows.Forms.CheckBox();
-            this.correctIQCheckBox = new System.Windows.Forms.CheckBox();
             this.audioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
             this.audioGainTrackBar = new System.Windows.Forms.TrackBar();
             this.latencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -104,10 +104,10 @@ namespace SDRSharp
             this.label17 = new System.Windows.Forms.Label();
             this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.scrollPanel = new System.Windows.Forms.Panel();
-            this.centerFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
-            this.vfoFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
             this.label2 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
+            this.vfoFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
+            this.centerFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
@@ -334,6 +334,17 @@ namespace SDRSharp
             this.radioCollapsiblePanel.Size = new System.Drawing.Size(217, 297);
             this.radioCollapsiblePanel.TabIndex = 21;
             // 
+            // cwuRadioButton
+            // 
+            this.cwuRadioButton.AutoSize = true;
+            this.cwuRadioButton.Location = new System.Drawing.Point(154, 49);
+            this.cwuRadioButton.Name = "cwuRadioButton";
+            this.cwuRadioButton.Size = new System.Drawing.Size(54, 17);
+            this.cwuRadioButton.TabIndex = 7;
+            this.cwuRadioButton.Text = "CW-U";
+            this.cwuRadioButton.UseVisualStyleBackColor = true;
+            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
             // frequencyShiftCheckBox
             // 
             this.frequencyShiftCheckBox.AutoSize = true;
@@ -383,17 +394,6 @@ namespace SDRSharp
             this.frequencyShiftNumericUpDown.ThousandsSeparator = true;
             this.frequencyShiftNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyShiftNumericUpDown_ValueChanged);
             // 
-            // cwuRadioButton
-            // 
-            this.cwuRadioButton.AutoSize = true;
-            this.cwuRadioButton.Location = new System.Drawing.Point(154, 49);
-            this.cwuRadioButton.Name = "cwuRadioButton";
-            this.cwuRadioButton.Size = new System.Drawing.Size(54, 17);
-            this.cwuRadioButton.TabIndex = 7;
-            this.cwuRadioButton.Text = "CW-U";
-            this.cwuRadioButton.UseVisualStyleBackColor = true;
-            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
-            // 
             // cwlRadioButton
             // 
             this.cwlRadioButton.AutoSize = true;
@@ -404,6 +404,17 @@ namespace SDRSharp
             this.cwlRadioButton.Text = "CW-L";
             this.cwlRadioButton.UseVisualStyleBackColor = true;
             this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
+            // nfmRadioButton
+            // 
+            this.nfmRadioButton.AutoSize = true;
+            this.nfmRadioButton.Location = new System.Drawing.Point(7, 26);
+            this.nfmRadioButton.Name = "nfmRadioButton";
+            this.nfmRadioButton.Size = new System.Drawing.Size(48, 17);
+            this.nfmRadioButton.TabIndex = 0;
+            this.nfmRadioButton.Text = "NFM";
+            this.nfmRadioButton.UseVisualStyleBackColor = true;
+            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // useSquelchCheckBox
             // 
@@ -427,17 +438,6 @@ namespace SDRSharp
             this.fmStereoCheckBox.UseVisualStyleBackColor = true;
             this.fmStereoCheckBox.CheckedChanged += new System.EventHandler(this.fmStereoCheckBox_CheckedChanged);
             // 
-            // nfmRadioButton
-            // 
-            this.nfmRadioButton.AutoSize = true;
-            this.nfmRadioButton.Location = new System.Drawing.Point(7, 26);
-            this.nfmRadioButton.Name = "nfmRadioButton";
-            this.nfmRadioButton.Size = new System.Drawing.Size(48, 17);
-            this.nfmRadioButton.TabIndex = 0;
-            this.nfmRadioButton.Text = "NFM";
-            this.nfmRadioButton.UseVisualStyleBackColor = true;
-            this.nfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
-            // 
             // dsbRadioButton
             // 
             this.dsbRadioButton.AutoSize = true;
@@ -460,6 +460,17 @@ namespace SDRSharp
             this.wfmRadioButton.UseVisualStyleBackColor = true;
             this.wfmRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
+            // amRadioButton
+            // 
+            this.amRadioButton.AutoSize = true;
+            this.amRadioButton.Location = new System.Drawing.Point(60, 26);
+            this.amRadioButton.Name = "amRadioButton";
+            this.amRadioButton.Size = new System.Drawing.Size(41, 17);
+            this.amRadioButton.TabIndex = 1;
+            this.amRadioButton.Text = "AM";
+            this.amRadioButton.UseVisualStyleBackColor = true;
+            this.amRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
             // snapFrequencyCheckBox
             // 
             this.snapFrequencyCheckBox.Location = new System.Drawing.Point(6, 225);
@@ -481,16 +492,16 @@ namespace SDRSharp
             this.label15.Text = "CW Shift";
             this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // amRadioButton
+            // lsbRadioButton
             // 
-            this.amRadioButton.AutoSize = true;
-            this.amRadioButton.Location = new System.Drawing.Point(60, 26);
-            this.amRadioButton.Name = "amRadioButton";
-            this.amRadioButton.Size = new System.Drawing.Size(41, 17);
-            this.amRadioButton.TabIndex = 1;
-            this.amRadioButton.Text = "AM";
-            this.amRadioButton.UseVisualStyleBackColor = true;
-            this.amRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            this.lsbRadioButton.AutoSize = true;
+            this.lsbRadioButton.Location = new System.Drawing.Point(106, 26);
+            this.lsbRadioButton.Name = "lsbRadioButton";
+            this.lsbRadioButton.Size = new System.Drawing.Size(45, 17);
+            this.lsbRadioButton.TabIndex = 2;
+            this.lsbRadioButton.Text = "LSB";
+            this.lsbRadioButton.UseVisualStyleBackColor = true;
+            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // cwShiftNumericUpDown
             // 
@@ -517,17 +528,6 @@ namespace SDRSharp
             0});
             this.cwShiftNumericUpDown.ValueChanged += new System.EventHandler(this.cwShiftNumericUpDown_ValueChanged);
             // 
-            // lsbRadioButton
-            // 
-            this.lsbRadioButton.AutoSize = true;
-            this.lsbRadioButton.Location = new System.Drawing.Point(106, 26);
-            this.lsbRadioButton.Name = "lsbRadioButton";
-            this.lsbRadioButton.Size = new System.Drawing.Size(45, 17);
-            this.lsbRadioButton.TabIndex = 2;
-            this.lsbRadioButton.Text = "LSB";
-            this.lsbRadioButton.UseVisualStyleBackColor = true;
-            this.lsbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
-            // 
             // usbRadioButton
             // 
             this.usbRadioButton.AutoSize = true;
@@ -538,6 +538,17 @@ namespace SDRSharp
             this.usbRadioButton.Text = "USB";
             this.usbRadioButton.UseVisualStyleBackColor = true;
             this.usbRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            // 
+            // correctIQCheckBox
+            // 
+            this.correctIQCheckBox.Location = new System.Drawing.Point(6, 250);
+            this.correctIQCheckBox.Name = "correctIQCheckBox";
+            this.correctIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.correctIQCheckBox.Size = new System.Drawing.Size(94, 17);
+            this.correctIQCheckBox.TabIndex = 22;
+            this.correctIQCheckBox.Text = "Correct IQ";
+            this.correctIQCheckBox.UseVisualStyleBackColor = true;
+            this.correctIQCheckBox.CheckedChanged += new System.EventHandler(this.autoCorrectIQCheckBox_CheckStateChanged);
             // 
             // label18
             // 
@@ -707,17 +718,6 @@ namespace SDRSharp
             this.swapIQCheckBox.Text = "Swap I && Q";
             this.swapIQCheckBox.UseVisualStyleBackColor = true;
             this.swapIQCheckBox.CheckedChanged += new System.EventHandler(this.swapIQCheckBox_CheckedChanged);
-            // 
-            // correctIQCheckBox
-            // 
-            this.correctIQCheckBox.Location = new System.Drawing.Point(6, 250);
-            this.correctIQCheckBox.Name = "correctIQCheckBox";
-            this.correctIQCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.correctIQCheckBox.Size = new System.Drawing.Size(94, 17);
-            this.correctIQCheckBox.TabIndex = 22;
-            this.correctIQCheckBox.Text = "Correct IQ";
-            this.correctIQCheckBox.UseVisualStyleBackColor = true;
-            this.correctIQCheckBox.CheckedChanged += new System.EventHandler(this.autoCorrectIQCheckBox_CheckStateChanged);
             // 
             // audioCollapsiblePanel
             // 
@@ -1340,38 +1340,6 @@ namespace SDRSharp
             this.scrollPanel.Size = new System.Drawing.Size(238, 662);
             this.scrollPanel.TabIndex = 28;
             // 
-            // centerFrequencyEdit
-            // 
-            this.centerFrequencyEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.centerFrequencyEdit.AutoSize = true;
-            this.centerFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
-            this.centerFrequencyEdit.DigitImages = ((System.Drawing.Image)(resources.GetObject("centerFrequencyEdit.DigitImages")));
-            this.centerFrequencyEdit.Frequency = ((long)(0));
-            this.centerFrequencyEdit.Location = new System.Drawing.Point(390, 15);
-            this.centerFrequencyEdit.Maximum = ((long)(0));
-            this.centerFrequencyEdit.Minimum = ((long)(0));
-            this.centerFrequencyEdit.Name = "centerFrequencyEdit";
-            this.centerFrequencyEdit.Size = new System.Drawing.Size(234, 21);
-            this.centerFrequencyEdit.StepSize = 0;
-            this.centerFrequencyEdit.TabIndex = 29;
-            this.centerFrequencyEdit.FrequencyChanged += new System.EventHandler(this.centerFrequencyEdit_FrequencyChanged);
-            // 
-            // vfoFrequencyEdit
-            // 
-            this.vfoFrequencyEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.vfoFrequencyEdit.AutoSize = true;
-            this.vfoFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
-            this.vfoFrequencyEdit.DigitImages = ((System.Drawing.Image)(resources.GetObject("vfoFrequencyEdit.DigitImages")));
-            this.vfoFrequencyEdit.Frequency = ((long)(0));
-            this.vfoFrequencyEdit.Location = new System.Drawing.Point(664, 15);
-            this.vfoFrequencyEdit.Maximum = ((long)(0));
-            this.vfoFrequencyEdit.Minimum = ((long)(0));
-            this.vfoFrequencyEdit.Name = "vfoFrequencyEdit";
-            this.vfoFrequencyEdit.Size = new System.Drawing.Size(234, 21);
-            this.vfoFrequencyEdit.StepSize = 0;
-            this.vfoFrequencyEdit.TabIndex = 30;
-            this.vfoFrequencyEdit.FrequencyChanged += new System.EventHandler(this.vfoFrequencyEdit_FrequencyChanged);
-            // 
             // label2
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -1391,6 +1359,38 @@ namespace SDRSharp
             this.label9.Size = new System.Drawing.Size(38, 13);
             this.label9.TabIndex = 32;
             this.label9.Text = "Center";
+            // 
+            // vfoFrequencyEdit
+            // 
+            this.vfoFrequencyEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.vfoFrequencyEdit.AutoSize = true;
+            this.vfoFrequencyEdit.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.vfoFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
+            this.vfoFrequencyEdit.Frequency = ((long)(0));
+            this.vfoFrequencyEdit.Location = new System.Drawing.Point(664, 11);
+            this.vfoFrequencyEdit.Maximum = ((long)(0));
+            this.vfoFrequencyEdit.Minimum = ((long)(0));
+            this.vfoFrequencyEdit.Name = "vfoFrequencyEdit";
+            this.vfoFrequencyEdit.Size = new System.Drawing.Size(234, 25);
+            this.vfoFrequencyEdit.StepSize = 0;
+            this.vfoFrequencyEdit.TabIndex = 30;
+            this.vfoFrequencyEdit.FrequencyChanged += new System.EventHandler(this.vfoFrequencyEdit_FrequencyChanged);
+            // 
+            // centerFrequencyEdit
+            // 
+            this.centerFrequencyEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.centerFrequencyEdit.AutoSize = true;
+            this.centerFrequencyEdit.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.centerFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
+            this.centerFrequencyEdit.Frequency = ((long)(0));
+            this.centerFrequencyEdit.Location = new System.Drawing.Point(390, 11);
+            this.centerFrequencyEdit.Maximum = ((long)(9999999999));
+            this.centerFrequencyEdit.Minimum = ((long)(0));
+            this.centerFrequencyEdit.Name = "centerFrequencyEdit";
+            this.centerFrequencyEdit.Size = new System.Drawing.Size(234, 25);
+            this.centerFrequencyEdit.StepSize = 0;
+            this.centerFrequencyEdit.TabIndex = 29;
+            this.centerFrequencyEdit.FrequencyChanged += new System.EventHandler(this.centerFrequencyEdit_FrequencyChanged);
             // 
             // MainForm
             // 

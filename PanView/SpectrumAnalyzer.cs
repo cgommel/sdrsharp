@@ -989,6 +989,7 @@ namespace SDRSharp.PanView
 
         protected override void  OnMouseEnter(EventArgs e)
         {
+            Focus();
  	        base.OnMouseEnter(e);
             _hotTrackNeeded = true;
         }

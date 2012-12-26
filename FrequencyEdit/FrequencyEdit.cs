@@ -36,18 +36,11 @@ namespace SDRSharp.FrequencyEdit
             get { return _frequency; }
             set
             {
-                if (_maximum != 0 && value > _maximum)
+                var f = Math.Min(value, _maximum);
+                f = Math.Max(f, _minimum);
+                if (_frequency != f)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Frequency cannot be more than Maximum");
-                }
-                if (_minimum != 0 && value < _minimum)
-                {
-                    throw new ArgumentOutOfRangeException("value", "Frequency cannot be less than Minimum");
-                }
-
-                if (_frequency != value)
-                {
-                    _frequency = value;
+                    _frequency = f;
                     UpdateDigitsValues();
                     var evt = FrequencyChanged;
                     if (evt != null)
@@ -63,14 +56,14 @@ namespace SDRSharp.FrequencyEdit
             get { return _maximum; }
             set
             {
-                if (_minimum != 0 && value < _minimum)
+                if (_maximum != value)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Maximum cannot be less than Minimum");
+                    _maximum = value;
+                    if (_frequency > _maximum)
+                    {
+                        Frequency = _maximum;
+                    }
                 }
-
-                _maximum = value;
-                Frequency = Math.Min(value, _frequency);
-                UpdateDigitsValues();
             }
         }
 
@@ -79,26 +72,13 @@ namespace SDRSharp.FrequencyEdit
             get { return _minimum; }
             set
             {
-                if (_maximum != 0 && value > _maximum)
+                if (_minimum != value)
                 {
-                    throw new ArgumentOutOfRangeException("value", "Minimum cannot be more than Maximum");
-                }
-
-                _minimum = value;
-                Frequency = Math.Max(value, _frequency);
-                UpdateDigitsValues();
-            }
-        }
-
-        public Image DigitImages
-        {
-            get { return _digitImages; }
-            set
-            {
-                if (_digitImages != value)
-                {
-                    _digitImages = value;
-                    ConfigureComponent();
+                    _minimum = value;
+                    if (_frequency < _minimum)
+                    {
+                        Frequency = _minimum;
+                    }
                 }
             }
         }
@@ -111,6 +91,7 @@ namespace SDRSharp.FrequencyEdit
         {
             DoubleBuffered = true;
             AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
             _digitImages = Resources.Numbers;
             ConfigureComponent();
         }
@@ -121,7 +102,7 @@ namespace SDRSharp.FrequencyEdit
 
             if (_digitImages != null)
             {
-                for(int i = 0 ; i < DigitCount ; i++)
+                for(var i = 0 ; i < DigitCount ; i++)
                 {
                     if(_digitControls[i] != null && Controls.Contains(_digitControls[i]))
                     {
@@ -146,7 +127,6 @@ namespace SDRSharp.FrequencyEdit
                 return;
             }
 
-            // Fix me
             var xPos = 0;
             var yPos = 0;
 
@@ -161,7 +141,7 @@ namespace SDRSharp.FrequencyEdit
                     var seperatorWidth = digitWidth / 2;
                     var seperatorIndex = i / 3;
 
-                    separator.Image = _imageList.Images[11];                    
+                    separator.Image = _imageList.Images[11];
                     separator.Width = seperatorWidth;
                     separator.Height = digitHeight;
                     separator.Location = new Point(xPos, yPos);
@@ -193,15 +173,16 @@ namespace SDRSharp.FrequencyEdit
                 _digitControls[i].Weight = weight;                
                 weight *= 10;                
             }
+            Height = digitHeight;
         }
 
         private void SplitDigitImages()
         {
-            var digitWidth = _digitImages.Height;
             var digitHeight = _digitImages.Height;
+            var digitWidth = (int) Math.Round(_digitImages.Width / 11.5f);
 
             _imageList.Images.Clear();
-            _imageList.ImageSize = new Size(digitHeight, digitHeight);
+            _imageList.ImageSize = new Size(digitWidth, digitHeight);
 
             Bitmap newImage;
             var xPos = 0;
@@ -214,7 +195,7 @@ namespace SDRSharp.FrequencyEdit
                 }
                 xPos += digitWidth;
 
-                _imageList.Images.Add(newImage);                
+                _imageList.Images.Add(newImage);
             }
 
             newImage = new Bitmap(digitWidth, digitHeight);
@@ -222,7 +203,7 @@ namespace SDRSharp.FrequencyEdit
             {
                 g.DrawImage(_digitImages, new Rectangle(0, 0, digitWidth, digitHeight), new Rectangle(xPos, 0, digitWidth / 2, digitHeight), GraphicsUnit.Pixel);
             }
-            _imageList.Images.Add(newImage);   
+            _imageList.Images.Add(newImage);
         }
 
         #endregion
@@ -250,7 +231,7 @@ namespace SDRSharp.FrequencyEdit
                     }
                 }
 
-                if ((_minimum != 0 && _newFrequency < _minimum) || (_maximum != 0 && _newFrequency > _maximum))
+                if ((_newFrequency < _minimum) || (_newFrequency > _maximum))
                 {
                     UpdateDigitsValues();
                     UpdateDigitMask();

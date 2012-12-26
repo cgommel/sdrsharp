@@ -6,7 +6,7 @@ namespace SDRSharp.FrequencyEdit
 {
     internal sealed class FrequencyEditSeparator : UserControl
     {
-        private const float MaskedDigitTransparency = 0.4f;
+        private const float MaskedDigitTransparency = 0.3f;
 
         private Image _image;
         private bool _masked;
