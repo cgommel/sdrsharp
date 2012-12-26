@@ -44,6 +44,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\Debug\</OutputPath>
@@ -160,6 +162,10 @@
     <ProjectReference Include="..\Common\SDRSharp.Common.csproj">
       <Project>{4C0ED4BB-8D7A-4220-AB53-A19E1A48F0D1}</Project>
       <Name>SDRSharp.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrequencyEdit\SDRSharp.FrequencyEdit.csproj">
+      <Project>{15A6FC05-73A7-4499-BC71-A1634AC84F36}</Project>
+      <Name>SDRSharp.FrequencyEdit</Name>
     </ProjectReference>
     <ProjectReference Include="..\PanView\SDRSharp.PanView.csproj">
       <Project>{C9292D31-4761-48FC-BEE0-9035D27F68BC}</Project>
