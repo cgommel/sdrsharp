@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace SDRSharp.FrequencyEdit
 {
-    internal class FrequencyEditSeparator : UserControl
+    internal sealed class FrequencyEditSeparator : UserControl
     {
         private const float MaskedDigitTransparency = 0.4f;
 
@@ -33,8 +33,7 @@ namespace SDRSharp.FrequencyEdit
 
         public FrequencyEditSeparator()
         {
-            SetStyle(ControlStyles.DoubleBuffer, true);
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            DoubleBuffered = true;
             UpdateStyles();
 
             var cm = new ColorMatrix();

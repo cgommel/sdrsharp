@@ -75,10 +75,9 @@ namespace SDRSharp.FrequencyEdit
         
         public FrequencyEditDigit(int digitIndex)
         {
+            DoubleBuffered = true;
             BackColor = Color.Transparent;
             _tickTimer.Tick += timer_Tick;
-            SetStyle(ControlStyles.DoubleBuffer, true);
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
             UpdateStyles();
             _digitIndex = digitIndex;
 

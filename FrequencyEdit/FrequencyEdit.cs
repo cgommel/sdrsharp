@@ -109,6 +109,7 @@ namespace SDRSharp.FrequencyEdit
 
         public FrequencyEdit()
         {
+            DoubleBuffered = true;
             AutoSize = true;
             _digitImages = Resources.Numbers;
             ConfigureComponent();
