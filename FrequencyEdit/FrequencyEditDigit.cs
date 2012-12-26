@@ -7,7 +7,7 @@ namespace SDRSharp.FrequencyEdit
 {
     public delegate void OnDigitClickDelegate(object sender, FrequencyEditDigitClickEventArgs args);
 
-    internal sealed class FrequencyEditDigit : UserControl
+    internal sealed class FrequencyEditDigit : UserControl, IRenderable
     {
         private const float MaskedDigitTransparency = 0.3f;
 
@@ -16,7 +16,7 @@ namespace SDRSharp.FrequencyEdit
         private bool _masked;
         private int _displayedDigit;
         private long _weight;
-        
+        private bool _renderNeeded;
         private bool _cursorInside;
         private int _lastMouseY;
         private bool _lastIsUpperHalf;
@@ -43,7 +43,7 @@ namespace SDRSharp.FrequencyEdit
                     if (_displayedDigit != value)
                     {
                         _displayedDigit = value;
-                        Invalidate();
+                        _renderNeeded = true;
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace SDRSharp.FrequencyEdit
                 if (_masked != value)
                 {
                     _masked = value;
-                    Invalidate();
+                    _renderNeeded = true;
                 }
             }
         }
@@ -130,8 +130,8 @@ namespace SDRSharp.FrequencyEdit
             _lastMouseY = e.Y;
 
             if (_isUpperHalf != _lastIsUpperHalf)
-            {                
-                Invalidate();
+            {
+                _renderNeeded = true;
                 _tickCount = 0;
             }
 
@@ -142,7 +142,7 @@ namespace SDRSharp.FrequencyEdit
         {
             base.OnMouseEnter(e);
             _cursorInside = true;
-            Invalidate();
+            _renderNeeded = true;
             Focus();
         }
 
@@ -150,7 +150,7 @@ namespace SDRSharp.FrequencyEdit
         {
             base.OnMouseLeave(e);
             _cursorInside = false;
-            Invalidate();
+            _renderNeeded = true;
         }
        
         protected override void OnMouseDown(MouseEventArgs e)
@@ -179,6 +179,15 @@ namespace SDRSharp.FrequencyEdit
             if (evt != null)
             {
                 OnDigitClick(this, new FrequencyEditDigitClickEventArgs((e.Delta > 0), e.Button));
+            }
+        }
+
+        public void Render()
+        {
+            if (_renderNeeded)
+            {
+                Invalidate();
+                _renderNeeded = false;
             }
         }
 

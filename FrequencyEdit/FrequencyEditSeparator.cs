@@ -4,12 +4,13 @@ using System.Windows.Forms;
 
 namespace SDRSharp.FrequencyEdit
 {
-    internal sealed class FrequencyEditSeparator : UserControl
+    internal sealed class FrequencyEditSeparator : UserControl, IRenderable
     {
         private const float MaskedDigitTransparency = 0.3f;
 
         private Image _image;
         private bool _masked;
+        private bool _renderNeeded;
         private readonly ImageAttributes _maskedAttributes = new ImageAttributes();
 
         public Image Image
@@ -26,7 +27,7 @@ namespace SDRSharp.FrequencyEdit
                 if (_masked != value)
                 {
                     _masked = value;
-                    Invalidate();
+                    _renderNeeded = true;
                 }
             }
         }
@@ -39,6 +40,15 @@ namespace SDRSharp.FrequencyEdit
             var cm = new ColorMatrix();
             cm.Matrix33 = MaskedDigitTransparency;
             _maskedAttributes.SetColorMatrix(cm, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+        }
+
+        public void Render()
+        {
+            if (_renderNeeded)
+            {
+                Invalidate();
+                _renderNeeded = false;
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)

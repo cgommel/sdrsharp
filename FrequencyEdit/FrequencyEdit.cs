@@ -5,6 +5,11 @@ using SDRSharp.FrequencyEdit.Properties;
 
 namespace SDRSharp.FrequencyEdit
 {
+    internal interface IRenderable
+    {
+        void Render();
+    }
+
     public sealed class FrequencyEdit : UserControl
     {
         private const int DigitCount = 10;
@@ -16,12 +21,12 @@ namespace SDRSharp.FrequencyEdit
         private readonly FrequencyEditDigit[] _digitControls = new FrequencyEditDigit[DigitCount];
         private readonly FrequencyEditSeparator[] _separatorControls = new FrequencyEditSeparator[DigitSeperatorCount];
         private readonly ImageList _imageList = new ImageList();
+        private readonly Image _digitImages;
+        private readonly Timer _renderTimer = new Timer();
         private long _frequency;
         private long _newFrequency;
         private long _maximum, _minimum;        
         private int _stepSize;
-
-        private Image _digitImages;
 
         #region Public Properties
 
@@ -93,7 +98,21 @@ namespace SDRSharp.FrequencyEdit
             AutoSize = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             _digitImages = Resources.Numbers;
+            _renderTimer.Interval = 30;
+            _renderTimer.Tick += renderTimer_Tick;
+            _renderTimer.Enabled = true;
             ConfigureComponent();
+        }
+
+        private void renderTimer_Tick(object sender, EventArgs e)
+        {
+            for (var i = 0; i < Controls.Count; i++)
+            {
+                if (Controls[i] is IRenderable)
+                {
+                    ((IRenderable) Controls[i]).Render();
+                }
+            }
         }
 
         private void ConfigureComponent()
@@ -104,7 +123,7 @@ namespace SDRSharp.FrequencyEdit
             {
                 for(var i = 0 ; i < DigitCount ; i++)
                 {
-                    if(_digitControls[i] != null && Controls.Contains(_digitControls[i]))
+                    if (_digitControls[i] != null && Controls.Contains(_digitControls[i]))
                     {
                         Controls.Remove(_digitControls[i]);
                         _digitControls[i] = null;
@@ -234,7 +253,6 @@ namespace SDRSharp.FrequencyEdit
                 if ((_newFrequency < _minimum) || (_newFrequency > _maximum))
                 {
                     UpdateDigitsValues();
-                    UpdateDigitMask();
                     return;
                 }
 
