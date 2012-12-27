@@ -59,6 +59,7 @@ namespace SDRSharp
         private long _frequencyShift;
         private int _maxIQSamples;
         private int _fftBins;
+        private int _stepSize;
         private bool _fftSpectrumAvailable;
         private bool _fftSpectrumResized;
         private bool _fftBufferIsWaiting;
@@ -322,6 +323,11 @@ namespace SDRSharp
         public int FFTResolution
         {
             get { return _fftBins; }
+        }
+
+        public int StepSize
+        {
+            get { return _stepSize; }
         }
         
         #endregion
@@ -1527,9 +1533,11 @@ namespace SDRSharp
                     vfoFrequencyEdit.Minimum = 2 * spectrumAnalyzer.CenterFrequency - vfoFrequencyEdit.Maximum;
                 }
             }
-
+            _stepSize = stepSize;
             if (sender == snapFrequencyCheckBox)
+            {
                 NotifyPropertyChanged("SnapToGrid");
+            }
             NotifyPropertyChanged("StepSize");
         }
 

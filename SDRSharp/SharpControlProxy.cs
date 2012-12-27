@@ -486,6 +486,11 @@ namespace SDRSharp
             get { return _owner.FFTResolution; }
         }
 
+        public int StepSize
+        {
+            get { return _owner.StepSize; }
+        }
+
         #endregion
 
 

@@ -31,7 +31,7 @@ namespace SDRSharp.Common
         int AgcSlope { get; set; }
 
         int FFTResolution { get; }
-
+        int StepSize { get; }
         bool IsPlaying { get; }
 
         int SAttack { get; set; }
