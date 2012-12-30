@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ControlTester")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Frequency Edit Control")]
+[assembly: AssemblyDescription("Frequency Edit Control")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("ControlTester")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("SDR#")]
+[assembly: AssemblyCopyright("Copyright © 2012 Youssef Touil, Ian Gilmour")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

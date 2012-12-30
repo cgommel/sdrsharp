@@ -18,6 +18,7 @@ namespace SDRSharp.FrequencyEdit
         private long _weight;
         private bool _renderNeeded;
         private bool _cursorInside;
+        private bool _editMode;
         private int _lastMouseY;
         private bool _lastIsUpperHalf;
         private bool _isUpperHalf;
@@ -31,6 +32,21 @@ namespace SDRSharp.FrequencyEdit
         {
             get { return _imageList; }
             set { _imageList = value; }
+        }
+
+        public bool EditMode
+        {
+            get { return _editMode; }
+            set
+            {
+                _editMode = value;
+                _renderNeeded = true;
+            }
+        }
+
+        public bool CursorInside
+        {
+            get { return _cursorInside; }
         }
 
         public int DisplayedDigit
@@ -101,7 +117,7 @@ namespace SDRSharp.FrequencyEdit
                 }
             }
 
-            if(_cursorInside)
+            if(_cursorInside && !((FrequencyEdit)Parent).EditMode)
             {
                 var isUpperHalf = (_lastMouseY <= ClientRectangle.Height / 2);
 
@@ -117,6 +133,12 @@ namespace SDRSharp.FrequencyEdit
                         e.Graphics.FillRectangle(transparentBrush, new Rectangle(0, ClientRectangle.Height / 2, ClientRectangle.Width, ClientRectangle.Height));
                     }
                 }
+            }
+
+            if (_editMode)
+            {
+                var transparentColor = new SolidBrush(Color.FromArgb(25, Color.Red));
+                e.Graphics.FillRectangle(transparentColor,new Rectangle(0,0,ClientRectangle.Width,ClientRectangle.Height));
             }
         }
 
@@ -150,7 +172,7 @@ namespace SDRSharp.FrequencyEdit
         {
             base.OnMouseLeave(e);
             _cursorInside = false;
-            _renderNeeded = true;
+            _renderNeeded = true;            
         }
        
         protected override void OnMouseDown(MouseEventArgs e)

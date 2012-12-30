@@ -27,6 +27,8 @@ namespace SDRSharp.FrequencyEdit
         private long _newFrequency;
         private long _maximum, _minimum;        
         private int _stepSize;
+        private bool _editMode;
+        private int _editModePosition;
 
         #region Public Properties
 
@@ -34,6 +36,11 @@ namespace SDRSharp.FrequencyEdit
         {
             get { return _stepSize; }
             set { _stepSize = value; }
+        }
+
+        public bool EditMode
+        {
+            get { return _editMode; }
         }
 
         public long Frequency
@@ -175,6 +182,7 @@ namespace SDRSharp.FrequencyEdit
 
                 frequencyEditDigit.Location = new Point(xPos, yPos);
                 frequencyEditDigit.OnDigitClick += DigitClickHandler;
+                frequencyEditDigit.MouseLeave += DigitMouseLeave;
                                                 
                 frequencyEditDigit.Width = digitWidth;
                 frequencyEditDigit.Height = digitHeight;
@@ -229,8 +237,13 @@ namespace SDRSharp.FrequencyEdit
 
         private void DigitClickHandler(object sender, FrequencyEditDigitClickEventArgs args)
         {
-            var digit = (FrequencyEditDigit) sender;
+            
+            if (_editMode)
+            {
+                return;
+            }
 
+            var digit = (FrequencyEditDigit)sender;
             if (digit != null)
             {
                 _newFrequency = _frequency;
@@ -319,19 +332,19 @@ namespace SDRSharp.FrequencyEdit
             var res = (long) Math.Pow(10, index + 1);
             _newFrequency = _newFrequency / res * res;
         }
-        
+
         private void UpdateDigitsValues()
         {
             if (_digitControls[0] == null)
                 return;
 
             var currentFrequency = _frequency;
-            
+
             for (var i = DigitCount - 1; i >= 0; i--)
             {
-                var digit = currentFrequency / _digitControls[i].Weight;                
-                _digitControls[i].DisplayedDigit = (int) digit;                
-                currentFrequency -= (_digitControls[i].DisplayedDigit * _digitControls[i].Weight);                
+                var digit = currentFrequency / _digitControls[i].Weight;
+                _digitControls[i].DisplayedDigit = (int)digit;
+                currentFrequency -= (_digitControls[i].DisplayedDigit * _digitControls[i].Weight);
             }
 
             UpdateDigitMask();
@@ -360,5 +373,167 @@ namespace SDRSharp.FrequencyEdit
                 }
             }
         }
+
+        private void DigitMouseLeave(object sender, EventArgs e)
+        {
+            if (!ClientRectangle.Contains(PointToClient(Control.MousePosition)) && _editMode)
+            {
+                AbortEditMode();
+            }
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            if (!ClientRectangle.Contains(PointToClient(Control.MousePosition)) && _editMode)
+            {
+                AbortEditMode();
+            }
+        }
+
+
+        #region Keyboard Handling
+
+        private void EnterEditMode()
+        {                        
+            for (var i = 0; i < _digitControls.Length; i++)
+            {
+                if (_digitControls[i] != null)
+                {
+                    _digitControls[i].Masked = false;
+                    if (_digitControls[i].CursorInside)
+                    {
+                        _editModePosition = i;
+                        _digitControls[i].EditMode = true;
+                    }
+                }
+            }
+            
+            ZeroDigits(_digitControls.Length - 1);            
+            _editMode = true;
+        }
+
+        private void AbortEditMode()
+        {
+            if (_digitControls[_editModePosition] != null)
+            {
+                _digitControls[_editModePosition].EditMode = false;
+            }
+            UpdateDigitsValues();
+            _editMode = false;
+        }
+
+        private void LeaveEditMode()
+        {
+            var newFrequency = 0L;
+            for (var i = 0; i < _digitControls.Length; i++)
+            {
+                newFrequency += _digitControls[i].Weight * _digitControls[i].DisplayedDigit;
+            }
+            
+            if (newFrequency < _minimum || newFrequency > _maximum)
+            {
+                AbortEditMode();
+                return;
+            }
+
+            _digitControls[_editModePosition].EditMode = false;            
+            if (newFrequency != _frequency)
+            {
+                _frequency = newFrequency;
+                UpdateDigitMask();
+                var evt = FrequencyChanged;
+                if (evt != null)
+                {
+                    evt(this, EventArgs.Empty);
+                }
+            }
+
+            _editMode = false;
+        }
+
+        private bool DigitKeyHandler(KeyEventArgs args)
+        {
+            if (_editMode)
+            {
+                var currentValue = _digitControls[_editModePosition].DisplayedDigit;
+                switch (args.KeyCode)
+                {
+                    case Keys.D0:
+                    case Keys.D1:
+                    case Keys.D2:
+                    case Keys.D3:
+                    case Keys.D4:
+                    case Keys.D5:
+                    case Keys.D6:
+                    case Keys.D7:
+                    case Keys.D8:
+                    case Keys.D9:
+                    case Keys.NumPad0:
+                    case Keys.NumPad1:
+                    case Keys.NumPad2:
+                    case Keys.NumPad3:
+                    case Keys.NumPad4:
+                    case Keys.NumPad5:
+                    case Keys.NumPad6:
+                    case Keys.NumPad7:
+                    case Keys.NumPad8:
+                    case Keys.NumPad9:
+                        var newValue = (args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) ? (args.KeyCode - Keys.D0) : (args.KeyCode - Keys.NumPad0);
+                        _digitControls[_editModePosition].DisplayedDigit = (int)newValue;
+                        if (_editModePosition > 0)
+                        {
+                            _digitControls[_editModePosition].EditMode = false;
+                            _editModePosition--;
+                            _digitControls[_editModePosition].EditMode = true;                                
+                        }
+                        break;
+                    case Keys.Back:
+                        _digitControls[_editModePosition].DisplayedDigit = 0;
+                        if (_editModePosition < _digitControls.Length - 1)
+                        {
+                            _digitControls[_editModePosition].EditMode = false;
+                            _editModePosition++;
+                            _digitControls[_editModePosition].EditMode = true;
+                        }
+                        break;
+                    case Keys.Escape:
+                        AbortEditMode();
+                        break;
+
+                    case Keys.Enter:
+                        LeaveEditMode();
+                        break;
+                }
+
+                return true;
+            }
+
+            if ((args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) || 
+                (args.KeyCode >= Keys.NumPad0 && args.KeyCode <= Keys.NumPad9))
+            {
+                EnterEditMode();
+                DigitKeyHandler(args);
+                return true;
+            }
+            
+            return false;
+        }
+
+        protected override bool ProcessKeyPreview(ref Message m)
+        {            
+            const int WM_KEYDOWN = 0x100;
+
+            if (m.Msg == WM_KEYDOWN)
+            {
+                var args = new KeyEventArgs(((Keys)m.WParam) | ModifierKeys);
+                                
+                return DigitKeyHandler(args);               
+            }
+            
+            return base.ProcessKeyPreview(ref m);
+        }
+
+        #endregion
     }
 }
