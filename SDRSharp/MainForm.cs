@@ -1772,11 +1772,13 @@ namespace SDRSharp
         private void fftOffsetTrackBar_Scroll(object sender, EventArgs e)
         {
             spectrumAnalyzer.DisplayOffset = - fftOffsetTrackBar.Value * 10;
+            waterfall.DisplayOffset = spectrumAnalyzer.DisplayOffset;
         }
 
         private void fftRangeTrackBar_Scroll(object sender, EventArgs e)
         {
             spectrumAnalyzer.DisplayRange = fftRangeTrackBar.Value * 10;
+            waterfall.DisplayRange = spectrumAnalyzer.DisplayRange;
         }
 
         #endregion

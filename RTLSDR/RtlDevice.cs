@@ -17,6 +17,8 @@ namespace SDRSharp.RTLSDR
         private const uint DefaultFrequency = 105500000;
         private const int DefaultSamplerate = 2048000;
 
+        private static readonly float[] _lut = new float[256];
+
         private readonly uint _index;
         private IntPtr _dev;
         private readonly string _name;
@@ -38,6 +40,15 @@ namespace SDRSharp.RTLSDR
         private readonly SamplesAvailableEventArgs _eventArgs = new SamplesAvailableEventArgs();
         private static readonly RtlSdrReadAsyncDelegate _rtlCallback = RtlSdrSamplesAvailable;
         private static readonly uint _readLength = (uint) Utils.GetIntSetting("RTLBufferLength", 16 * 1024);
+
+        static RtlDevice()
+        {
+            const float scale = 1.0f / 127.0f;
+            for (var i = 0; i < 256; i++)
+            {
+                _lut[i] = (i - 128) * scale;
+            }
+        }
 
         public RtlDevice(uint index)
         {
@@ -316,12 +327,11 @@ namespace SDRSharp.RTLSDR
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
-            const float scale = 1.0f / 127.0f;
             var ptr = instance._iqPtr;
             for (var i = 0; i < sampleCount; i++)
             {
-                ptr->Imag = (*buf++ - 128) * scale;
-                ptr->Real = (*buf++ - 128) * scale;
+                ptr->Imag = _lut[*buf++];
+                ptr->Real = _lut[*buf++];
                 ptr++;
             }
 

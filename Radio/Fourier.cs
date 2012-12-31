@@ -47,6 +47,7 @@ namespace SDRSharp.Radio
 
         public static void ScaleFFT(float* src, byte* dest, int length, float minPower, float maxPower)
         {
+            var scale = byte.MaxValue / (maxPower - minPower);
             for (var i = 0; i < length; i++)
             {
                 var magnitude = src[i];
@@ -58,12 +59,13 @@ namespace SDRSharp.Radio
                 {
                     magnitude = maxPower;
                 }
-                dest[i] = (byte) ((magnitude - minPower) * byte.MaxValue / (maxPower - minPower));
+                dest[i] = (byte) ((magnitude - minPower) *  scale);
             }
         }
 
         public static void ScaleFFT(float[] src, byte[] dest, int length, float minPower, float maxPower)
         {
+            var scale = byte.MaxValue / (maxPower - minPower);
             for (var i = 0; i < length; i++)
             {
                 var magnitude = src[i];
@@ -75,11 +77,9 @@ namespace SDRSharp.Radio
                 {
                     magnitude = maxPower;
                 }
-                dest[i] = (byte) ((magnitude - minPower) * byte.MaxValue / (maxPower - minPower));
+                dest[i] = (byte) ((magnitude - minPower) * scale);
             }
         }
-
-
 
         public static void SmoothCopy(byte[] source, byte[] destination, int sourceLength, float scale, int offset)
         {

@@ -72,6 +72,8 @@ namespace SDRSharp.PanView
         private bool _useTimestamps;
         private int _scanlines;
         private int _timestampInterval;
+        private int _displayRange = 130;
+        private int _displayOffset;
         private LinearGradientBrush _gradientBrush;
         private ColorBlend _gradientColorBlend = GetGradientBlend();
 
@@ -215,6 +217,18 @@ namespace SDRSharp.PanView
                     _performNeeded = true;
                 }
             }
+        }
+
+        public int DisplayRange
+        {
+            get { return _displayRange; }
+            set { _displayRange = value; }
+        }
+
+        public int DisplayOffset
+        {
+            get { return _displayOffset; }
+            set { _displayOffset = value; }
         }
 
         public int FilterOffset
@@ -374,7 +388,9 @@ namespace SDRSharp.PanView
             }
             fixed (byte* scaledPowerSpectrumPtr = _scaledPowerSpectrum)
             {
-                Fourier.ScaleFFT(powerSpectrum, scaledPowerSpectrumPtr, length, MinPower, MaxPower);
+                var displayOffset = _displayOffset / 10 * 10;
+                var displayRange = _displayRange / 10 * 10;
+                Fourier.ScaleFFT(powerSpectrum, scaledPowerSpectrumPtr, length, displayOffset - displayRange, displayOffset);
             }
             var scaledLength = (int)(length / _scale);
             var offset = (int)((length - scaledLength) / 2.0 + length * (double)(_displayCenterFrequency - _centerFrequency) / _spectrumWidth);
