@@ -6,6 +6,9 @@ namespace SDRSharp.Radio.PortAudio
 {
 	public sealed unsafe class WaveFile : IDisposable
 	{
+		private static readonly float[] _lutu8 = new float[256];
+        private static readonly float[] _lut16 = new float[65536];
+
 		private readonly Stream _stream;
 	    private bool _isPCM;
 		private long _dataPos;
@@ -18,6 +21,21 @@ namespace SDRSharp.Radio.PortAudio
         private UnsafeBuffer _tempBuffer;
         private byte[] _temp;
         private byte* _tempPtr;
+
+        static WaveFile()
+        {
+            const float scale8 = 1.0f / 127.0f;
+            for (var i = 0; i < _lutu8.Length; i++)
+            {
+                _lutu8[i] = (i - 128) * scale8;
+            }
+
+            const float scale16 = 1.0f / 32767.0f;
+            for (var i = 0; i < _lut16.Length; i++)
+            {
+                _lut16[i] = (i - 32768) * scale16;
+            }
+        }
 
         ~WaveFile()
         {
@@ -143,23 +161,21 @@ namespace SDRSharp.Radio.PortAudio
                 }
                 else if (_blockAlign == 4)
                 {
-                    const float scale = 1.0f / 32767.0f;
                     var ptr = (Int16*) _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
-                        iqPtr->Real = *ptr++ * scale;
-                        iqPtr->Imag = *ptr++ * scale;
+                        iqPtr->Real = _lut16[*ptr++ + 32768];
+                        iqPtr->Imag = _lut16[*ptr++ + 32768];
                         iqPtr++;
                     }
                 }
                 else if (_blockAlign == 2)
                 {
-                    const float scale = 1.0f / 127.0f;
                     var ptr = _tempPtr;
                     for (var i = 0; i < length; i++)
                     {
-                        iqPtr->Real = (*ptr++ - 128) * scale;
-                        iqPtr->Imag = (*ptr++ - 128) * scale;
+                        iqPtr->Real = _lutu8[*ptr++];
+                        iqPtr->Imag = _lutu8[*ptr++];
                         iqPtr++;
                     }
                 }
