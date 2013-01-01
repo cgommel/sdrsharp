@@ -17,7 +17,8 @@ namespace SDRSharp.RTLSDR
         private const uint DefaultFrequency = 105500000;
         private const int DefaultSamplerate = 2048000;
 
-        private static readonly float[] _lut = new float[256];
+        private static readonly float* _lutPtr;
+        private static readonly UnsafeBuffer _lutBuffer = UnsafeBuffer.Create(256, sizeof(float));
 
         private readonly uint _index;
         private IntPtr _dev;
@@ -43,10 +44,12 @@ namespace SDRSharp.RTLSDR
 
         static RtlDevice()
         {
+            _lutPtr = (float*) _lutBuffer;
+
             const float scale = 1.0f / 127.0f;
             for (var i = 0; i < 256; i++)
             {
-                _lut[i] = (i - 128) * scale;
+                _lutPtr[i] = (i - 128) * scale;
             }
         }
 
@@ -330,8 +333,8 @@ namespace SDRSharp.RTLSDR
             var ptr = instance._iqPtr;
             for (var i = 0; i < sampleCount; i++)
             {
-                ptr->Imag = _lut[*buf++];
-                ptr->Real = _lut[*buf++];
+                ptr->Imag = _lutPtr[*buf++];
+                ptr->Real = _lutPtr[*buf++];
                 ptr++;
             }
 

@@ -10,7 +10,10 @@ namespace SDRSharp.SDRIQ
     {
         public const uint DefaultFrequency = 15000000;
         private const int DefaultSamplerate = 158730;
-             
+
+        private static readonly float* _lut16;
+        private static readonly UnsafeBuffer _lut16Buffer = UnsafeBuffer.Create(65536, sizeof(float));
+
         private IntPtr _dev;
         private readonly uint _index;
         private GCHandle _gcHandle;
@@ -27,6 +30,16 @@ namespace SDRSharp.SDRIQ
         private static readonly int _readBlockCount = Utils.GetIntSetting("SDRIQReadBlockCount", 1);
         private static readonly uint _outFifoBlockCount = (uint) Utils.GetIntSetting("SDRIQOutFifoBlockCount", 0);
         
+        static SdrIqDevice()
+        {
+            _lut16 = (float*) _lut16Buffer;
+            const float scale16 = 1.0f / 32767.0f;
+            for (var i = 0; i < 65536; i++)
+            {
+                _lut16[i] = (i - 32768) * scale16;
+            }
+        }
+
         public SdrIqDevice(uint index)
         {
             _index = index;
@@ -184,12 +197,11 @@ namespace SDRSharp.SDRIQ
                 instance._iqPtr = (Complex*) instance._iqBuffer;
             }
 
-            const float scale = 1.0f / 32767.0f;
             var output = instance._iqPtr;
-            for (int i = 0; i < sampleCount; i++)
+            for (var i = 0; i < sampleCount; i++)
             {
-                output->Imag = *buf++ * scale;
-                output->Real = *buf++ * scale;
+                output->Imag = _lut16[*buf++ + 32768];
+                output->Real = _lut16[*buf++ + 32768];
                 output++;
             }
 

@@ -6,8 +6,10 @@ namespace SDRSharp.Radio.PortAudio
 {
 	public sealed unsafe class WaveFile : IDisposable
 	{
-		private static readonly float[] _lutu8 = new float[256];
-        private static readonly float[] _lut16 = new float[65536];
+		private static readonly float* _lutu8;
+		private static readonly UnsafeBuffer _lutu8Buffer = UnsafeBuffer.Create(256, sizeof(float));
+        private static readonly float* _lut16;
+        private static readonly UnsafeBuffer _lut16Buffer = UnsafeBuffer.Create(65536, sizeof(float));
 
 		private readonly Stream _stream;
 	    private bool _isPCM;
@@ -24,14 +26,16 @@ namespace SDRSharp.Radio.PortAudio
 
         static WaveFile()
         {
+            _lutu8 = (float*) _lutu8Buffer;
             const float scale8 = 1.0f / 127.0f;
-            for (var i = 0; i < _lutu8.Length; i++)
+            for (var i = 0; i < 256; i++)
             {
                 _lutu8[i] = (i - 128) * scale8;
             }
 
+            _lut16 = (float*) _lut16Buffer;
             const float scale16 = 1.0f / 32767.0f;
-            for (var i = 0; i < _lut16.Length; i++)
+            for (var i = 0; i < 65536; i++)
             {
                 _lut16[i] = (i - 32768) * scale16;
             }

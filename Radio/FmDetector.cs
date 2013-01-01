@@ -23,7 +23,8 @@ namespace SDRSharp.Radio
         private const int HissFilterOrder = 20;
         private const float HissFactor = 0.00002f;
 
-        private DcRemover _dcRemover = new DcRemover(TimeConst);
+        private readonly DcRemover* _dcRemoverPtr;
+        private readonly UnsafeBuffer _dcRemoverBuffer = UnsafeBuffer.Create(sizeof(DcRemover));
         private float* _hissPtr;
         private UnsafeBuffer _hissBuffer;
         private FirFilter _hissFilter;
@@ -35,6 +36,12 @@ namespace SDRSharp.Radio
         private bool _isSquelchOpen;
         private float _noiseThreshold;
         private FmMode _mode;
+
+        public FmDetector()
+        {
+            _dcRemoverPtr = (DcRemover*) _dcRemoverBuffer;
+            _dcRemoverPtr->Init(TimeConst);
+        }
 
         public void Demodulate(Complex* iq, float* audio, int length)
         {
@@ -58,7 +65,7 @@ namespace SDRSharp.Radio
 
                 _iqState = iq[i];
             }
-            _dcRemover.Process(audio, length);
+            _dcRemoverPtr->Process(audio, length);
             if (_mode == FmMode.Narrow)
             {
                 ProcessSquelch(audio, length);
@@ -106,7 +113,7 @@ namespace SDRSharp.Radio
 
         public float Offset
         {
-            get { return _dcRemover.Offset; }
+            get { return _dcRemoverPtr->Offset; }
         }
 
         public double SampleRate
@@ -120,14 +127,14 @@ namespace SDRSharp.Radio
                 if (value != _sampleRate)
                 {
                     _sampleRate = value;
-                    _noiseAveragingRatio = (float)(30.0 / _sampleRate);
+                    _noiseAveragingRatio = (float) (30.0 / _sampleRate);
                     var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
                     if (_hissFilter != null)
                     {
                         _hissFilter.Dispose();
                     }
                     _hissFilter = new FirFilter(bpk);
-                    _dcRemover.Reset();
+                    _dcRemoverPtr->Reset();
                 }
             }
         }
