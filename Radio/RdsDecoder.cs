@@ -7,6 +7,7 @@ namespace SDRSharp.Radio
         private const int PllDefaultFrequency = 57000;
         private const int PllRange = 12;
         private const int PllBandwith = 1;
+        private const float PllZeta = 0.707f;
         private const float PllLockTime = 0.5f;
         private const float PllLockThreshold = 3.2f;
         private const float RdsBitRate = 1187.5f;
@@ -94,6 +95,7 @@ namespace SDRSharp.Radio
             _pll->DefaultFrequency = 0;
             _pll->Range = PllRange;
             _pll->Bandwidth = PllBandwith;
+            _pll->Zeta = PllZeta;
             _pll->LockTime = PllLockTime;
             _pll->LockThreshold = PllLockThreshold;
 

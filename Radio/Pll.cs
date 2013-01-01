@@ -8,14 +8,6 @@ namespace SDRSharp.Radio
 #endif
     public struct Pll
     {
-        private const float DefaultZeta = 0.707f;
-        private const float DefaultLockTime = 0.5f; // sec
-        private const float DefaultPhaseAdjM = 0.0f;
-        private const float DefaultPhaseAdjB = -2.25f;
-        private const float DefaultRange = 20f;
-        private const float DefaultBandwidth = 10.0f;
-        private const float DefaultLockThreshold = 3.2f;
-
         private float _sampleRate;
         private float _phase;
         private float _frequencyRadian;
@@ -36,31 +28,6 @@ namespace SDRSharp.Radio
         private float _phaseErrorAvg;
         private float _adjustedPhase;
         private float _lockThreshold;
-
-        public Pll(float frequency)
-        {
-            _sampleRate = 0;
-            _phase = 0;
-            _frequencyRadian = 0;
-            _minFrequencyRadian = 0;
-            _maxFrequencyRadian = 0;
-            _defaultFrequency = frequency;
-            _range = DefaultRange;
-            _bandwidth = DefaultBandwidth;
-            _alpha = 0;
-            _beta = 0;
-            _zeta = DefaultZeta;
-            _phaseAdj = 0;
-            _phaseAdjM = DefaultPhaseAdjM;
-            _phaseAdjB = DefaultPhaseAdjB;
-            _lockAlpha = 0;
-            _lockOneMinusAlpha = 1;
-            _lockTime = DefaultLockTime;
-            _phaseErrorAvg = 0;
-            _adjustedPhase = 0;
-            _lockThreshold = DefaultLockThreshold;
-            Configure();
-        }
 
         public float AdjustedPhase
         {
