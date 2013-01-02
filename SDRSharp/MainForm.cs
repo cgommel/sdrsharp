@@ -1355,7 +1355,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultWFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 14;
+                stepSizeComboBox.SelectedIndex = 16;
 
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
@@ -1367,7 +1367,7 @@ namespace SDRSharp
                 _vfo.Bandwidth = DefaultNFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 11;
+                stepSizeComboBox.SelectedIndex = 12;
                 useSquelchCheckBox.Checked = true;
 
                 waterfall.FilterOffset = 0;
