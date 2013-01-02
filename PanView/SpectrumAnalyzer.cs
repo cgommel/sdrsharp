@@ -784,7 +784,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void UpdateFrequency(long f)
+        private void UpdateFrequency(long f, FrequencyChangeSource source)
         {
             var min = (long) (_displayCenterFrequency - _spectrumWidth / _scale / 2);
             if (f < min)
@@ -804,7 +804,7 @@ namespace SDRSharp.PanView
 
             if (f != _frequency)
             {
-                var args = new FrequencyEventArgs(f);
+                var args = new FrequencyEventArgs(f, source);
                 OnFrequencyChanged(args);
                 if (!args.Cancel)
                 {
@@ -814,7 +814,7 @@ namespace SDRSharp.PanView
             }
         }
 
-        private void UpdateCenterFrequency(long f)
+        private void UpdateCenterFrequency(long f, FrequencyChangeSource source)
         {
             if (f < 0)
             {
@@ -828,7 +828,7 @@ namespace SDRSharp.PanView
 
             if (f != _centerFrequency)
             {
-                var args = new FrequencyEventArgs(f);
+                var args = new FrequencyEventArgs(f, source);
                 OnCenterFrequencyChanged(args);
                 if (!args.Cancel)
                 {
@@ -894,7 +894,7 @@ namespace SDRSharp.PanView
             }
             else if (e.Button == MouseButtons.Right)
             {
-                UpdateFrequency(_frequency / Waterfall.RightClickSnapDistance * Waterfall.RightClickSnapDistance);
+                UpdateFrequency(_frequency / Waterfall.RightClickSnapDistance * Waterfall.RightClickSnapDistance, FrequencyChangeSource.Click);
             }
         }
 
@@ -904,7 +904,7 @@ namespace SDRSharp.PanView
             if (_changingCenterFrequency && e.X == _oldX)
             {
                 var f = (long)((_oldX - ClientRectangle.Width / 2) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _displayCenterFrequency);
-                UpdateFrequency(f);
+                UpdateFrequency(f, FrequencyChangeSource.Click);
             }
             _changingCenterFrequency = false;
             _drawBackgroundNeeded = true;
@@ -932,12 +932,12 @@ namespace SDRSharp.PanView
             if (_changingFrequency)
             {
                 var f = (long) ((e.X - _oldX) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFrequency);
-                UpdateFrequency(f);
+                UpdateFrequency(f, FrequencyChangeSource.Drag);
             }
             else if (_changingCenterFrequency)
             {
                 var f = (long) ((_oldX - e.X) * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldCenterFrequency);
-                UpdateCenterFrequency(f);
+                UpdateCenterFrequency(f, FrequencyChangeSource.Drag);
             }
             else if (_changingBandwidth)
             {
@@ -977,7 +977,7 @@ namespace SDRSharp.PanView
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            UpdateFrequency(_frequency + (_useSnap ? _stepSize * Math.Sign(e.Delta) : e.Delta / 10));
+            UpdateFrequency(_frequency + (_useSnap ? _stepSize * Math.Sign(e.Delta) : e.Delta / 10), FrequencyChangeSource.Scroll);
         }
 
         protected override void OnMouseLeave(EventArgs e)

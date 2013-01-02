@@ -66,6 +66,8 @@ namespace SDRSharp
         private bool _fftBufferIsWaiting;
         private bool _extioChangingSamplerate;
         private bool _changingFrequency;
+        private bool _changingFrequencyByScroll;
+        private bool _changingFrequencyFromPanView;
         private bool _terminated;
         private string _waveFile;
         private Point _lastLocation;
@@ -1159,7 +1161,7 @@ namespace SDRSharp
 
         private void vfoFrequencyEdit_FrequencyChanging(object sender, FrequencyChangingEventArgs e)
         {
-            if (SourceIsWaveFile)
+            if (SourceIsWaveFile || _frontendController == null)
             {
                 if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f)
                 {
@@ -1167,14 +1169,14 @@ namespace SDRSharp
                 }
                 else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f)
                 {
-                    e.Frequency = (long)(_centerFrequency - _vfo.SampleRate * 0.5f);
+                    e.Frequency = (long) (_centerFrequency - _vfo.SampleRate * 0.5f);
                 }
                 return;
             }
             var delta = e.Frequency - vfoFrequencyEdit.Frequency;
             var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate);
             var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate) - (e.Frequency + _vfo.Bandwidth * 0.5f);
-            if ((delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
+            if (_changingFrequencyByScroll || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
                 if (!_changingFrequency)
                 {
@@ -1192,10 +1194,7 @@ namespace SDRSharp
                 return;
             }
 
-            lock (this)
-            {
-                _centerFrequency = newCenterFreq;
-            }
+            Interlocked.Exchange(ref _centerFrequency, newCenterFreq);
 
             waterfall.CenterFrequency = _centerFrequency + _frequencyShift;
             spectrumAnalyzer.CenterFrequency = _centerFrequency + _frequencyShift;
@@ -1219,15 +1218,12 @@ namespace SDRSharp
         {
             while (!_terminated)
             {
-                long copyOfFrequencyToSet;
-                lock (this)
+                var frequencyToSet = Interlocked.Read(ref _centerFrequency);
+
+                if (_frontendController != null && _frequencySet != frequencyToSet)
                 {
-                    copyOfFrequencyToSet = _centerFrequency;
-                }
-                if (_frontendController != null && _frequencySet != copyOfFrequencyToSet)
-                {
-                    _frequencySet = copyOfFrequencyToSet;
-                    _frontendController.Frequency = copyOfFrequencyToSet;
+                    _frequencySet = frequencyToSet;
+                    _frontendController.Frequency = frequencyToSet;
                 }
                 Thread.Sleep(1);
             }
@@ -1235,11 +1231,15 @@ namespace SDRSharp
 
         private void panview_FrequencyChanged(object sender, FrequencyEventArgs e)
         {
+            _changingFrequencyByScroll = e.Source == FrequencyChangeSource.Scroll;
+            _changingFrequencyFromPanView = true;
             vfoFrequencyEdit.Frequency = e.Frequency;
             if (vfoFrequencyEdit.Frequency != e.Frequency)
             {
                 e.Cancel = true;
             }
+            _changingFrequencyFromPanView = false;
+            _changingFrequencyByScroll = false;
         }
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
