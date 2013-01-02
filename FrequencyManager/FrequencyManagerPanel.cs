@@ -215,8 +215,11 @@ namespace SDRSharp.FrequencyManager
                 {
                     var memoryEntry = (MemoryEntry) memoryEntryBindingSource.List[rowIndex];
 
-                    _controlInterface.FrequencyShift = memoryEntry.Shift;
                     _controlInterface.FrequencyShiftEnabled = memoryEntry.Shift != 0;
+                    if (_controlInterface.FrequencyShiftEnabled)
+                    {
+                        _controlInterface.FrequencyShift = memoryEntry.Shift;
+                    }
                     _controlInterface.DetectorType = memoryEntry.DetectorType;
                     _controlInterface.FilterBandwidth = (int) memoryEntry.FilterBandwidth;
                     _controlInterface.Frequency = memoryEntry.Frequency;
