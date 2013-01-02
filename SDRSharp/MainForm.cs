@@ -64,8 +64,8 @@ namespace SDRSharp
         private bool _fftSpectrumAvailable;
         private bool _fftSpectrumResized;
         private bool _fftBufferIsWaiting;
-        private bool _extioChangingFrequency;
         private bool _extioChangingSamplerate;
+        private bool _changingFrequency;
         private bool _terminated;
         private string _waveFile;
         private Point _lastLocation;
@@ -639,13 +639,7 @@ namespace SDRSharp
 
         private void ExtIO_LOFreqChanged(int frequency)
         {
-            BeginInvoke(new Action(() =>
-                            {
-
-                                _extioChangingFrequency = true;
-                                SetCenterFrequency(frequency);
-                                _extioChangingFrequency = false;
-                            }));
+            BeginInvoke(new Action(() => SetCenterFrequency(frequency)));
         }
 
         private void ExtIO_SampleRateChanged(int newSamplerate)
@@ -1163,15 +1157,13 @@ namespace SDRSharp
             NotifyPropertyChanged("Frequency");
         }
 
-        private bool _changingFrequency;
-
         private void vfoFrequencyEdit_FrequencyChanging(object sender, FrequencyChangingEventArgs e)
         {
             if (SourceIsWaveFile)
             {
                 if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f)
                 {
-                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate*0.5f);
+                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate * 0.5f);
                 }
                 else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f)
                 {

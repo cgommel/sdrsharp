@@ -63,12 +63,6 @@ namespace SDRSharp.FrequencyManager
             set { _shift = value; }
         }
 
-        public long CenterFrequency
-        {
-            get { return _centerFrequency; }
-            set { _centerFrequency = value; }
-        }
-
         public long FilterBandwidth
         {
             get { return _filterBandwidth; }
