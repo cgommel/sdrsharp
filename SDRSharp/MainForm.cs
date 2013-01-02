@@ -1163,19 +1163,24 @@ namespace SDRSharp
         {
             if (SourceIsWaveFile || _frontendController == null)
             {
-                if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f)
+                if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift)
                 {
-                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate * 0.5f);
+                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift);
                 }
-                else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f)
+                else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift)
                 {
-                    e.Frequency = (long) (_centerFrequency - _vfo.SampleRate * 0.5f);
+                    e.Frequency = (long) (_centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift);
+                }
+                if (!SourceIsWaveFile)
+                {
+                    waterfall.CenterFrequency = _frequencyShift;
+                    spectrumAnalyzer.CenterFrequency = _frequencyShift;
                 }
                 return;
             }
             var delta = e.Frequency - vfoFrequencyEdit.Frequency;
-            var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate);
-            var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate) - (e.Frequency + _vfo.Bandwidth * 0.5f);
+            var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate + _frequencyShift);
+            var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate + _frequencyShift) - (e.Frequency + _vfo.Bandwidth * 0.5f);
             if (_changingFrequencyByScroll || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
                 if (!_changingFrequency)
@@ -1244,7 +1249,7 @@ namespace SDRSharp
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            if (SourceIsWaveFile)
+            if (SourceIsWaveFile || _frontendController == null)
             {
                 e.Cancel = true;
             }
@@ -1299,19 +1304,11 @@ namespace SDRSharp
         private void frequencyShiftCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
-            if (frequencyShiftCheckBox.Checked)
-            {
-                _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
-                vfoFrequencyEdit.Frequency += _frequencyShift;
-            }
-            else
-            {
-                var shift = _frequencyShift;
-                _frequencyShift = 0;
-                vfoFrequencyEdit.Frequency -= shift;
-            }
+            _frequencyShift = frequencyShiftCheckBox.Checked ? (long) frequencyShiftNumericUpDown.Value : 0L;
             _changingFrequency = true;
             vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
+            waterfall.CenterFrequency = _centerFrequency + _frequencyShift;
+            spectrumAnalyzer.CenterFrequency = _centerFrequency + _frequencyShift;
             _changingFrequency = false;
 
             NotifyPropertyChanged("FrequencyShiftEnabled");
@@ -1319,9 +1316,11 @@ namespace SDRSharp
 
         private void frequencyShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
+            _frequencyShift = (long) frequencyShiftNumericUpDown.Value;
             _changingFrequency = true;
             vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
+            waterfall.CenterFrequency = _centerFrequency + _frequencyShift;
+            spectrumAnalyzer.CenterFrequency = _centerFrequency + _frequencyShift;
             _changingFrequency = false;
 
             NotifyPropertyChanged("FrequencyShift");
