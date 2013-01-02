@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using SDRSharp.Common;
 using SDRSharp.Radio;
 using SDRSharp.PanView;
+using SDRSharp.FrequencyEdit;
 using SDRSharp.Radio.PortAudio;
 using System.Collections.Specialized;
 
@@ -54,7 +55,7 @@ namespace SDRSharp
         private System.Windows.Forms.Timer _performTimer;
         private int _fftSamplesPerFrame;
         private double _fftOverlapRatio;
-        private long _frequencyToSet;
+        private long _centerFrequency;
         private long _frequencySet;
         private long _frequencyShift;
         private int _maxIQSamples;
@@ -143,14 +144,14 @@ namespace SDRSharp
 
         public long CenterFrequency
         {
-            get { return centerFrequencyEdit.Frequency; }
+            get { return _centerFrequency; }
             set
             {
                 if (_frontendController == null)
                 {
                     throw new ApplicationException("Cannot set the center frequency when no front end is connected");
                 }
-                centerFrequencyEdit.Frequency = value;
+                SetCenterFrequency(value);
             }
         }
 
@@ -439,8 +440,7 @@ namespace SDRSharp
             }
             filterBandwidthNumericUpDown_ValueChanged(null, null);
 
-            centerFrequencyEdit.Frequency = 0;
-            centerFrequencyEdit_FrequencyChanged(null, null);
+            SetCenterFrequency(0);
 
             frequencyShiftNumericUpDown.Value = Utils.GetLongSetting("frequencyShift", 0);
             frequencyShiftNumericUpDown_ValueChanged(null, null);
@@ -627,19 +627,9 @@ namespace SDRSharp
             iqSourceComboBox.SelectedIndex = sourceIndex < iqSourceComboBox.Items.Count ? sourceIndex : (iqSourceComboBox.Items.Count - 1);
             if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
             {
-                centerFrequencyEdit.Frequency = Utils.GetLongSetting("centerFrequency", centerFrequencyEdit.Frequency);
-                var vfo = Utils.GetLongSetting("vfo", centerFrequencyEdit.Frequency);
-                if (vfo >= vfoFrequencyEdit.Minimum && vfo <= vfoFrequencyEdit.Maximum)
-                {
-                    vfoFrequencyEdit.Frequency = vfo;
-                }
-                else
-                {
-                    var newFrequency = centerFrequencyEdit.Frequency + _frequencyShift;
-                    vfoFrequencyEdit.Minimum = newFrequency;
-                    vfoFrequencyEdit.Maximum = newFrequency;
-                    vfoFrequencyEdit.Frequency = newFrequency;
-                }
+                SetCenterFrequency(Utils.GetLongSetting("centerFrequency", _centerFrequency));
+                var vfo = Utils.GetLongSetting("vfo", _centerFrequency);
+                vfoFrequencyEdit.Frequency = vfo;
             }
 
             #endregion
@@ -653,7 +643,7 @@ namespace SDRSharp
                             {
 
                                 _extioChangingFrequency = true;
-                                centerFrequencyEdit.Frequency = frequency;
+                                SetCenterFrequency(frequency);
                                 _extioChangingFrequency = false;
                             }));
         }
@@ -740,7 +730,7 @@ namespace SDRSharp
             Utils.SaveSetting("splitterPosition", panSplitContainer.SplitterDistance);
             Utils.SaveSetting("iqSource", iqSourceComboBox.SelectedIndex);
             Utils.SaveSetting("waveFile", "" + _waveFile);
-            Utils.SaveSetting("centerFrequency", centerFrequencyEdit.Frequency);
+            Utils.SaveSetting("centerFrequency", _centerFrequency);
             Utils.SaveSetting("vfo", vfoFrequencyEdit.Frequency);
             Utils.SaveSetting("fftDisplayOffset", fftOffsetTrackBar.Value);
             Utils.SaveSetting("fftDisplayRange", fftRangeTrackBar.Value);
@@ -943,9 +933,7 @@ namespace SDRSharp
                 inputDeviceComboBox.Enabled = true;
                 outputDeviceComboBox.Enabled = true;
                 sampleRateComboBox.Enabled = true;
-                centerFrequencyEdit.Enabled = true;
-                centerFrequencyEdit.Frequency = 0;
-                centerFrequencyEdit_FrequencyChanged(null, null);
+                SetCenterFrequency(0);
                 vfoFrequencyEdit.Frequency = _frequencyShift;
                 vfoFrequencyEdit_FrequencyChanged(null, null);
                 frequencyShiftCheckBox.Enabled = true;
@@ -964,13 +952,11 @@ namespace SDRSharp
                 inputDeviceComboBox.Enabled = false;
                 outputDeviceComboBox.Enabled = true;
                 latencyNumericUpDown.Enabled = true;
-                centerFrequencyEdit.Enabled = false;
                 frequencyShiftCheckBox.Enabled = false;
                 frequencyShiftNumericUpDown.Enabled = false;
 
                 _frequencyShift = 0;
-                centerFrequencyEdit.Frequency = 0;
-                centerFrequencyEdit_FrequencyChanged(null, null);
+                SetCenterFrequency(0);
                 vfoFrequencyEdit.Frequency = 0;
                 frequencyShiftCheckBox.Checked = false;
 
@@ -1021,9 +1007,7 @@ namespace SDRSharp
                 }
                 _vfo.SampleRate = _frontendController.Samplerate;
                 _vfo.Frequency = 0;
-                centerFrequencyEdit.Enabled = true;
-                centerFrequencyEdit.Frequency = _frontendController.Frequency;
-                centerFrequencyEdit_FrequencyChanged(null, null);
+                SetCenterFrequency(_frontendController.Frequency);
                 vfoFrequencyEdit.Frequency = _frontendController.Frequency + _frequencyShift;
                 vfoFrequencyEdit_FrequencyChanged(null, null);
             }
@@ -1063,7 +1047,7 @@ namespace SDRSharp
         {
             var inputDevice = (AudioDevice) inputDeviceComboBox.SelectedItem;
             var outputDevice = (AudioDevice) outputDeviceComboBox.SelectedItem;
-            var oldCenterFrequency = centerFrequencyEdit.Frequency;
+            var oldCenterFrequency = _centerFrequency;
             Match match;
             if (SourceIsWaveFile)
             {
@@ -1078,13 +1062,12 @@ namespace SDRSharp
                 if (match.Success)
                 {
                     var center = int.Parse(match.Groups[1].Value) * 1000;
-                    centerFrequencyEdit.Frequency = center;
+                    SetCenterFrequency(center);
                 }
                 else
                 {
-                    centerFrequencyEdit.Frequency = 0;
+                    SetCenterFrequency(0);
                 }
-                centerFrequencyEdit_FrequencyChanged(null, null);
             }
             else
             {
@@ -1109,12 +1092,9 @@ namespace SDRSharp
             spectrumAnalyzer.SpectrumWidth = (int)_streamControl.SampleRate;
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
 
-            vfoFrequencyEdit.Maximum = centerFrequencyEdit.Frequency + (int) (_streamControl.SampleRate / 2) + _frequencyShift;
-            vfoFrequencyEdit.Minimum = centerFrequencyEdit.Frequency - (int) (_streamControl.SampleRate / 2) + _frequencyShift;
-
-            if (centerFrequencyEdit.Frequency != oldCenterFrequency)
+            if (_centerFrequency != oldCenterFrequency)
             {
-                vfoFrequencyEdit.Frequency = centerFrequencyEdit.Frequency + _frequencyShift;
+                vfoFrequencyEdit.Frequency = _centerFrequency + _frequencyShift;
 
                 fftZoomTrackBar.Value = 0;
                 fftZoomTrackBar_ValueChanged(null, null);
@@ -1174,7 +1154,7 @@ namespace SDRSharp
         {
             waterfall.Frequency = vfoFrequencyEdit.Frequency;
             spectrumAnalyzer.Frequency = vfoFrequencyEdit.Frequency;
-            _vfo.Frequency = (int)(waterfall.Frequency - centerFrequencyEdit.Frequency - _frequencyShift);
+            _vfo.Frequency = (int)(waterfall.Frequency - _centerFrequency - _frequencyShift);
             if (_vfo.DetectorType == DetectorType.WFM)
             {
                 _vfo.RdsReset();
@@ -1183,30 +1163,56 @@ namespace SDRSharp
             NotifyPropertyChanged("Frequency");
         }
 
-        private void centerFrequencyEdit_FrequencyChanged(object sender, EventArgs e)
+        private bool _changingFrequency;
+
+        private void vfoFrequencyEdit_FrequencyChanging(object sender, FrequencyChangingEventArgs e)
         {
-            var newCenterFreq = centerFrequencyEdit.Frequency;
-            waterfall.CenterFrequency = newCenterFreq + _frequencyShift;
-            spectrumAnalyzer.CenterFrequency = newCenterFreq + _frequencyShift;
-
-            vfoFrequencyEdit.Maximum = long.MaxValue;
-            vfoFrequencyEdit.Minimum = long.MinValue;
-            vfoFrequencyEdit.Frequency = newCenterFreq + _vfo.Frequency + _frequencyShift;
-            vfoFrequencyEdit.Maximum = newCenterFreq + (int)(_vfo.SampleRate / 2) + _frequencyShift;
-            vfoFrequencyEdit.Minimum = newCenterFreq - (int)(_vfo.SampleRate / 2) + _frequencyShift;
-
-            if (snapFrequencyCheckBox.Checked)
+            if (SourceIsWaveFile)
             {
-                vfoFrequencyEdit.Maximum = (vfoFrequencyEdit.Maximum) / waterfall.StepSize * waterfall.StepSize;
-                vfoFrequencyEdit.Minimum = 2 * spectrumAnalyzer.CenterFrequency - vfoFrequencyEdit.Maximum;
+                if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f)
+                {
+                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate*0.5f);
+                }
+                else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f)
+                {
+                    e.Frequency = (long)(_centerFrequency - _vfo.SampleRate * 0.5f);
+                }
+                return;
+            }
+            var delta = e.Frequency - vfoFrequencyEdit.Frequency;
+            var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate);
+            var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate) - (e.Frequency + _vfo.Bandwidth * 0.5f);
+            if ((delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
+            {
+                if (!_changingFrequency)
+                {
+                    _changingFrequency = true;
+                    SetCenterFrequency(_centerFrequency + delta);
+                    _changingFrequency = false;
+                }
+            }
+        }
+
+        private void SetCenterFrequency(long newCenterFreq)
+        {
+            if (newCenterFreq == _centerFrequency)
+            {
+                return;
             }
 
-            if (_frontendController != null && !SourceIsWaveFile && !_extioChangingFrequency)
+            lock (this)
             {
-                lock (this)
-                {
-                    _frequencyToSet = newCenterFreq;
-                }
+                _centerFrequency = newCenterFreq;
+            }
+
+            waterfall.CenterFrequency = _centerFrequency + _frequencyShift;
+            spectrumAnalyzer.CenterFrequency = _centerFrequency + _frequencyShift;
+
+            if (!_changingFrequency)
+            {
+                _changingFrequency = true;
+                vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
+                _changingFrequency = false;
             }
 
             if (_vfo.DetectorType == DetectorType.WFM)
@@ -1224,7 +1230,7 @@ namespace SDRSharp
                 long copyOfFrequencyToSet;
                 lock (this)
                 {
-                    copyOfFrequencyToSet = _frequencyToSet;
+                    copyOfFrequencyToSet = _centerFrequency;
                 }
                 if (_frontendController != null && _frequencySet != copyOfFrequencyToSet)
                 {
@@ -1237,12 +1243,8 @@ namespace SDRSharp
 
         private void panview_FrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            if (e.Frequency >= vfoFrequencyEdit.Minimum &&
-                e.Frequency <= vfoFrequencyEdit.Maximum)
-            {
-                vfoFrequencyEdit.Frequency = e.Frequency;
-            }
-            else
+            vfoFrequencyEdit.Frequency = e.Frequency;
+            if (vfoFrequencyEdit.Frequency != e.Frequency)
             {
                 e.Cancel = true;
             }
@@ -1262,7 +1264,7 @@ namespace SDRSharp
                     f = 0;
                     e.Cancel = true;
                 }
-                centerFrequencyEdit.Frequency = f;
+                SetCenterFrequency(f);
             }
         }
 
@@ -1305,8 +1307,6 @@ namespace SDRSharp
         private void frequencyShiftCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
             frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
-            vfoFrequencyEdit.Minimum = long.MinValue;
-            vfoFrequencyEdit.Maximum = long.MaxValue;
             if (frequencyShiftCheckBox.Checked)
             {
                 _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
@@ -1318,7 +1318,9 @@ namespace SDRSharp
                 _frequencyShift = 0;
                 vfoFrequencyEdit.Frequency -= shift;
             }
-            centerFrequencyEdit_FrequencyChanged(null, null);
+            _changingFrequency = true;
+            vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
+            _changingFrequency = false;
 
             NotifyPropertyChanged("FrequencyShiftEnabled");
         }
@@ -1326,7 +1328,9 @@ namespace SDRSharp
         private void frequencyShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _frequencyShift = (long)frequencyShiftNumericUpDown.Value;
-            centerFrequencyEdit_FrequencyChanged(null, null);
+            _changingFrequency = true;
+            vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
+            _changingFrequency = false;
 
             NotifyPropertyChanged("FrequencyShift");
         }
@@ -1513,24 +1517,13 @@ namespace SDRSharp
             }
             if (stepSize > 0)
             {
-                //centerFreqNumericUpDown.Increment = stepSize;
-                //loFrequencyEdit.Increment = stepSize;
                 waterfall.StepSize = stepSize;
                 spectrumAnalyzer.StepSize = stepSize;
 
                 if (snapFrequencyCheckBox.Checked && !SourceIsWaveFile)
                 {
-                    vfoFrequencyEdit.Maximum = long.MaxValue;
-                    vfoFrequencyEdit.Minimum = long.MinValue;
-
-                    centerFrequencyEdit.Frequency = (centerFrequencyEdit.Frequency + stepSize / 2) / stepSize * stepSize;
+                    SetCenterFrequency((_centerFrequency + stepSize / 2) / stepSize * stepSize);
                     vfoFrequencyEdit.Frequency = (vfoFrequencyEdit.Frequency + stepSize / 2) / stepSize * stepSize;
-
-                    vfoFrequencyEdit.Maximum = centerFrequencyEdit.Frequency + _frequencyShift + (int)(_vfo.SampleRate / 2);
-                    vfoFrequencyEdit.Minimum = centerFrequencyEdit.Frequency + _frequencyShift - (int)(_vfo.SampleRate / 2);
-
-                    vfoFrequencyEdit.Maximum = (vfoFrequencyEdit.Maximum) / waterfall.StepSize * waterfall.StepSize;
-                    vfoFrequencyEdit.Minimum = 2 * spectrumAnalyzer.CenterFrequency - vfoFrequencyEdit.Maximum;
                 }
             }
             _stepSize = stepSize;

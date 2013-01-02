@@ -18,21 +18,14 @@ namespace SDRSharp
             this.openDlg = new System.Windows.Forms.OpenFileDialog();
             this.playStopButton = new System.Windows.Forms.Button();
             this.panSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
+            this.waterfall = new SDRSharp.PanView.Waterfall();
             this.iqTimer = new System.Windows.Forms.Timer(this.components);
             this.fftContrastTrackBar = new System.Windows.Forms.TrackBar();
             this.fftZoomTrackBar = new System.Windows.Forms.TrackBar();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
-            this.configureSourceButton = new System.Windows.Forms.Button();
-            this.iqSourceComboBox = new System.Windows.Forms.ComboBox();
-            this.label17 = new System.Windows.Forms.Label();
-            this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
-            this.scrollPanel = new System.Windows.Forms.Panel();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.vfoFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
-            this.centerFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
             this.cwuRadioButton = new System.Windows.Forms.RadioButton();
             this.frequencyShiftCheckBox = new System.Windows.Forms.CheckBox();
@@ -106,16 +99,19 @@ namespace SDRSharp
             this.gradientButton = new System.Windows.Forms.Button();
             this.fftWindowComboBox = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.spectrumAnalyzer = new SDRSharp.PanView.SpectrumAnalyzer();
-            this.waterfall = new SDRSharp.PanView.Waterfall();
+            this.configureSourceButton = new System.Windows.Forms.Button();
+            this.iqSourceComboBox = new System.Windows.Forms.ComboBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.fftSpeedTrackBar = new System.Windows.Forms.TrackBar();
+            this.scrollPanel = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.vfoFrequencyEdit = new SDRSharp.FrequencyEdit.FrequencyEdit();
             this.panSplitContainer.Panel1.SuspendLayout();
             this.panSplitContainer.Panel2.SuspendLayout();
             this.panSplitContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fftContrastTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftZoomTrackBar)).BeginInit();
             this.controlPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).BeginInit();
-            this.scrollPanel.SuspendLayout();
             this.radioCollapsiblePanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyShiftNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cwShiftNumericUpDown)).BeginInit();
@@ -138,6 +134,8 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).BeginInit();
+            this.scrollPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // openDlg
@@ -175,6 +173,61 @@ namespace SDRSharp
             this.panSplitContainer.Size = new System.Drawing.Size(627, 662);
             this.panSplitContainer.SplitterDistance = 212;
             this.panSplitContainer.TabIndex = 13;
+            // 
+            // spectrumAnalyzer
+            // 
+            this.spectrumAnalyzer.Attack = 0.9D;
+            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
+            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
+            this.spectrumAnalyzer.Decay = 0.3D;
+            this.spectrumAnalyzer.DisplayOffset = 0;
+            this.spectrumAnalyzer.DisplayRange = 130;
+            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spectrumAnalyzer.FilterBandwidth = 10000;
+            this.spectrumAnalyzer.FilterOffset = 100;
+            this.spectrumAnalyzer.Frequency = ((long)(0));
+            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
+            this.spectrumAnalyzer.MarkPeaks = false;
+            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
+            this.spectrumAnalyzer.Size = new System.Drawing.Size(627, 212);
+            this.spectrumAnalyzer.SpectrumWidth = 48000;
+            this.spectrumAnalyzer.StatusText = null;
+            this.spectrumAnalyzer.StepSize = 1000;
+            this.spectrumAnalyzer.TabIndex = 0;
+            this.spectrumAnalyzer.UseSmoothing = true;
+            this.spectrumAnalyzer.UseSnap = false;
+            this.spectrumAnalyzer.Zoom = 0;
+            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            // 
+            // waterfall
+            // 
+            this.waterfall.Attack = 0.9D;
+            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
+            this.waterfall.CenterFrequency = ((long)(0));
+            this.waterfall.Contrast = 0;
+            this.waterfall.Decay = 0.5D;
+            this.waterfall.DisplayOffset = 0;
+            this.waterfall.DisplayRange = 130;
+            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.waterfall.FilterBandwidth = 10000;
+            this.waterfall.FilterOffset = 0;
+            this.waterfall.Frequency = ((long)(0));
+            this.waterfall.Location = new System.Drawing.Point(0, 0);
+            this.waterfall.Name = "waterfall";
+            this.waterfall.Size = new System.Drawing.Size(627, 446);
+            this.waterfall.SpectrumWidth = 48000;
+            this.waterfall.StepSize = 0;
+            this.waterfall.TabIndex = 0;
+            this.waterfall.TimestampInterval = 100;
+            this.waterfall.UseSmoothing = true;
+            this.waterfall.UseSnap = false;
+            this.waterfall.UseTimestamps = false;
+            this.waterfall.Zoom = 0;
+            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
+            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
+            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
             // 
             // iqTimer
             // 
@@ -243,113 +296,6 @@ namespace SDRSharp
             this.controlPanel.Name = "controlPanel";
             this.controlPanel.Size = new System.Drawing.Size(220, 1070);
             this.controlPanel.TabIndex = 25;
-            // 
-            // configureSourceButton
-            // 
-            this.configureSourceButton.FlatAppearance.BorderSize = 0;
-            this.configureSourceButton.Location = new System.Drawing.Point(256, 11);
-            this.configureSourceButton.Name = "configureSourceButton";
-            this.configureSourceButton.Size = new System.Drawing.Size(70, 25);
-            this.configureSourceButton.TabIndex = 3;
-            this.configureSourceButton.Text = "Configure";
-            this.configureSourceButton.UseVisualStyleBackColor = true;
-            this.configureSourceButton.Click += new System.EventHandler(this.frontendGuiButton_Click);
-            // 
-            // iqSourceComboBox
-            // 
-            this.iqSourceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.iqSourceComboBox.DropDownWidth = 135;
-            this.iqSourceComboBox.FormattingEnabled = true;
-            this.iqSourceComboBox.Location = new System.Drawing.Point(68, 13);
-            this.iqSourceComboBox.Name = "iqSourceComboBox";
-            this.iqSourceComboBox.Size = new System.Drawing.Size(182, 21);
-            this.iqSourceComboBox.TabIndex = 2;
-            this.iqSourceComboBox.SelectedIndexChanged += new System.EventHandler(this.iqSourceComboBox_SelectedIndexChanged);
-            // 
-            // label17
-            // 
-            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(894, 449);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(38, 13);
-            this.label17.TabIndex = 27;
-            this.label17.Text = "Speed";
-            // 
-            // fftSpeedTrackBar
-            // 
-            this.fftSpeedTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.fftSpeedTrackBar.Location = new System.Drawing.Point(890, 465);
-            this.fftSpeedTrackBar.Maximum = 100;
-            this.fftSpeedTrackBar.Minimum = 1;
-            this.fftSpeedTrackBar.Name = "fftSpeedTrackBar";
-            this.fftSpeedTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.fftSpeedTrackBar.RightToLeftLayout = true;
-            this.fftSpeedTrackBar.Size = new System.Drawing.Size(45, 184);
-            this.fftSpeedTrackBar.TabIndex = 26;
-            this.fftSpeedTrackBar.TickFrequency = 10;
-            this.fftSpeedTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.fftSpeedTrackBar.Value = 50;
-            this.fftSpeedTrackBar.ValueChanged += new System.EventHandler(this.fftSpeedTrackBar_ValueChanged);
-            // 
-            // scrollPanel
-            // 
-            this.scrollPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.scrollPanel.AutoScroll = true;
-            this.scrollPanel.Controls.Add(this.controlPanel);
-            this.scrollPanel.Location = new System.Drawing.Point(12, 42);
-            this.scrollPanel.Name = "scrollPanel";
-            this.scrollPanel.Size = new System.Drawing.Size(238, 662);
-            this.scrollPanel.TabIndex = 28;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(616, 16);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(28, 13);
-            this.label2.TabIndex = 31;
-            this.label2.Text = "VFO";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(332, 17);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(38, 13);
-            this.label9.TabIndex = 32;
-            this.label9.Text = "Center";
-            // 
-            // vfoFrequencyEdit
-            // 
-            this.vfoFrequencyEdit.AutoSize = true;
-            this.vfoFrequencyEdit.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.vfoFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
-            this.vfoFrequencyEdit.Frequency = ((long)(0));
-            this.vfoFrequencyEdit.Location = new System.Drawing.Point(650, 11);
-            this.vfoFrequencyEdit.Maximum = ((long)(0));
-            this.vfoFrequencyEdit.Minimum = ((long)(0));
-            this.vfoFrequencyEdit.Name = "vfoFrequencyEdit";
-            this.vfoFrequencyEdit.Size = new System.Drawing.Size(234, 25);
-            this.vfoFrequencyEdit.StepSize = 0;
-            this.vfoFrequencyEdit.TabIndex = 30;
-            this.vfoFrequencyEdit.FrequencyChanged += new System.EventHandler(this.vfoFrequencyEdit_FrequencyChanged);
-            // 
-            // centerFrequencyEdit
-            // 
-            this.centerFrequencyEdit.AutoSize = true;
-            this.centerFrequencyEdit.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.centerFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
-            this.centerFrequencyEdit.Frequency = ((long)(0));
-            this.centerFrequencyEdit.Location = new System.Drawing.Point(376, 11);
-            this.centerFrequencyEdit.Maximum = ((long)(9999999999));
-            this.centerFrequencyEdit.Minimum = ((long)(0));
-            this.centerFrequencyEdit.Name = "centerFrequencyEdit";
-            this.centerFrequencyEdit.Size = new System.Drawing.Size(234, 25);
-            this.centerFrequencyEdit.StepSize = 0;
-            this.centerFrequencyEdit.TabIndex = 29;
-            this.centerFrequencyEdit.FrequencyChanged += new System.EventHandler(this.centerFrequencyEdit_FrequencyChanged);
             // 
             // radioCollapsiblePanel
             // 
@@ -630,8 +576,11 @@ namespace SDRSharp
             "8.33 kHz",
             "9 kHz",
             "10 kHz",
+            "15 kHz",
             "12.5 kHz",
+            "20 kHz",
             "25 kHz",
+            "30 kHz",
             "50 kHz",
             "100 kHz",
             "150 kHz",
@@ -1335,67 +1284,94 @@ namespace SDRSharp
             this.label8.TabIndex = 14;
             this.label8.Text = "Window";
             // 
-            // spectrumAnalyzer
+            // configureSourceButton
             // 
-            this.spectrumAnalyzer.Attack = 0.9D;
-            this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
-            this.spectrumAnalyzer.CenterFrequency = ((long)(0));
-            this.spectrumAnalyzer.Decay = 0.3D;
-            this.spectrumAnalyzer.DisplayOffset = 0;
-            this.spectrumAnalyzer.DisplayRange = 130;
-            this.spectrumAnalyzer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spectrumAnalyzer.FilterBandwidth = 10000;
-            this.spectrumAnalyzer.FilterOffset = 100;
-            this.spectrumAnalyzer.Frequency = ((long)(0));
-            this.spectrumAnalyzer.Location = new System.Drawing.Point(0, 0);
-            this.spectrumAnalyzer.MarkPeaks = false;
-            this.spectrumAnalyzer.Name = "spectrumAnalyzer";
-            this.spectrumAnalyzer.Size = new System.Drawing.Size(627, 212);
-            this.spectrumAnalyzer.SpectrumWidth = 48000;
-            this.spectrumAnalyzer.StatusText = null;
-            this.spectrumAnalyzer.StepSize = 1000;
-            this.spectrumAnalyzer.TabIndex = 0;
-            this.spectrumAnalyzer.UseSmoothing = true;
-            this.spectrumAnalyzer.UseSnap = false;
-            this.spectrumAnalyzer.Zoom = 0;
-            this.spectrumAnalyzer.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.spectrumAnalyzer.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.spectrumAnalyzer.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.configureSourceButton.FlatAppearance.BorderSize = 0;
+            this.configureSourceButton.Location = new System.Drawing.Point(256, 11);
+            this.configureSourceButton.Name = "configureSourceButton";
+            this.configureSourceButton.Size = new System.Drawing.Size(70, 25);
+            this.configureSourceButton.TabIndex = 3;
+            this.configureSourceButton.Text = "Configure";
+            this.configureSourceButton.UseVisualStyleBackColor = true;
+            this.configureSourceButton.Click += new System.EventHandler(this.frontendGuiButton_Click);
             // 
-            // waterfall
+            // iqSourceComboBox
             // 
-            this.waterfall.Attack = 0.9D;
-            this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
-            this.waterfall.CenterFrequency = ((long)(0));
-            this.waterfall.Contrast = 0;
-            this.waterfall.Decay = 0.5D;
-            this.waterfall.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waterfall.FilterBandwidth = 10000;
-            this.waterfall.FilterOffset = 0;
-            this.waterfall.Frequency = ((long)(0));
-            this.waterfall.Location = new System.Drawing.Point(0, 0);
-            this.waterfall.Name = "waterfall";
-            this.waterfall.Size = new System.Drawing.Size(627, 446);
-            this.waterfall.SpectrumWidth = 48000;
-            this.waterfall.StepSize = 0;
-            this.waterfall.TabIndex = 0;
-            this.waterfall.TimestampInterval = 100;
-            this.waterfall.UseSmoothing = true;
-            this.waterfall.UseSnap = false;
-            this.waterfall.UseTimestamps = false;
-            this.waterfall.Zoom = 0;
-            this.waterfall.FrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_FrequencyChanged);
-            this.waterfall.CenterFrequencyChanged += new SDRSharp.PanView.ManualFrequencyChange(this.panview_CenterFrequencyChanged);
-            this.waterfall.BandwidthChanged += new SDRSharp.PanView.ManualBandwidthChange(this.panview_BandwidthChanged);
+            this.iqSourceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.iqSourceComboBox.DropDownWidth = 135;
+            this.iqSourceComboBox.FormattingEnabled = true;
+            this.iqSourceComboBox.Location = new System.Drawing.Point(68, 13);
+            this.iqSourceComboBox.Name = "iqSourceComboBox";
+            this.iqSourceComboBox.Size = new System.Drawing.Size(182, 21);
+            this.iqSourceComboBox.TabIndex = 2;
+            this.iqSourceComboBox.SelectedIndexChanged += new System.EventHandler(this.iqSourceComboBox_SelectedIndexChanged);
+            // 
+            // label17
+            // 
+            this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(894, 449);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(38, 13);
+            this.label17.TabIndex = 27;
+            this.label17.Text = "Speed";
+            // 
+            // fftSpeedTrackBar
+            // 
+            this.fftSpeedTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.fftSpeedTrackBar.Location = new System.Drawing.Point(890, 465);
+            this.fftSpeedTrackBar.Maximum = 100;
+            this.fftSpeedTrackBar.Minimum = 1;
+            this.fftSpeedTrackBar.Name = "fftSpeedTrackBar";
+            this.fftSpeedTrackBar.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.fftSpeedTrackBar.RightToLeftLayout = true;
+            this.fftSpeedTrackBar.Size = new System.Drawing.Size(45, 184);
+            this.fftSpeedTrackBar.TabIndex = 26;
+            this.fftSpeedTrackBar.TickFrequency = 10;
+            this.fftSpeedTrackBar.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.fftSpeedTrackBar.Value = 50;
+            this.fftSpeedTrackBar.ValueChanged += new System.EventHandler(this.fftSpeedTrackBar_ValueChanged);
+            // 
+            // scrollPanel
+            // 
+            this.scrollPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.scrollPanel.AutoScroll = true;
+            this.scrollPanel.Controls.Add(this.controlPanel);
+            this.scrollPanel.Location = new System.Drawing.Point(12, 42);
+            this.scrollPanel.Name = "scrollPanel";
+            this.scrollPanel.Size = new System.Drawing.Size(238, 662);
+            this.scrollPanel.TabIndex = 28;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(332, 17);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(28, 13);
+            this.label2.TabIndex = 31;
+            this.label2.Text = "VFO";
+            // 
+            // vfoFrequencyEdit
+            // 
+            this.vfoFrequencyEdit.AutoSize = true;
+            this.vfoFrequencyEdit.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.vfoFrequencyEdit.BackColor = System.Drawing.Color.Transparent;
+            this.vfoFrequencyEdit.Frequency = ((long)(0));
+            this.vfoFrequencyEdit.Location = new System.Drawing.Point(366, 11);
+            this.vfoFrequencyEdit.Name = "vfoFrequencyEdit";
+            this.vfoFrequencyEdit.Size = new System.Drawing.Size(234, 25);
+            this.vfoFrequencyEdit.StepSize = 0;
+            this.vfoFrequencyEdit.TabIndex = 30;
+            this.vfoFrequencyEdit.FrequencyChanged += new System.EventHandler(this.vfoFrequencyEdit_FrequencyChanged);
+            this.vfoFrequencyEdit.FrequencyChanging += new System.EventHandler<SDRSharp.FrequencyEdit.FrequencyChangingEventArgs>(this.vfoFrequencyEdit_FrequencyChanging);
             // 
             // MainForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(947, 716);
-            this.Controls.Add(this.label9);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.vfoFrequencyEdit);
-            this.Controls.Add(this.centerFrequencyEdit);
             this.Controls.Add(this.scrollPanel);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.fftSpeedTrackBar);
@@ -1422,9 +1398,6 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.fftContrastTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftZoomTrackBar)).EndInit();
             this.controlPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).EndInit();
-            this.scrollPanel.ResumeLayout(false);
-            this.scrollPanel.PerformLayout();
             this.radioCollapsiblePanel.ResumeLayout(false);
             this.radioCollapsiblePanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.frequencyShiftNumericUpDown)).EndInit();
@@ -1453,6 +1426,9 @@ namespace SDRSharp
             ((System.ComponentModel.ISupportInitialize)(this.sDecayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.wAttackTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.wDecayTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fftSpeedTrackBar)).EndInit();
+            this.scrollPanel.ResumeLayout(false);
+            this.scrollPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1551,9 +1527,7 @@ namespace SDRSharp
         private Label label28;
         private GroupBox smoothingGroupBox;
         private Panel scrollPanel;
-        private FrequencyEdit.FrequencyEdit centerFrequencyEdit;
         private FrequencyEdit.FrequencyEdit vfoFrequencyEdit;
         private Label label2;
-        private Label label9;
     }
 }

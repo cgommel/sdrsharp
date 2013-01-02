@@ -17,15 +17,16 @@ namespace SDRSharp.FrequencyEdit
         private const int DigitSeperatorCount = DigitCount - 1 / 3;
         
         public event EventHandler FrequencyChanged;
+        public event EventHandler<FrequencyChangingEventArgs> FrequencyChanging;
 
         private readonly FrequencyEditDigit[] _digitControls = new FrequencyEditDigit[DigitCount];
         private readonly FrequencyEditSeparator[] _separatorControls = new FrequencyEditSeparator[DigitSeperatorCount];
         private readonly ImageList _imageList = new ImageList();
         private readonly Image _digitImages;
         private readonly Timer _renderTimer = new Timer();
+        private readonly FrequencyChangingEventArgs _frequencyChangingEventArgs = new FrequencyChangingEventArgs();
         private long _frequency;
-        private long _newFrequency;
-        private long _maximum, _minimum;        
+        private long _newFrequency;      
         private int _stepSize;
         private bool _editMode;
         private int _editModePosition;
@@ -48,48 +49,22 @@ namespace SDRSharp.FrequencyEdit
             get { return _frequency; }
             set
             {
-                var f = Math.Min(value, _maximum);
-                f = Math.Max(f, _minimum);
-                if (_frequency != f)
+                if (value != _frequency)
                 {
-                    _frequency = f;
-                    UpdateDigitsValues();
-                    var evt = FrequencyChanged;
-                    if (evt != null)
+                    _frequencyChangingEventArgs.Accept = true;
+                    _frequencyChangingEventArgs.Frequency = value;
+                    if (FrequencyChanging != null)
                     {
-                        evt(this, EventArgs.Empty);
+                        FrequencyChanging(this, _frequencyChangingEventArgs);
                     }
-                }
-            }
-        }
-
-        public long Maximum
-        {
-            get { return _maximum; }
-            set
-            {
-                if (_maximum != value)
-                {
-                    _maximum = value;
-                    if (_frequency > _maximum)
+                    if (_frequencyChangingEventArgs.Accept)
                     {
-                        Frequency = _maximum;
-                    }
-                }
-            }
-        }
-
-        public long Minimum
-        {
-            get { return _minimum; }
-            set
-            {
-                if (_minimum != value)
-                {
-                    _minimum = value;
-                    if (_frequency < _minimum)
-                    {
-                        Frequency = _minimum;
+                        _frequency = _frequencyChangingEventArgs.Frequency;
+                        UpdateDigitsValues();
+                        if (FrequencyChanged != null)
+                        {
+                            FrequencyChanged(this, EventArgs.Empty);
+                        }
                     }
                 }
             }
@@ -263,20 +238,26 @@ namespace SDRSharp.FrequencyEdit
                     }
                 }
 
-                if ((_newFrequency < _minimum) || (_newFrequency > _maximum))
-                {
-                    UpdateDigitsValues();
-                    return;
-                }
-
                 if (_newFrequency != _frequency)
                 {
-                    _frequency = _newFrequency;
-                    UpdateDigitMask();
-                    var evt = FrequencyChanged;
-                    if (evt != null)
+                    _frequencyChangingEventArgs.Accept = true;
+                    _frequencyChangingEventArgs.Frequency = _newFrequency;
+                    if (FrequencyChanging != null)
                     {
-                        evt(this, EventArgs.Empty);
+                        FrequencyChanging(this, _frequencyChangingEventArgs);
+                    }
+                    if (_frequencyChangingEventArgs.Accept)
+                    {
+                        _frequency = _frequencyChangingEventArgs.Frequency;
+                        UpdateDigitsValues();
+                        if (FrequencyChanged != null)
+                        {
+                            FrequencyChanged(this, EventArgs.Empty);
+                        }
+                    }
+                    else
+                    {
+                        UpdateDigitsValues();
                     }
                 }
             }
@@ -376,7 +357,7 @@ namespace SDRSharp.FrequencyEdit
 
         private void DigitMouseLeave(object sender, EventArgs e)
         {
-            if (!ClientRectangle.Contains(PointToClient(Control.MousePosition)) && _editMode)
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _editMode)
             {
                 AbortEditMode();
             }
@@ -385,12 +366,11 @@ namespace SDRSharp.FrequencyEdit
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
-            if (!ClientRectangle.Contains(PointToClient(Control.MousePosition)) && _editMode)
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _editMode)
             {
                 AbortEditMode();
             }
         }
-
 
         #region Keyboard Handling
 
@@ -430,22 +410,28 @@ namespace SDRSharp.FrequencyEdit
             {
                 newFrequency += _digitControls[i].Weight * _digitControls[i].DisplayedDigit;
             }
-            
-            if (newFrequency < _minimum || newFrequency > _maximum)
-            {
-                AbortEditMode();
-                return;
-            }
 
             _digitControls[_editModePosition].EditMode = false;            
             if (newFrequency != _frequency)
             {
-                _frequency = newFrequency;
-                UpdateDigitMask();
-                var evt = FrequencyChanged;
-                if (evt != null)
+                _frequencyChangingEventArgs.Accept = true;
+                _frequencyChangingEventArgs.Frequency = newFrequency;
+                if (FrequencyChanging != null)
                 {
-                    evt(this, EventArgs.Empty);
+                    FrequencyChanging(this, _frequencyChangingEventArgs);
+                }
+                if (_frequencyChangingEventArgs.Accept)
+                {
+                    _frequency = _frequencyChangingEventArgs.Frequency;
+                    UpdateDigitsValues();
+                    if (FrequencyChanged != null)
+                    {
+                        FrequencyChanged(this, EventArgs.Empty);
+                    }
+                }
+                else
+                {
+                    UpdateDigitsValues();
                 }
             }
 
@@ -456,7 +442,6 @@ namespace SDRSharp.FrequencyEdit
         {
             if (_editMode)
             {
-                var currentValue = _digitControls[_editModePosition].DisplayedDigit;
                 switch (args.KeyCode)
                 {
                     case Keys.D0:
@@ -480,7 +465,7 @@ namespace SDRSharp.FrequencyEdit
                     case Keys.NumPad8:
                     case Keys.NumPad9:
                         var newValue = (args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) ? (args.KeyCode - Keys.D0) : (args.KeyCode - Keys.NumPad0);
-                        _digitControls[_editModePosition].DisplayedDigit = (int)newValue;
+                        _digitControls[_editModePosition].DisplayedDigit = newValue;
                         if (_editModePosition > 0)
                         {
                             _digitControls[_editModePosition].EditMode = false;
@@ -535,5 +520,11 @@ namespace SDRSharp.FrequencyEdit
         }
 
         #endregion
+    }
+
+    public class FrequencyChangingEventArgs : EventArgs
+    {
+        public long Frequency { get; set; }
+        public bool Accept { get; set; }
     }
 }
