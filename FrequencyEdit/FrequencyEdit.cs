@@ -36,6 +36,7 @@ namespace SDRSharp.FrequencyEdit
         private long _newFrequency;      
         private int _stepSize;        
         private int _editModePosition;
+        private bool _changingEntryMode;
         private EntryMode _currentEntryMode;
 
         #region Public Properties
@@ -183,6 +184,8 @@ namespace SDRSharp.FrequencyEdit
                 weight *= 10;                
             }
             Height = digitHeight;
+
+            UpdateDigitMask();
         }
 
         private void SplitDigitImages()
@@ -222,6 +225,7 @@ namespace SDRSharp.FrequencyEdit
             
             if (_currentEntryMode != EntryMode.None)
             {
+                LeaveEntryMode();
                 return;
             }
 
@@ -420,7 +424,12 @@ namespace SDRSharp.FrequencyEdit
         #region Direct Entry Mode
 
         private void EnterDirectMode()
-        {                        
+        {
+            if (_changingEntryMode)
+            {
+                return;
+            }
+            _changingEntryMode = true;
             for (var i = 0; i < _digitControls.Length; i++)
             {
                 if (_digitControls[i] != null)
@@ -436,15 +445,10 @@ namespace SDRSharp.FrequencyEdit
             
             ZeroDigits(_digitControls.Length - 1);            
             _currentEntryMode = EntryMode.Direct;
+            _changingEntryMode = false;
         }
         
-        private void LeaveDirectMode()
-        {          
-            var newFrequency = GetFrequencyValue();
-            _digitControls[_editModePosition].Highlight = false;
-            SetFrequencyValue(newFrequency);
-            _currentEntryMode = EntryMode.None;
-        }
+        
         
         private void DirectModeHandler(KeyEventArgs args)
         {
@@ -478,6 +482,10 @@ namespace SDRSharp.FrequencyEdit
                         _editModePosition--;
                         _digitControls[_editModePosition].Highlight = true;
                     }
+                    else
+                    {
+                        LeaveEntryMode();
+                    }
                     break;
                 case Keys.Left:
                     if (_editModePosition < _digitControls.Length - 1)
@@ -504,14 +512,22 @@ namespace SDRSharp.FrequencyEdit
                         _digitControls[_editModePosition].Highlight = true;
                     }
                     break;
+                case Keys.Tab:
+                    _digitControls[_editModePosition].Highlight = false;
+                    _editModePosition -= (_editModePosition % 3) + 1;
+                    if (_editModePosition < 2)
+                    {
+                        _editModePosition = _digitControls.Length - 1;
+                    }
+                    _digitControls[_editModePosition].Highlight = true;
+                    break;
                 case Keys.Escape:
                     AbortEntryMode();
                     break;
-
                 case Keys.Enter:
-                    LeaveDirectMode();
+                    LeaveEntryMode();
                     break;
-            }            
+            }     
         }
 
         #endregion
@@ -520,6 +536,11 @@ namespace SDRSharp.FrequencyEdit
 
         private void EnterArrowMode()
         {
+            if (_changingEntryMode)
+            {
+                return;
+            }
+            _changingEntryMode = true;
             for (var i = 0; i < _digitControls.Length; i++)
             {
                 if (_digitControls[i] != null)
@@ -528,11 +549,12 @@ namespace SDRSharp.FrequencyEdit
                     if (_digitControls[i].CursorInside)
                     {
                         _editModePosition = i;
-                        _digitControls[i].Highlight = true;
+                        _digitControls[i].Highlight = true;            
                     }
                 }
-            }
+            }            
             _currentEntryMode = EntryMode.Arrow;
+            _changingEntryMode = false;
         }
 
         private void ArrowModeHandler(KeyEventArgs args)
@@ -565,6 +587,16 @@ namespace SDRSharp.FrequencyEdit
                         _digitControls[_editModePosition].Highlight = true;
                     }
                     break;
+                case Keys.Tab:
+                    _digitControls[_editModePosition].Highlight = false;
+                    _editModePosition -= (_editModePosition % 3) + 1;
+                    if (_editModePosition < 2)
+                    {
+                        _editModePosition = _digitControls.Length - 1;
+                    }
+                    _digitControls[_editModePosition].Highlight = true;
+                    break;
+                case Keys.Enter:
                 case Keys.Escape:
                     AbortEntryMode();
                     break;
@@ -574,14 +606,42 @@ namespace SDRSharp.FrequencyEdit
         #endregion
 
         private void AbortEntryMode()
-        {
+        {            
+            if (_changingEntryMode)
+            {
+                return;
+            }
+            _changingEntryMode = true;
             _digitControls[_editModePosition].Highlight = false;
             UpdateDigitsValues();
             _currentEntryMode = EntryMode.None;
+            _changingEntryMode = false;
         }
-        
+
+        private void LeaveEntryMode()
+        {            
+            if (_changingEntryMode)
+            {
+                return;
+            }
+            _changingEntryMode = true;
+            _digitControls[_editModePosition].Highlight = false;
+            if (_currentEntryMode == EntryMode.Direct)
+            {
+                var newFrequency = GetFrequencyValue();
+                SetFrequencyValue(newFrequency);
+            }
+            _currentEntryMode = EntryMode.None;
+            _changingEntryMode = false;
+        }
+
         private bool DigitKeyHandler(KeyEventArgs args)
-        {
+        {                     
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)) || _changingEntryMode)
+            {
+                return false;
+            }
+            
             if (_currentEntryMode != EntryMode.None)
             {
                 switch (_currentEntryMode)
@@ -596,9 +656,10 @@ namespace SDRSharp.FrequencyEdit
                 return true;
             }
 
-            if ((args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) || 
+            if ((args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) ||
                 (args.KeyCode >= Keys.NumPad0 && args.KeyCode <= Keys.NumPad9))
             {
+
                 EnterDirectMode();
                 DirectModeHandler(args);
                 return true;
