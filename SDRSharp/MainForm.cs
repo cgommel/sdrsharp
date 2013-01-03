@@ -318,6 +318,11 @@ namespace SDRSharp
             get { return iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2; }
         }
 
+        public bool SourceIsSoundCard
+        {
+            get { return iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 1; }
+        }
+
         public bool IsSquelchOpen
         {
             get { return _vfo.IsSquelchOpen; }
@@ -481,6 +486,12 @@ namespace SDRSharp
 
             WindowState = (FormWindowState) Utils.GetIntSetting("windowState", (int) FormWindowState.Normal);
 
+            waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
+            spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
+
+            spectrumAnalyzer.SpectrumWidth = Utils.GetIntSetting("spectrumWidth", 48000);
+            waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
+
             var locationArray = Utils.GetIntArraySetting("windowPosition", null);
             if (locationArray != null)
             {
@@ -506,9 +517,6 @@ namespace SDRSharp
             }
 
             panSplitContainer.SplitterDistance = Utils.GetIntSetting("splitterPosition", panSplitContainer.SplitterDistance);
-
-            waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
-            spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             
             #endregion
 
@@ -627,12 +635,9 @@ namespace SDRSharp
             _waveFile = Utils.GetStringSetting("waveFile", string.Empty);
             var sourceIndex = Utils.GetIntSetting("iqSource", iqSourceComboBox.Items.Count - 1);
             iqSourceComboBox.SelectedIndex = sourceIndex < iqSourceComboBox.Items.Count ? sourceIndex : (iqSourceComboBox.Items.Count - 1);
-            if (iqSourceComboBox.SelectedIndex != iqSourceComboBox.Items.Count - 2)
-            {
-                SetCenterFrequency(Utils.GetLongSetting("centerFrequency", _centerFrequency));
-                var vfo = Utils.GetLongSetting("vfo", _centerFrequency);
-                vfoFrequencyEdit.Frequency = vfo;
-            }
+            SetCenterFrequency(Utils.GetLongSetting("centerFrequency", _centerFrequency));
+            var vfo = Utils.GetLongSetting("vfo", _centerFrequency);
+            vfoFrequencyEdit.Frequency = vfo;
 
             #endregion
 
@@ -732,6 +737,7 @@ namespace SDRSharp
             Utils.SaveSetting("fftDisplayRange", fftRangeTrackBar.Value);
             Utils.SaveSetting("inputDevice", inputDeviceComboBox.SelectedItem);
             Utils.SaveSetting("outputDevice", outputDeviceComboBox.SelectedItem);
+            Utils.SaveSetting("spectrumWidth", spectrumAnalyzer.SpectrumWidth);
         }
 
         #endregion
@@ -918,30 +924,30 @@ namespace SDRSharp
         {
             StopRadio();
 
-            if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 1)
+            if (_frontendController != null)
             {
-                if (_frontendController != null)
-                {
-                    _frontendController.Close();
-                    _frontendController = null;
-                }
+                _frontendController.HideSettingGUI();
+                _frontendController.Close();
+                _frontendController = null;
+            }
 
+            if (SourceIsSoundCard)
+            {
                 inputDeviceComboBox.Enabled = true;
                 outputDeviceComboBox.Enabled = true;
                 sampleRateComboBox.Enabled = true;
-                SetCenterFrequency(0);
-                vfoFrequencyEdit.Frequency = _frequencyShift;
-                vfoFrequencyEdit_FrequencyChanged(null, null);
                 frequencyShiftCheckBox.Enabled = true;
                 frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
                 configureSourceButton.Text = "Configure";
                 configureSourceButton.Enabled = false;
+                SetCenterFrequency(0);
+                vfoFrequencyEdit.Frequency = _frequencyShift;
                 return;
             }
             
             configureSourceButton.Enabled = true;
 
-            if (iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 2)
+            if (SourceIsWaveFile)
             {
                 configureSourceButton.Text = "Select";
                 sampleRateComboBox.Enabled = false;
@@ -950,14 +956,13 @@ namespace SDRSharp
                 latencyNumericUpDown.Enabled = true;
                 frequencyShiftCheckBox.Enabled = false;
                 frequencyShiftNumericUpDown.Enabled = false;
-
-                _frequencyShift = 0;
-                SetCenterFrequency(0);
-                vfoFrequencyEdit.Frequency = 0;
                 frequencyShiftCheckBox.Checked = false;
+                _frequencyShift = 0;
 
                 if (!_initializing)
                 {
+                    SetCenterFrequency(0);
+                    vfoFrequencyEdit.Frequency = 0;
                     SelectWaveFile();
                 }
                 return;
@@ -968,20 +973,15 @@ namespace SDRSharp
             frequencyShiftNumericUpDown.Enabled = frequencyShiftCheckBox.Checked;
 
             var frontendName = (string) iqSourceComboBox.SelectedItem;
+            var newFrontendController = _frontendControllers[frontendName];
             try
             {
-                if (_frontendController != null)
+                newFrontendController.Open();
+                inputDeviceComboBox.Enabled = newFrontendController.IsSoundCardBased;
+                sampleRateComboBox.Enabled = newFrontendController.IsSoundCardBased;
+                if (newFrontendController.IsSoundCardBased)
                 {
-                    _frontendController.HideSettingGUI();
-                    _frontendController.Close();
-                }
-                _frontendController = _frontendControllers[frontendName];
-                _frontendController.Open();
-                inputDeviceComboBox.Enabled = _frontendController.IsSoundCardBased;
-                sampleRateComboBox.Enabled = _frontendController.IsSoundCardBased;
-                if (_frontendController.IsSoundCardBased)
-                {
-                    var regex = new Regex(_frontendController.SoundCardHint, RegexOptions.IgnoreCase);
+                    var regex = new Regex(newFrontendController.SoundCardHint, RegexOptions.IgnoreCase);
                     for (var i = 0; i < inputDeviceComboBox.Items.Count; i++)
                     {
                         var item = inputDeviceComboBox.Items[i].ToString();
@@ -991,30 +991,26 @@ namespace SDRSharp
                             break;
                         }
                     }
-                    if (_frontendController.Samplerate > 0)
+                    if (newFrontendController.Samplerate > 0)
                     {
-                        sampleRateComboBox.Text = _frontendController.Samplerate.ToString();
+                        sampleRateComboBox.Text = newFrontendController.Samplerate.ToString();
                     }
                 }
-                if (_frontendController.Samplerate > 0)
+                if (newFrontendController.Samplerate > 0)
                 {
-                    waterfall.SpectrumWidth = (int) _frontendController.Samplerate;
-                    spectrumAnalyzer.SpectrumWidth = (int) _frontendController.Samplerate;
+                    waterfall.SpectrumWidth = (int) newFrontendController.Samplerate;
+                    spectrumAnalyzer.SpectrumWidth = (int) newFrontendController.Samplerate;
                 }
-                _vfo.SampleRate = _frontendController.Samplerate;
+                _vfo.SampleRate = newFrontendController.Samplerate;
                 _vfo.Frequency = 0;
-                SetCenterFrequency(_frontendController.Frequency);
-                vfoFrequencyEdit.Frequency = _frontendController.Frequency + _frequencyShift;
-                vfoFrequencyEdit_FrequencyChanged(null, null);
+                SetCenterFrequency(newFrontendController.Frequency);
+                vfoFrequencyEdit.Frequency = newFrontendController.Frequency + _frequencyShift;
+                _frontendController = newFrontendController;
             }
             catch
             {
                 iqSourceComboBox.SelectedIndex = iqSourceComboBox.Items.Count - 1;
-                if (_frontendController != null)
-                {
-                    _frontendController.Close();
-                }
-                _frontendController = null;
+                newFrontendController.Close();
                 if (!_initializing)
                 {
                     MessageBox.Show(
@@ -1161,20 +1157,23 @@ namespace SDRSharp
 
         private void vfoFrequencyEdit_FrequencyChanging(object sender, FrequencyChangingEventArgs e)
         {
-            if (SourceIsWaveFile || _frontendController == null)
+            if ((SourceIsWaveFile || SourceIsSoundCard))
             {
-                if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift)
+                if (!_initializing)
                 {
-                    e.Frequency = (long) (_centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift);
-                }
-                else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift)
-                {
-                    e.Frequency = (long) (_centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift);
-                }
-                if (!SourceIsWaveFile)
-                {
-                    waterfall.CenterFrequency = _frequencyShift;
-                    spectrumAnalyzer.CenterFrequency = _frequencyShift;
+                    if (e.Frequency > _centerFrequency + _vfo.SampleRate*0.5f + _frequencyShift)
+                    {
+                        e.Frequency = (long) (_centerFrequency + _vfo.SampleRate*0.5f + _frequencyShift);
+                    }
+                    else if (e.Frequency < _centerFrequency - _vfo.SampleRate*0.5f + _frequencyShift)
+                    {
+                        e.Frequency = (long) (_centerFrequency - _vfo.SampleRate*0.5f + _frequencyShift);
+                    }
+                    if (SourceIsSoundCard)
+                    {
+                        waterfall.CenterFrequency = _frequencyShift;
+                        spectrumAnalyzer.CenterFrequency = _frequencyShift;
+                    }
                 }
                 return;
             }
@@ -1183,7 +1182,7 @@ namespace SDRSharp
             var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate + _frequencyShift) - (e.Frequency + _vfo.Bandwidth * 0.5f);
             if (_changingFrequencyByScroll || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
-                if (!_changingFrequency)
+                if (!_changingFrequency && !_initializing)
                 {
                     _changingFrequency = true;
                     SetCenterFrequency(_centerFrequency + delta);
@@ -1204,7 +1203,7 @@ namespace SDRSharp
             waterfall.CenterFrequency = _centerFrequency + _frequencyShift;
             spectrumAnalyzer.CenterFrequency = _centerFrequency + _frequencyShift;
 
-            if (!_changingFrequency)
+            if (!_changingFrequency && !_initializing)
             {
                 _changingFrequency = true;
                 vfoFrequencyEdit.Frequency = _centerFrequency + _vfo.Frequency + _frequencyShift;
@@ -1224,11 +1223,11 @@ namespace SDRSharp
             while (!_terminated)
             {
                 var frequencyToSet = Interlocked.Read(ref _centerFrequency);
-
-                if (_frontendController != null && _frequencySet != frequencyToSet)
+                var frontendController = _frontendController;
+                if (frontendController != null && _frequencySet != frequencyToSet)
                 {
                     _frequencySet = frequencyToSet;
-                    _frontendController.Frequency = frequencyToSet;
+                    frontendController.Frequency = frequencyToSet;
                 }
                 Thread.Sleep(1);
             }
@@ -1911,7 +1910,6 @@ namespace SDRSharp
                 _streamHookManager.UnregisterStreamHook(streamHook);
             }
         }
-
 
         #endregion
 
