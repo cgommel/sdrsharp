@@ -1180,7 +1180,7 @@ namespace SDRSharp
             var delta = e.Frequency - vfoFrequencyEdit.Frequency;
             var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate + _frequencyShift);
             var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate + _frequencyShift) - (e.Frequency + _vfo.Bandwidth * 0.5f);
-            if (_changingFrequencyByScroll || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
+            if ((Math.Abs(delta) >= _stepSize && _changingFrequencyByScroll) || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
                 if (!_changingFrequency && !_initializing)
                 {
@@ -1248,7 +1248,7 @@ namespace SDRSharp
 
         private void panview_CenterFrequencyChanged(object sender, FrequencyEventArgs e)
         {
-            if (SourceIsWaveFile || _frontendController == null)
+            if (SourceIsWaveFile || SourceIsSoundCard)
             {
                 e.Cancel = true;
             }
