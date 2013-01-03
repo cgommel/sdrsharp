@@ -18,7 +18,7 @@ namespace SDRSharp.FrequencyEdit
         private long _weight;
         private bool _renderNeeded;
         private bool _cursorInside;
-        private bool _editMode;
+        private bool _highlight;
         private int _lastMouseY;
         private bool _lastIsUpperHalf;
         private bool _isUpperHalf;
@@ -34,12 +34,12 @@ namespace SDRSharp.FrequencyEdit
             set { _imageList = value; }
         }
 
-        public bool EditMode
+        public bool Highlight
         {
-            get { return _editMode; }
+            get { return _highlight; }
             set
             {
-                _editMode = value;
+                _highlight = value;
                 _renderNeeded = true;
             }
         }
@@ -117,7 +117,7 @@ namespace SDRSharp.FrequencyEdit
                 }
             }
 
-            if(_cursorInside && !((FrequencyEdit)Parent).EditMode)
+            if(_cursorInside && !((FrequencyEdit)Parent).EntryModeActive)
             {
                 var isUpperHalf = (_lastMouseY <= ClientRectangle.Height / 2);
 
@@ -135,7 +135,7 @@ namespace SDRSharp.FrequencyEdit
                 }
             }
 
-            if (_editMode)
+            if (_highlight)
             {
                 var transparentColor = new SolidBrush(Color.FromArgb(25, Color.Red));
                 e.Graphics.FillRectangle(transparentColor,new Rectangle(0,0,ClientRectangle.Width,ClientRectangle.Height));

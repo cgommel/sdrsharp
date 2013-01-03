@@ -10,6 +10,13 @@ namespace SDRSharp.FrequencyEdit
         void Render();
     }
 
+    public enum EntryMode
+    {
+        None,
+        Direct,
+        Arrow
+    };
+
     public sealed class FrequencyEdit : UserControl
     {
         private const int DigitCount = 10;
@@ -27,9 +34,9 @@ namespace SDRSharp.FrequencyEdit
         private readonly FrequencyChangingEventArgs _frequencyChangingEventArgs = new FrequencyChangingEventArgs();
         private long _frequency;
         private long _newFrequency;      
-        private int _stepSize;
-        private bool _editMode;
+        private int _stepSize;        
         private int _editModePosition;
+        private EntryMode _currentEntryMode;
 
         #region Public Properties
 
@@ -39,9 +46,9 @@ namespace SDRSharp.FrequencyEdit
             set { _stepSize = value; }
         }
 
-        public bool EditMode
+        public bool EntryModeActive
         {
-            get { return _editMode; }
+            get { return _currentEntryMode != EntryMode.None; }
         }
 
         public long Frequency
@@ -213,7 +220,7 @@ namespace SDRSharp.FrequencyEdit
         private void DigitClickHandler(object sender, FrequencyEditDigitClickEventArgs args)
         {
             
-            if (_editMode)
+            if (_currentEntryMode != EntryMode.None)
             {
                 return;
             }
@@ -230,11 +237,11 @@ namespace SDRSharp.FrequencyEdit
                 {
                     if (args.IsUpperHalf && _frequency >= 0)
                     {
-                        IncrementDigit(digit.DigitIndex);
+                        IncrementDigit(digit.DigitIndex,true);
                     }
                     else
                     {
-                        DecrementDigit(digit.DigitIndex);
+                        DecrementDigit(digit.DigitIndex,true);
                     }
                 }
 
@@ -263,7 +270,7 @@ namespace SDRSharp.FrequencyEdit
             }
         }
 
-        private void IncrementDigit(int index)
+        private void IncrementDigit(int index, bool updateDigit)
         {
             var digit = _digitControls[index];
             if (digit != null)
@@ -273,18 +280,20 @@ namespace SDRSharp.FrequencyEdit
             
                 var newFrequency = (_newFrequency - (oldDigit * digit.Weight)) + (newDigit * digit.Weight);
 
-                digit.DisplayedDigit = newDigit;
-                
+                if (updateDigit)
+                {
+                    digit.DisplayedDigit = newDigit;
+                }
                 _newFrequency = newFrequency;
 
                 if (oldDigit == 9 && index < DigitCount - 1)
                 {
-                    IncrementDigit(index + 1);
+                    IncrementDigit(index + 1, updateDigit);
                 }
             }
         }
 
-        private void DecrementDigit(int index)
+        private void DecrementDigit(int index, bool updateDigit)
         {
             var digit = _digitControls[index];
             if (digit != null)
@@ -293,13 +302,15 @@ namespace SDRSharp.FrequencyEdit
                 var newDigit = digit.DisplayedDigit == 0 ? 9 : digit.DisplayedDigit - 1;
                 var newFrequency = (_newFrequency - (oldDigit * digit.Weight)) + (newDigit * digit.Weight);
 
-                digit.DisplayedDigit = newDigit;
-                
+                if (updateDigit)
+                {
+                    digit.DisplayedDigit = newDigit;
+                }
                 _newFrequency = newFrequency;
 
                 if (oldDigit == 0 && index < DigitCount - 1)
                 {
-                    DecrementDigit(index + 1);
+                    DecrementDigit(index + 1, updateDigit);
                 }
             }
         }
@@ -357,61 +368,33 @@ namespace SDRSharp.FrequencyEdit
 
         private void DigitMouseLeave(object sender, EventArgs e)
         {
-            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _editMode)
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _currentEntryMode != EntryMode.None)
             {
-                AbortEditMode();
+                AbortEntryMode();
             }
         }
 
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
-            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _editMode)
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)) && _currentEntryMode != EntryMode.None)
             {
-                AbortEditMode();
+                AbortEntryMode();
             }
         }
 
-        #region Keyboard Handling
-
-        private void EnterEditMode()
-        {                        
-            for (var i = 0; i < _digitControls.Length; i++)
-            {
-                if (_digitControls[i] != null)
-                {
-                    _digitControls[i].Masked = false;
-                    if (_digitControls[i].CursorInside)
-                    {
-                        _editModePosition = i;
-                        _digitControls[i].EditMode = true;
-                    }
-                }
-            }
-            
-            ZeroDigits(_digitControls.Length - 1);            
-            _editMode = true;
-        }
-
-        private void AbortEditMode()
-        {
-            if (_digitControls[_editModePosition] != null)
-            {
-                _digitControls[_editModePosition].EditMode = false;
-            }
-            UpdateDigitsValues();
-            _editMode = false;
-        }
-
-        private void LeaveEditMode()
+        private long GetFrequencyValue()
         {
             var newFrequency = 0L;
             for (var i = 0; i < _digitControls.Length; i++)
             {
                 newFrequency += _digitControls[i].Weight * _digitControls[i].DisplayedDigit;
             }
+            return newFrequency;
+        }
 
-            _digitControls[_editModePosition].EditMode = false;            
+        private void SetFrequencyValue(long newFrequency)
+        {
             if (newFrequency != _frequency)
             {
                 _frequencyChangingEventArgs.Accept = true;
@@ -429,96 +412,241 @@ namespace SDRSharp.FrequencyEdit
                         FrequencyChanged(this, EventArgs.Empty);
                     }
                 }
-                else
-                {
-                    UpdateDigitsValues();
-                }
             }
-
-            _editMode = false;
         }
 
+        #region Keyboard Handling
+
+        #region Direct Entry Mode
+
+        private void EnterDirectMode()
+        {                        
+            for (var i = 0; i < _digitControls.Length; i++)
+            {
+                if (_digitControls[i] != null)
+                {
+                    _digitControls[i].Masked = false;
+                    if (_digitControls[i].CursorInside)
+                    {
+                        _editModePosition = i;
+                        _digitControls[i].Highlight = true;
+                    }
+                }
+            }
+            
+            ZeroDigits(_digitControls.Length - 1);            
+            _currentEntryMode = EntryMode.Direct;
+        }
+        
+        private void LeaveDirectMode()
+        {          
+            var newFrequency = GetFrequencyValue();
+            _digitControls[_editModePosition].Highlight = false;
+            SetFrequencyValue(newFrequency);
+            _currentEntryMode = EntryMode.None;
+        }
+        
+        private void DirectModeHandler(KeyEventArgs args)
+        {
+            switch (args.KeyCode)
+            {
+                case Keys.D0:
+                case Keys.D1:
+                case Keys.D2:
+                case Keys.D3:
+                case Keys.D4:
+                case Keys.D5:
+                case Keys.D6:
+                case Keys.D7:
+                case Keys.D8:
+                case Keys.D9:
+                case Keys.NumPad0:
+                case Keys.NumPad1:
+                case Keys.NumPad2:
+                case Keys.NumPad3:
+                case Keys.NumPad4:
+                case Keys.NumPad5:
+                case Keys.NumPad6:
+                case Keys.NumPad7:
+                case Keys.NumPad8:
+                case Keys.NumPad9:
+                    var newValue = (args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) ? (args.KeyCode - Keys.D0) : (args.KeyCode - Keys.NumPad0);
+                    _digitControls[_editModePosition].DisplayedDigit = newValue;
+                    if (_editModePosition > 0)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition--;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Left:
+                    if (_editModePosition < _digitControls.Length - 1)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition++;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Right:
+                    if (_editModePosition > 0)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition--;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Back:
+                    _digitControls[_editModePosition].DisplayedDigit = 0;
+                    if (_editModePosition < _digitControls.Length - 1)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition++;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Escape:
+                    AbortEntryMode();
+                    break;
+
+                case Keys.Enter:
+                    LeaveDirectMode();
+                    break;
+            }            
+        }
+
+        #endregion
+
+        #region Arrow Key Mode
+
+        private void EnterArrowMode()
+        {
+            for (var i = 0; i < _digitControls.Length; i++)
+            {
+                if (_digitControls[i] != null)
+                {
+                    _digitControls[i].Masked = false;
+                    if (_digitControls[i].CursorInside)
+                    {
+                        _editModePosition = i;
+                        _digitControls[i].Highlight = true;
+                    }
+                }
+            }
+            _currentEntryMode = EntryMode.Arrow;
+        }
+
+        private void ArrowModeHandler(KeyEventArgs args)
+        {            
+            switch (args.KeyCode)
+            {
+                case Keys.Up:
+                    _newFrequency = _frequency;
+                    IncrementDigit(_editModePosition,false);
+                    SetFrequencyValue(_newFrequency);
+                    break;
+                case Keys.Down:
+                    _newFrequency = _frequency;
+                    DecrementDigit(_editModePosition,false);
+                    SetFrequencyValue(_newFrequency);
+                    break;
+                case Keys.Left:
+                    if (_editModePosition < _digitControls.Length - 1)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition++;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Right:
+                    if (_editModePosition > 0)
+                    {
+                        _digitControls[_editModePosition].Highlight = false;
+                        _editModePosition--;
+                        _digitControls[_editModePosition].Highlight = true;
+                    }
+                    break;
+                case Keys.Escape:
+                    AbortEntryMode();
+                    break;
+            }
+        }
+
+        #endregion
+
+        private void AbortEntryMode()
+        {
+            _digitControls[_editModePosition].Highlight = false;
+            UpdateDigitsValues();
+            _currentEntryMode = EntryMode.None;
+        }
+        
         private bool DigitKeyHandler(KeyEventArgs args)
         {
-            if (_editMode)
+            if (_currentEntryMode != EntryMode.None)
             {
-                switch (args.KeyCode)
+                switch (_currentEntryMode)
                 {
-                    case Keys.D0:
-                    case Keys.D1:
-                    case Keys.D2:
-                    case Keys.D3:
-                    case Keys.D4:
-                    case Keys.D5:
-                    case Keys.D6:
-                    case Keys.D7:
-                    case Keys.D8:
-                    case Keys.D9:
-                    case Keys.NumPad0:
-                    case Keys.NumPad1:
-                    case Keys.NumPad2:
-                    case Keys.NumPad3:
-                    case Keys.NumPad4:
-                    case Keys.NumPad5:
-                    case Keys.NumPad6:
-                    case Keys.NumPad7:
-                    case Keys.NumPad8:
-                    case Keys.NumPad9:
-                        var newValue = (args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) ? (args.KeyCode - Keys.D0) : (args.KeyCode - Keys.NumPad0);
-                        _digitControls[_editModePosition].DisplayedDigit = newValue;
-                        if (_editModePosition > 0)
-                        {
-                            _digitControls[_editModePosition].EditMode = false;
-                            _editModePosition--;
-                            _digitControls[_editModePosition].EditMode = true;                                
-                        }
+                    case EntryMode.Direct:
+                        DirectModeHandler(args);
                         break;
-                    case Keys.Back:
-                        _digitControls[_editModePosition].DisplayedDigit = 0;
-                        if (_editModePosition < _digitControls.Length - 1)
-                        {
-                            _digitControls[_editModePosition].EditMode = false;
-                            _editModePosition++;
-                            _digitControls[_editModePosition].EditMode = true;
-                        }
-                        break;
-                    case Keys.Escape:
-                        AbortEditMode();
-                        break;
-
-                    case Keys.Enter:
-                        LeaveEditMode();
+                    case EntryMode.Arrow:
+                        ArrowModeHandler(args);
                         break;
                 }
-
                 return true;
             }
 
             if ((args.KeyCode >= Keys.D0 && args.KeyCode <= Keys.D9) || 
                 (args.KeyCode >= Keys.NumPad0 && args.KeyCode <= Keys.NumPad9))
             {
-                EnterEditMode();
-                DigitKeyHandler(args);
+                EnterDirectMode();
+                DirectModeHandler(args);
                 return true;
+            }
+
+            if (args.KeyCode == Keys.Up || args.KeyCode == Keys.Down ||
+                args.KeyCode == Keys.Left || args.KeyCode == Keys.Right)
+            {
+                EnterArrowMode();
+                ArrowModeHandler(args);
+                return true;
+            }
+
+            if (args.Modifiers == Keys.Control)
+            {
+                if (args.KeyCode == Keys.C)
+                {
+                    var frequency = string.Format("{0}", GetFrequencyValue());
+                    Clipboard.SetText(frequency, TextDataFormat.Text);
+                    return true;
+                }
+                if (args.KeyCode == Keys.V)
+                {
+                    var newFrequency = 0L;
+                    var result = long.TryParse(Clipboard.GetText(), out newFrequency);
+                    if (result)
+                    {
+                        SetFrequencyValue(newFrequency);           
+                    }
+                    return true;
+                }
             }
             
             return false;
         }
 
-        protected override bool ProcessKeyPreview(ref Message m)
-        {            
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {        
             const int WM_KEYDOWN = 0x100;
+            const int WM_SYSKEYDOWN = 0x104;
 
-            if (m.Msg == WM_KEYDOWN)
+            if ((msg.Msg == WM_KEYDOWN) || (msg.Msg == WM_SYSKEYDOWN))
             {
-                var args = new KeyEventArgs(((Keys)m.WParam) | ModifierKeys);
-                                
-                return DigitKeyHandler(args);               
+                return DigitKeyHandler(new KeyEventArgs(keyData));
             }
-            
-            return base.ProcessKeyPreview(ref m);
+            return base.ProcessCmdKey(ref msg, keyData);
         }
-
+        
         #endregion
     }
 
