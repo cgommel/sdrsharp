@@ -39,7 +39,8 @@ namespace SDRSharp
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            File.WriteAllText("crash.txt", ((Exception) e.ExceptionObject).StackTrace);
+            var exception = (Exception) e.ExceptionObject;
+            File.WriteAllText("crash.txt", exception.Message + "\r\n" + exception.StackTrace);
         }
     }
 }

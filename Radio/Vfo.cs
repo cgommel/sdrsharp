@@ -316,7 +316,7 @@ namespace SDRSharp.Radio
             _actualDetectorType = _detectorType;
             _downConverter.SampleRate = _sampleRate;
             _downConverter.Frequency = _frequency;
-            if (_needNewDecimators)
+            if (_needNewDecimators || _baseBandDecimator == null)
             {
                 _needNewDecimators = false;
                 if (_actualDetectorType == DetectorType.WFM)

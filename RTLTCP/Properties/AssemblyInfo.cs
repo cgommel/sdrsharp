@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SDRSharp.RTLTCP")]
-[assembly: AssemblyCopyright("Copyright © acausal 2012")]
+[assembly: AssemblyCopyright("Copyright © Ian Gilmour 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

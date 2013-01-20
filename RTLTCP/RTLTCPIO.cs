@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,108 +6,191 @@ using SDRSharp.Radio;
 
 namespace SDRSharp.RTLTCP
 {
+    public enum RtlSdrTunerType
+    {
+        Unknown = 0,
+        E4000,
+        FC0012,
+        FC0013,
+        FC2580,
+        R820T
+    }
+
     public unsafe class RtlTcpIO : IFrontendController, IDisposable
     {
-        private RTLTcpSettings _gui;
-        private const double DEFAULT_SAMPLE_RATE = 2048000.0; //1024000.0;
-        private const long DEFAULT_FREQUENCY = 100000000;
-        private const string DEFAULT_HOSTNAME = "192.168.0.11";
-        private const int DEFAULT_PORT = 1234;
-        private volatile Radio.SamplesAvailableDelegate _callback;
-        Thread _sampleThread;
-        private long _freq;
-        private double _sr;
-        private Socket _s;
-        private const byte CMD_SET_FREQ = 1;
-        private const byte CMD_SET_SAMPLE_RATE = 2;
-        private const byte CMD_SET_GAIN_MODE = 3;
-        private const byte CMD_SET_GAIN = 4;
-        private const byte CMD_SET_FREQ_COR = 5;
+        private const int DongleInfoLength = 12;
+        private const string DefaultHost = "127.0.0.1";
+        private const short DefaultPort = 1234;
+        private const uint DefaultFrequency = 100000000;
+        private readonly static int _bufferSize = Utils.GetIntSetting("RTLTcpBufferLength", 32 * 1024);
+        
+        #region Native rtl_tcp Commands
+
+        private const byte CMD_SET_FREQ = 0x1;
+        private const byte CMD_SET_SAMPLE_RATE = 0x2;
+        private const byte CMD_SET_TUNER_GAIN_MODE = 0x3;
+        private const byte CMD_SET_GAIN = 0x4;
+        private const byte CMD_SET_FREQ_COR = 0x5;
+        private const byte CMD_SET_AGC_MODE = 0x8;
+        private const byte CMD_SET_TUNER_GAIN_INDEX = 0xd;
+
+        #endregion
+
+        private static readonly float* _lutPtr;
+        private static readonly UnsafeBuffer _lutBuffer = UnsafeBuffer.Create(256, sizeof(float));
+
+        private long _frequency = DefaultFrequency;
+        private double _sampleRate;
         private string _host;
         private int _port;
-        private uint _gainMode;
-        private int _gainVal;
-        private int _fCor;
-        private UnsafeBuffer _b;
+        private bool _useRtlAGC;
+        private bool _useTunerAGC;
+        private uint _tunerGainIndex;
+        private uint _tunerGainCount;
+        private uint _tunerType;
+        private int _frequencyCorrection;
+        private SamplesAvailableDelegate _callback;
+        private Thread _sampleThread;
+        private UnsafeBuffer _iqBuffer;        
+        private Complex* _iqBufferPtr;
+        private Socket _s;
+        private readonly byte [] _cmdBuffer = new byte[5];
+        private readonly RTLTcpSettings _gui;
+                            
+        #region Public Properties
 
-        public const uint GAIN_MODE_AUTO = 0;
-        public const uint GAIN_MODE_MANUAL = 1;
-
-        private const int BUFFER_SIZE = 16 * 1024;
-
-        private bool _tunePlease = false;
-        private const int MAX_TUNE_RATE = 20; //rtl_tcp seems to be limited to ~25
-        private System.Timers.Timer _retuneTimer = new System.Timers.Timer(1000.0 / MAX_TUNE_RATE);
-
-        public string hostName
+        public bool IsStreaming
         {
-            get { return _host; }
-            set { _host = value; }
+            get { return _sampleThread != null; }
         }
 
-        public int port
+        public bool IsSoundCardBased
         {
-            get { return _port; }
-            set { _port = value; }
+            get { return false; }
         }
 
-        private bool sendCommand(byte cmd, byte[] val)
+        public string SoundCardHint
         {
-            if (null == _s) { return false; }
-            if (val.Length < 4) { return false; }
-            byte[] buffer = new byte[5];
-            buffer[0] = cmd;
-            buffer[1] = val[3]; //Network byte order
-            buffer[2] = val[2];
-            buffer[3] = val[1];
-            buffer[4] = val[0];
-            try
+            get { return string.Empty; }
+        }
+
+        public RtlSdrTunerType TunerType
+        {
+            get { return (RtlSdrTunerType) _tunerType; }
+        }
+
+        public void ShowSettingGUI(IWin32Window parent)
+        {
+            _gui.Show();
+        }
+
+        public void HideSettingGUI()
+        {
+            _gui.Hide();
+        }
+
+        public double Samplerate
+        {
+            get { return _sampleRate; }
+            set
             {
-                _s.Send(buffer);
-                return true;
+                _sampleRate = value;
+                SendCommand(CMD_SET_SAMPLE_RATE, (uint) _sampleRate);
             }
-            catch (Exception e)
+        }
+
+        public long Frequency
+        {
+            get { return _frequency; }
+            set
             {
-                Console.WriteLine(e.ToString());
-                return false;
+                _frequency = value;
+                SendCommand(CMD_SET_FREQ, (uint) _frequency);
             }
         }
 
-        private bool sendCommand(byte cmd, UInt32 val)
+        public int FrequencyCorrection
         {
-            byte[] valBytes = BitConverter.GetBytes(val);
-            return sendCommand(cmd, valBytes);
+            get { return _frequencyCorrection; }
+            set
+            {
+                _frequencyCorrection = value;
+                SendCommand(CMD_SET_FREQ_COR, _frequencyCorrection);
+            }
         }
 
-        private bool sendCommand(byte cmd, Int32 val)
+        public bool UseRtlAGC
         {
-            byte[] valBytes = BitConverter.GetBytes(val);
-            return sendCommand(cmd, valBytes);
+            get { return _useRtlAGC; }
+            set
+            {
+                _useRtlAGC = value;
+                SendCommand(CMD_SET_AGC_MODE, _useRtlAGC ? 1: 0);
+            }
+        }
+
+        public bool UseTunerAGC
+        {
+            get { return _useTunerAGC; }
+            set
+            {
+                _useTunerAGC = value;
+                SendCommand(CMD_SET_TUNER_GAIN_MODE, _useTunerAGC ? 0: 1);
+            }
+        }
+
+        public uint TunerGainIndex
+        {
+            get { return _tunerGainIndex; }
+            set
+            {
+                _tunerGainIndex = value;
+                SendCommand(CMD_SET_TUNER_GAIN_INDEX, (int)_tunerGainIndex);
+            }
+        }
+
+        public uint TunerGainCount
+        {
+            get { return _tunerGainCount; }
+        }
+
+        #endregion
+
+        static RtlTcpIO()
+        {
+            _lutPtr = (float*) _lutBuffer;
+
+            const float scale = 1.0f / 127.5f;
+            for (var i = 0; i < 256; i++)
+            {
+                _lutPtr[i] = (i - 127.5f) * scale;
+            }
         }
 
         public RtlTcpIO()
         {
-            _freq = DEFAULT_FREQUENCY;
-            _sr = DEFAULT_SAMPLE_RATE;
-            _gainVal = 0;
-            _gainMode = GAIN_MODE_AUTO;
-            _host = DEFAULT_HOSTNAME;
-            _port = DEFAULT_PORT;
-            _retuneTimer.Elapsed += new System.Timers.ElapsedEventHandler(retuneNow);
-            _retuneTimer.Start();
+            _gui = new RTLTcpSettings(this);
+            _gui.Hostname = Utils.GetStringSetting("RTLTcpHost", DefaultHost);
+            _gui.Port = Utils.GetIntSetting("RTLTcpPort", DefaultPort);
+            _frequency = DefaultFrequency;          
         }
 
         ~RtlTcpIO()
         {
             Dispose();
         }
-
+                
         public void Dispose()
         {
+            if (_iqBuffer != null)
+            {
+                _iqBuffer.Dispose();
+                _iqBuffer = null;
+                _iqBufferPtr = null;
+            }
             if (_gui != null)
             {
-                _gui.Dispose();
-                _gui = null;
+                _gui.Dispose();                
             }
             GC.SuppressFinalize(this);
         }
@@ -128,159 +208,152 @@ namespace SDRSharp.RTLTCP
             }
         }
 
-        public void Start(Radio.SamplesAvailableDelegate callback)
+        public void Start(SamplesAvailableDelegate callback)
         {
-            lock (this)
-            {
-                _callback = callback;
-            }
+            _callback = callback;
+            _host = _gui.Hostname;
+            _port = _gui.Port;
             _s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _s.NoDelay = true;
             _s.Connect(_host, _port);
-            _sampleThread = new Thread(() => { receiveSamples(); });
+
+            var dongleInfo = new byte[DongleInfoLength];
+
+            var length = _s.Receive(dongleInfo, 0, DongleInfoLength, SocketFlags.None);
+            if (length > 0)
+            {
+                ParseDongleInfo(dongleInfo);
+            }
+            
+            SendCommand(CMD_SET_SAMPLE_RATE, (uint)_sampleRate);
+            SendCommand(CMD_SET_FREQ_COR, _frequencyCorrection);
+            SendCommand(CMD_SET_FREQ, (uint)_frequency);
+            SendCommand(CMD_SET_AGC_MODE, (uint)(_useRtlAGC ? 1 : 0));
+            SendCommand(CMD_SET_TUNER_GAIN_MODE, (uint)(_useTunerAGC ? 0 : 1));
+            SendCommand(CMD_SET_TUNER_GAIN_INDEX, (_tunerGainIndex));
+
+            _sampleThread = new Thread(RecieveSamples);            
             _sampleThread.Start();
-            sendCommand(CMD_SET_GAIN_MODE, (uint)_gainMode);
-            sendCommand(CMD_SET_SAMPLE_RATE, (uint)_sr);
-            sendCommand(CMD_SET_FREQ, (uint)_freq);
-            sendCommand(CMD_SET_FREQ_COR, (int)_fCor);
+            
+            Utils.SaveSetting("RTLTcpHost", _host);
+            Utils.SaveSetting("RTLTcpPort", _port);
         }
 
         public void Stop()
         {
-            lock (this)
-            {
-                _callback = null;
-            }
             Close();
             if (_sampleThread != null)
             {
                 _sampleThread.Join();
+                _sampleThread = null;
             }
+            _callback = null;           
         }
 
-        public bool IsSoundCardBased
-        {
-            get { return false; }
-        }
+        #region Private Methods
 
-        public string SoundCardHint
+        private void ParseDongleInfo(byte[] buffer)
         {
-            get { return string.Empty; }
-        }
-
-        public void ShowSettingGUI(IWin32Window parent)
-        {
-            if (null == _gui || _gui.IsDisposed)
-            {
-                _gui = new RTLTcpSettings(this);
-            }
-            _gui.Show();
-        }
-
-        public void HideSettingGUI()
-        {
-            if (null == _gui || _gui.IsDisposed)
+            if (buffer.Length < DongleInfoLength)
             {
                 return;
             }
-            _gui.Hide();
+
+            if (buffer[0] != 'R' || buffer[1] != 'T' || buffer[2] != 'L' || buffer[3] != '0')
+            {
+                _tunerType = 0;
+                _tunerGainCount = 0;
+                return;
+            }
+            _tunerType = (uint)(buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7]);
+            _tunerGainCount = (uint)(buffer[8] << 24 | buffer[9] << 16 | buffer[10] << 8 | buffer[11]);                        
         }
 
-        public double Samplerate
+        public bool SendCommand(byte cmd, byte[] val)
         {
-            get { return _sr; }
-            set { _sr = value; sendCommand(CMD_SET_SAMPLE_RATE, (uint)_sr); }
+            if (_s == null || val.Length < 4)
+            {
+                return false;
+            }
+            
+            _cmdBuffer[0] = cmd;
+            _cmdBuffer[1] = val[3]; //Network byte order
+            _cmdBuffer[2] = val[2];
+            _cmdBuffer[3] = val[1];
+            _cmdBuffer[4] = val[0];
+            try
+            {
+                _s.Send(_cmdBuffer);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
 
-        public long Frequency
+        private void SendCommand(byte cmd, UInt32 val)
         {
-            get { return _freq; }
-            set { _freq = value; lock (_retuneTimer) { _tunePlease = true; } }
+            var valBytes = BitConverter.GetBytes(val);
+            SendCommand(cmd, valBytes);
         }
 
-        public int Gain
+        private void SendCommand(byte cmd, Int32 val)
         {
-            get { return _gainVal; }
-            set { _gainVal = value; sendCommand(CMD_SET_GAIN, (int)_gainVal); } //Gain can be negative
+            var valBytes = BitConverter.GetBytes(val);
+            SendCommand(cmd, valBytes);
         }
 
-        public uint GainMode
-        {
-            get { return _gainMode; }
-            set { _gainMode = value; sendCommand(CMD_SET_GAIN_MODE, (uint)_gainMode); }
-        }
+        #endregion
 
-        public int FreqCorrection
-        {
-            get { return _fCor; }
-            set { _fCor = value; sendCommand(CMD_SET_FREQ_COR, (int)_fCor); }
-        }
+        #region Worker Thread
 
-        private void receiveSamples()
+        private void RecieveSamples()
         {
-            byte[] recBuffer = new byte[BUFFER_SIZE + 1024];
-            int offs = 0;
-            UInt64 sessionTotalB = 0;
-            DateTime start = DateTime.Now;
-            while (_callback != null && _s != null && _s.Connected)
+            var recBuffer = new byte[_bufferSize];
+            var recUnsafeBuffer = UnsafeBuffer.Create(recBuffer);
+            var recPtr = (byte*) recUnsafeBuffer;
+            _iqBuffer = UnsafeBuffer.Create(_bufferSize / 2, sizeof(Complex));
+            _iqBufferPtr = (Complex*) _iqBuffer;
+            var offs = 0;                        
+            while (_s != null && _s.Connected)
             {
                 try
                 {
-                    int bytesRec = _s.Receive(recBuffer, offs, BUFFER_SIZE, SocketFlags.None);
-                    sessionTotalB += (UInt64)bytesRec;
-                    int totalBytes = offs + bytesRec;
+                    var bytesRec = _s.Receive(recBuffer, offs, _bufferSize, SocketFlags.None);
+                    var totalBytes = offs + bytesRec;
                     offs = totalBytes % 2; //Need to correctly handle the hypothetical case where we somehow get an odd number of bytes
-                    beamUpThemSamples(recBuffer, totalBytes - offs); //This might work.
+                    ProcessSamples(recPtr, totalBytes - offs); //This might work.
+                    if (offs == 1)
+                    {
+                        recPtr[0] = recPtr[totalBytes - 1];
+                    }
                 }
-                catch (Exception e)
+                catch
                 {
-                    Console.WriteLine(e.ToString());
                     Close();
                     break;
                 }
-            }
-            DateTime end = DateTime.Now;
-            TimeSpan totalTime = end - start;
-            double bps = (double)sessionTotalB / totalTime.TotalSeconds;
-            double sps = bps / 2.0;
-            Console.WriteLine(String.Format("Received {0} bytes over {1} seconds, which is {2} bps or {3} sps",
-                sessionTotalB, totalTime.TotalSeconds, bps, sps));
+            }            
         }
 
-        private void beamUpThemSamples(byte[] buffer, int len)
+        private void ProcessSamples(byte* rawPtr, int len)
         {
             var sampleCount = len / 2;
-            Complex * bufPtr;
-            if (_b == null || _b.Length < sampleCount)
+
+            var ptr = _iqBufferPtr;
+            for (var i = 0; i < sampleCount; i++)
             {
-                _b = UnsafeBuffer.Create(sampleCount, sizeof(Complex));
+                ptr->Imag = _lutPtr[*rawPtr++];
+                ptr->Real = _lutPtr[*rawPtr++];
+                ptr++;
             }
-            bufPtr = (Complex*)_b;
-
-            const float scale = 1.0f / 127.0f;
-
-            for (int i = 0; i < sampleCount; i++)
+            if (_callback != null)
             {
-                bufPtr[i].Real = (buffer[i * 2 + 1] - 128) * scale ;
-                bufPtr[i].Imag = (buffer[i * 2] - 128) * scale;
-            }
-
-            lock (this)
-            {
-                if (null == _callback) { return; }
-                _callback(this, bufPtr, sampleCount);
+                _callback(this, _iqBufferPtr, sampleCount);
             }
         }
 
-        private void retuneNow(object source, System.Timers.ElapsedEventArgs e)
-        {
-            lock (_retuneTimer)
-            {
-                if (_tunePlease)
-                {
-                    sendCommand(CMD_SET_FREQ, (uint)_freq);
-                    _tunePlease = false;
-                }
-            }
-        }
+        #endregion
     }
 }

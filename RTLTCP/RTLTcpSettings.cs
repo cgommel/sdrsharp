@@ -1,75 +1,100 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace SDRSharp.RTLTCP
 {
     public partial class RTLTcpSettings : Form
     {
-        private RtlTcpIO _owner;
+        private readonly RtlTcpIO _owner;
+
+        public string Hostname
+        {
+            get { return hostBox.Text; }
+            set { hostBox.Text = value; }
+        }
+
+        public int Port
+        {
+            get { return (int)portNumberUpDown.Value; }
+            set { portNumberUpDown.Value = value; }
+        }
+
         public RTLTcpSettings(RtlTcpIO owner)
         {
             _owner = owner;
             InitializeComponent();
+            
+            samplerateComboBox.SelectedIndex = 3;
+            rtlAgcCheckBox.Checked = false;
+            tunerAgcCheckBox.Checked = false;
+            
+            UpdateGuiState();
+        }
+                
+        private void refreshTimer_Tick(object sender, EventArgs e)
+        {
+            UpdateGuiState();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void UpdateGuiState()
         {
-            _owner.hostName = hostBox.Text;
-            _owner.port = Convert.ToUInt16(portBox.Text);
-            _owner.Samplerate = Convert.ToDouble(srBox.Text);
-            if (autoRB.Checked)
+            tunerGainTrackBar.Enabled = _owner.IsStreaming && !tunerAgcCheckBox.Checked;            
+            tunerAgcCheckBox.Enabled = _owner.IsStreaming;
+           
+            samplerateComboBox.Enabled = !_owner.IsStreaming;
+            hostBox.Enabled = !_owner.IsStreaming;
+            portNumberUpDown.Enabled = !_owner.IsStreaming;
+            tunerLabel.Text = _owner.IsStreaming ? _owner.TunerType.ToString() : string.Empty;
+
+            if (tunerGainTrackBar.Value > _owner.TunerGainCount)
             {
-                _owner.GainMode = RtlTcpIO.GAIN_MODE_AUTO;
+                tunerGainTrackBar.Value = 0;
             }
-            else
+            if (tunerGainTrackBar.Maximum != _owner.TunerGainCount)
             {
-                _owner.GainMode = RtlTcpIO.GAIN_MODE_MANUAL;
-                _owner.Gain = Convert.ToInt32(gainBox.Text);
+                tunerGainTrackBar.Maximum = (int)_owner.TunerGainCount;
             }
-            _owner.FreqCorrection = Convert.ToInt32(fcBox.Text);
         }
 
-        private void RTLTcpSettings_Load(object sender, EventArgs e)
+        private void RTLTcpSettings_VisibleChanged(object sender, EventArgs e)
         {
-            hostBox.Text = _owner.hostName;
-            portBox.Text = _owner.port.ToString();
-            srBox.Text = _owner.Samplerate.ToString();
-            gainBox.Text = _owner.Gain.ToString();
-            uint gainMode = _owner.GainMode;
-            if (gainMode == RtlTcpIO.GAIN_MODE_AUTO)
-            {
-                autoRB.Checked = true;
-                manualRB.Checked = false;
-                gainBox.Enabled = false;
-            }
-            else
-            {
-                autoRB.Checked = false;
-                manualRB.Checked = true;
-                gainBox.Enabled = true;
-            }
-            fcBox.Text = _owner.FreqCorrection.ToString();
+            refreshTimer.Enabled = Visible;
+            UpdateGuiState();
         }
 
-        void updateRB()
+        private void RTLTcpSettings_FormClosing(object sender, FormClosingEventArgs e)
         {
-            gainBox.Enabled = manualRB.Checked;
+            e.Cancel = true;
+            Hide();
         }
 
-        private void manualRB_CheckedChanged(object sender, EventArgs e)
+        private void samplerateComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            updateRB();
+            var samplerateString = samplerateComboBox.Items[samplerateComboBox.SelectedIndex].ToString().Split(' ')[0];
+            var sampleRate = double.Parse(samplerateString, CultureInfo.InvariantCulture);
+            _owner.Samplerate = (uint)(sampleRate * 1000000.0);
         }
 
-        private void autoRB_CheckedChanged(object sender, EventArgs e)
+        private void rtlAgcCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            updateRB();
+            _owner.UseRtlAGC = rtlAgcCheckBox.Checked;
+        }
+
+        private void tunerAgcCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            tunerGainTrackBar.Enabled = tunerAgcCheckBox.Enabled && !tunerAgcCheckBox.Checked;
+            _owner.UseTunerAGC = tunerAgcCheckBox.Checked;
+        }
+
+        private void tunerGainTrackBar_Scroll(object sender, EventArgs e)
+        {
+            _owner.TunerGainIndex = (uint) tunerGainTrackBar.Value;
+        }
+
+        private void frequencyCorrectionNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _owner.FrequencyCorrection = (int)frequencyCorrectionNumericUpDown.Value;
         }
     }
 }

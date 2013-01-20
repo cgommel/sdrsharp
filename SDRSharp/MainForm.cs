@@ -24,12 +24,20 @@ namespace SDRSharp
 
         private static readonly string _baseTitle = "SDR# v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-        private const int DefaultNFMBandwidth = 12500;
-        private const int DefaultWFMBandwidth = 180000;
-        private const int DefaultAMBandwidth = 10000;
-        private const int DefaultDSBBandwidth = 6000;
-        private const int DefaultSSBBandwidth = 2400;
-        private const int DefaultCWBandwidth = 300;
+        // FilterBandwidth
+        // FilterOrder
+        // FilterType
+        // SquelchEnabled
+        // SquelchThreshold
+        // CWShift
+        // StepSize
+        // SnapToGrid
+        private static readonly int[] _defaultNFMState = {   8000, 300, 3, 50, 1, 600, 1, 12 };
+        private static readonly int[] _defaultWFMState = { 180000, 100, 3, 50, 0, 600, 1, 17 };
+        private static readonly int[] _defaultAMState =  {  10000, 450, 3, 50, 0, 600, 1,  4 };
+        private static readonly int[] _defaultSSBState = {   2400, 500, 3, 50, 0, 600, 1,  1 };
+        private static readonly int[] _defaultDSBState = {   6000, 500, 3, 50, 0, 600, 1,  1 };
+        private static readonly int[] _defaultCWState =  {    300, 800, 3, 50, 0, 600, 1,  1 };
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -68,16 +76,19 @@ namespace SDRSharp
         private bool _changingFrequency;
         private bool _changingFrequencyByScroll;
         private bool _changingFrequencyFromPanView;
+        private bool _configuringSnap;
+        private bool _configuringSquelch;
         private bool _terminated;
         private string _waveFile;
         private Point _lastLocation;
         private Size _lastSize;
         private bool _initializing;
-
-        private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
-        private SharpControlProxy _sharpControlProxy;
-
+        private readonly int _centerScrollLimit = Utils.GetIntSetting("centerScrollLimit", 1000);
         private readonly float _fftOffset = (float) Utils.GetDoubleSetting("fftOffset", -40.0);
+        private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
+        private readonly Dictionary<DetectorType, int[]> _modeStates = new Dictionary<DetectorType, int[]>();
+
+        private SharpControlProxy _sharpControlProxy;
 
         #endregion
 
@@ -129,8 +140,8 @@ namespace SDRSharp
 
         public WindowType FilterType
         {
-            get { return (WindowType)filterTypeComboBox.SelectedIndex + 1; }
-            set { filterTypeComboBox.SelectedIndex = (int)value - 1; }
+            get { return (WindowType) filterTypeComboBox.SelectedIndex + 1; }
+            set { filterTypeComboBox.SelectedIndex = (int) value - 1; }
         }
 
         public bool IsPlaying
@@ -189,7 +200,7 @@ namespace SDRSharp
 
         public int SquelchThreshold
         {
-            get { return (int)squelchNumericUpDown.Value; }
+            get { return (int) squelchNumericUpDown.Value; }
             set { squelchNumericUpDown.Value = value; }
         }
 
@@ -348,12 +359,26 @@ namespace SDRSharp
 
             InitializeComponent();
             InitializeGUI();            
-            InitialiseSharpPlugins();            
+            InitialiseSharpPlugins();
         }
 
         private void InitializeGUI()
         {
             _initializing = true;
+
+            #region Detector settings container
+
+            _modeStates[DetectorType.WFM] = Utils.GetIntArraySetting("wfmState", _defaultWFMState);
+            _modeStates[DetectorType.NFM] = Utils.GetIntArraySetting("nfmState", _defaultNFMState);
+            _modeStates[DetectorType.AM]  = Utils.GetIntArraySetting("amState",  _defaultAMState);
+            _modeStates[DetectorType.LSB] = Utils.GetIntArraySetting("lsbState", _defaultSSBState);
+            _modeStates[DetectorType.USB] = Utils.GetIntArraySetting("usbState", _defaultSSBState);
+            _modeStates[DetectorType.DSB] = Utils.GetIntArraySetting("dsbState", _defaultDSBState);
+            _modeStates[DetectorType.CWL] = Utils.GetIntArraySetting("cwlState", _defaultCWState);
+            _modeStates[DetectorType.CWU] = Utils.GetIntArraySetting("cwuState", _defaultCWState);
+            _modeStates[DetectorType.RAW] = Utils.GetIntArraySetting("rawState", _defaultAMState);
+
+            #endregion
 
             #region Tunning
 
@@ -412,11 +437,9 @@ namespace SDRSharp
 
             DetectorType = (DetectorType) Utils.GetIntSetting("detectorType", (int) DetectorType.AM);
             modeRadioButton_CheckStateChanged(null, null);
-
-            filterOrderNumericUpDown.Value = Utils.GetIntSetting("filterOrder", 400);
+            filterBandwidthNumericUpDown_ValueChanged(null, null);
             filterOrderNumericUpDown_ValueChanged(null, null);
-
-            cwShiftNumericUpDown.Value = Utils.GetIntSetting("cwShift", Vfo.DefaultCwSideTone);
+            filterTypeComboBox_SelectedIndexChanged(null, null);
             cwShiftNumericUpDown_ValueChanged(null, null);
 
             agcCheckBox.Checked = Utils.GetBooleanSetting("useAGC");
@@ -434,19 +457,6 @@ namespace SDRSharp
             agcUseHangCheckBox.Checked = Utils.GetBooleanSetting("agcHang");
             agcUseHangCheckBox_CheckedChanged(null, null);
 
-            squelchNumericUpDown.Value = Utils.GetIntSetting("squelchThreshold", 50);
-            squelchNumericUpDown_ValueChanged(null, null);
-
-            useSquelchCheckBox.Checked = Utils.GetBooleanSetting("squelchEnabled");
-            useSquelchCheckBox_CheckedChanged(null, null);
-
-            var filterBandwidth = Utils.GetIntSetting("filterBandwidth", -1);
-            if (filterBandwidth >= 0)
-            {
-                filterBandwidthNumericUpDown.Value = filterBandwidth;
-            }
-            filterBandwidthNumericUpDown_ValueChanged(null, null);
-
             SetCenterFrequency(0);
 
             frequencyShiftNumericUpDown.Value = Utils.GetLongSetting("frequencyShift", 0);
@@ -454,14 +464,6 @@ namespace SDRSharp
 
             frequencyShiftCheckBox.Checked = Utils.GetBooleanSetting("frequencyShiftEnabled");
             frequencyShiftCheckBox_CheckStateChanged(null, null);
-
-            var stepSizeIndex = Utils.GetIntSetting("stepSize", -1);
-            if (stepSizeIndex >= 0)
-            {
-                stepSizeComboBox.SelectedIndex = stepSizeIndex;
-            }
-            snapFrequencyCheckBox.Checked = Utils.GetBooleanSetting("snapToGrid");
-            stepSizeComboBox_SelectedIndexChanged(null, null);
 
             swapIQCheckBox.Checked = Utils.GetBooleanSetting("swapIQ");
             swapIQCheckBox_CheckedChanged(null, null);
@@ -485,9 +487,6 @@ namespace SDRSharp
             sampleRateComboBox.Text = Utils.GetStringSetting("sampleRate", "48000 sample/sec");
 
             WindowState = (FormWindowState) Utils.GetIntSetting("windowState", (int) FormWindowState.Normal);
-
-            waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
-            spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
 
             spectrumAnalyzer.SpectrumWidth = Utils.GetIntSetting("spectrumWidth", 48000);
             waterfall.SpectrumWidth = spectrumAnalyzer.SpectrumWidth;
@@ -690,6 +689,8 @@ namespace SDRSharp
             
             #endregion
 
+            _modeStates[_vfo.DetectorType] = GetModeState();
+
             Utils.SaveSetting("spectrumAnalyzerAttack", spectrumAnalyzer.Attack);
             Utils.SaveSetting("spectrumAnalyzerDecay", spectrumAnalyzer.Decay);
             Utils.SaveSetting("waterfallAttack", waterfall.Attack);
@@ -700,20 +701,12 @@ namespace SDRSharp
             Utils.SaveSetting("fftWindowType", fftWindowComboBox.SelectedIndex);
             Utils.SaveSetting("fftView", viewComboBox.SelectedIndex);
             Utils.SaveSetting("fftResolution", fftResolutionComboBox.SelectedIndex);
-            Utils.SaveSetting("filterType", filterTypeComboBox.SelectedIndex);
-            Utils.SaveSetting("cwShift", cwShiftNumericUpDown.Value);
             Utils.SaveSetting("detectorType", (int) DetectorType);
-            Utils.SaveSetting("filterOrder", (int) filterOrderNumericUpDown.Value);
-            Utils.SaveSetting("filterBandwidth", (int) filterBandwidthNumericUpDown.Value);
-            Utils.SaveSetting("squelchEnabled", useSquelchCheckBox.Checked);
-            Utils.SaveSetting("squelchThreshold", (int) squelchNumericUpDown.Value);
             Utils.SaveSetting("useAGC", agcCheckBox.Checked);
             Utils.SaveSetting("agcThreshold", (int) agcThresholdNumericUpDown.Value);
             Utils.SaveSetting("agcDecay", (int) agcDecayNumericUpDown.Value);
             Utils.SaveSetting("agcSlope", (int) agcSlopeNumericUpDown.Value);
             Utils.SaveSetting("agcHang", agcUseHangCheckBox.Checked);
-            Utils.SaveSetting("stepSize", stepSizeComboBox.SelectedIndex);
-            Utils.SaveSetting("snapToGrid", snapFrequencyCheckBox.Checked);
             Utils.SaveSetting("frequencyShift", (long) frequencyShiftNumericUpDown.Value);
             Utils.SaveSetting("frequencyShiftEnabled", frequencyShiftCheckBox.Checked);
             Utils.SaveSetting("swapIQ", swapIQCheckBox.Checked);
@@ -738,6 +731,15 @@ namespace SDRSharp
             Utils.SaveSetting("inputDevice", inputDeviceComboBox.SelectedItem);
             Utils.SaveSetting("outputDevice", outputDeviceComboBox.SelectedItem);
             Utils.SaveSetting("spectrumWidth", spectrumAnalyzer.SpectrumWidth);
+            Utils.SaveSetting("wfmState", Utils.IntArrayToString(_modeStates[DetectorType.WFM]));
+            Utils.SaveSetting("nfmState", Utils.IntArrayToString(_modeStates[DetectorType.NFM]));
+            Utils.SaveSetting("amState",  Utils.IntArrayToString(_modeStates[DetectorType.AM]));
+            Utils.SaveSetting("lsbState", Utils.IntArrayToString(_modeStates[DetectorType.LSB]));
+            Utils.SaveSetting("usbState", Utils.IntArrayToString(_modeStates[DetectorType.USB]));
+            Utils.SaveSetting("dsbState", Utils.IntArrayToString(_modeStates[DetectorType.DSB]));
+            Utils.SaveSetting("cwlState", Utils.IntArrayToString(_modeStates[DetectorType.CWL]));
+            Utils.SaveSetting("cwuState", Utils.IntArrayToString(_modeStates[DetectorType.CWU]));
+            Utils.SaveSetting("rawState", Utils.IntArrayToString(_modeStates[DetectorType.RAW]));
         }
 
         #endregion
@@ -1161,13 +1163,13 @@ namespace SDRSharp
             {
                 if (!_initializing)
                 {
-                    if (e.Frequency > _centerFrequency + _vfo.SampleRate*0.5f + _frequencyShift)
+                    if (e.Frequency > _centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift)
                     {
-                        e.Frequency = (long) (_centerFrequency + _vfo.SampleRate*0.5f + _frequencyShift);
+                        e.Frequency = (long) (_centerFrequency + _vfo.SampleRate * 0.5f + _frequencyShift);
                     }
-                    else if (e.Frequency < _centerFrequency - _vfo.SampleRate*0.5f + _frequencyShift)
+                    else if (e.Frequency < _centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift)
                     {
-                        e.Frequency = (long) (_centerFrequency - _vfo.SampleRate*0.5f + _frequencyShift);
+                        e.Frequency = (long) (_centerFrequency - _vfo.SampleRate * 0.5f + _frequencyShift);
                     }
                     if (SourceIsSoundCard)
                     {
@@ -1180,7 +1182,7 @@ namespace SDRSharp
             var delta = e.Frequency - vfoFrequencyEdit.Frequency;
             var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate + _frequencyShift);
             var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate + _frequencyShift) - (e.Frequency + _vfo.Bandwidth * 0.5f);
-            if ((Math.Abs(delta) >= _stepSize && _changingFrequencyByScroll) || (Math.Abs(delta) >= _stepSize && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
+            if ((Math.Abs(delta) > _centerScrollLimit && _changingFrequencyByScroll) || (Math.Abs(delta) > _centerScrollLimit && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
                 if (!_changingFrequency && !_initializing)
                 {
@@ -1331,7 +1333,6 @@ namespace SDRSharp
 
         private void modeRadioButton_CheckStateChanged(object sender, EventArgs e)
         {
-            //filterBandwidthNumericUpDown.Enabled = !wfmRadioButton.Checked;
             filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
 
             agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
@@ -1346,105 +1347,77 @@ namespace SDRSharp
             squelchNumericUpDown.Enabled = useSquelchCheckBox.Enabled && useSquelchCheckBox.Checked;
             cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
 
+            if (!_initializing)
+            {
+                _modeStates[_vfo.DetectorType] = GetModeState();
+            }
+
             if (wfmRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultWFMBandwidth;
                 _vfo.DetectorType = DetectorType.WFM;
-                _vfo.Bandwidth = DefaultWFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 16;
-
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
             else if (nfmRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultNFMBandwidth;
                 _vfo.DetectorType = DetectorType.NFM;
-                _vfo.Bandwidth = DefaultNFMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 12;
-                useSquelchCheckBox.Checked = true;
-
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
             else if (amRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultAMBandwidth;
                 _vfo.DetectorType = DetectorType.AM;
-                _vfo.Bandwidth = DefaultAMBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 4;
-                useSquelchCheckBox.Checked = false;
-
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
             else if (lsbRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultSSBBandwidth;
                 _vfo.DetectorType = DetectorType.LSB;
-                _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
-                stepSizeComboBox.SelectedIndex = 2;
-
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
             else if (usbRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultSSBBandwidth;
                 _vfo.DetectorType = DetectorType.USB;
-                _vfo.Bandwidth = DefaultSSBBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
-                stepSizeComboBox.SelectedIndex = 2;
-
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
             }
             else if (dsbRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultDSBBandwidth;
                 _vfo.DetectorType = DetectorType.DSB;
-                _vfo.Bandwidth = DefaultDSBBandwidth;
                 waterfall.BandType = BandType.Center;
                 spectrumAnalyzer.BandType = BandType.Center;
-                stepSizeComboBox.SelectedIndex = 2;
-
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
             else if (cwlRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
                 _vfo.DetectorType = DetectorType.CWL;
-                _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Lower;
                 spectrumAnalyzer.BandType = BandType.Lower;
-                stepSizeComboBox.SelectedIndex = 2;
-
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
             else if (cwuRadioButton.Checked)
             {
-                filterBandwidthNumericUpDown.Value = DefaultCWBandwidth;
                 _vfo.DetectorType = DetectorType.CWU;
-                _vfo.Bandwidth = DefaultCWBandwidth;
                 waterfall.BandType = BandType.Upper;
                 spectrumAnalyzer.BandType = BandType.Upper;
-                stepSizeComboBox.SelectedIndex = 2;
-
                 waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
 
+            SetModeState(_modeStates[_vfo.DetectorType]);
             NotifyPropertyChanged("DetectorType");
         }
         
@@ -1457,22 +1430,34 @@ namespace SDRSharp
 
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.CWToneShift = (int)cwShiftNumericUpDown.Value;
-            waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
-            spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
-
+            _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
+            if (_vfo.DetectorType == DetectorType.CWL || _vfo.DetectorType == DetectorType.CWU)
+            {
+                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
+                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+            }
             NotifyPropertyChanged("CWShift");
         }
 
         private void squelchNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.SquelchThreshold = (int)squelchNumericUpDown.Value;
+            if (_configuringSquelch)
+            {
+                return;
+            }
+
+            _vfo.SquelchThreshold = (int) squelchNumericUpDown.Value;
 
             NotifyPropertyChanged("SquelchThreshold");
         }
 
         private void useSquelchCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (_configuringSquelch)
+            {
+                return;
+            }
+
             squelchNumericUpDown.Enabled = useSquelchCheckBox.Checked;
             if (useSquelchCheckBox.Checked)
             {
@@ -1488,6 +1473,11 @@ namespace SDRSharp
 
         private void stepSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (_configuringSnap)
+            {
+                return;
+            }
+
             waterfall.UseSnap = snapFrequencyCheckBox.Checked;
             spectrumAnalyzer.UseSnap = snapFrequencyCheckBox.Checked;
 
@@ -1548,6 +1538,43 @@ namespace SDRSharp
             {
                 _frontendController.ShowSettingGUI(this);
             }
+        }
+
+        private int[] GetModeState()
+        {
+            var result = new int[8];
+
+            result[0] = FilterBandwidth;
+            result[1] = FilterOrder;
+            result[2] = (int) FilterType;
+            result[3] = SquelchThreshold;
+            result[4] = SquelchEnabled ? 1 : 0;
+            result[5] = CWShift;
+            result[6] = SnapToGrid ? 1 : 0;
+            result[7] = stepSizeComboBox.SelectedIndex;
+
+            return result;
+        }
+
+        private void SetModeState(int[] state)
+        {
+            FilterBandwidth = state[0];
+            FilterOrder = state[1];
+            FilterType = (WindowType) state[2];
+            
+            _configuringSquelch = true;
+            SquelchThreshold = state[3];
+            SquelchEnabled = state[4] == 1;
+            _configuringSquelch = false;
+            useSquelchCheckBox_CheckedChanged(null, null);
+
+            CWShift = state[5];
+            
+            _configuringSnap = true;
+            SnapToGrid = state[6] == 1;
+            stepSizeComboBox.SelectedIndex = state[7];
+            _configuringSnap = false;
+            stepSizeComboBox_SelectedIndexChanged(null, null);
         }
        
         #endregion
