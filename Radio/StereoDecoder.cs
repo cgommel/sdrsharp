@@ -101,7 +101,7 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < length; i++)
             {
-                _deemphasisAvgL = (1f - _deemphasisAlpha) * _deemphasisAvgL + _deemphasisAlpha * _channelAPtr[i];
+                _deemphasisAvgL += _deemphasisAlpha * (_channelAPtr[i] - _deemphasisAvgL);
                 _channelAPtr[i] = _deemphasisAvgL;
             }
 
@@ -185,7 +185,7 @@ namespace SDRSharp.Radio
 
                 for (var i = 0; i < audioLength; i++)
                 {
-                    _deemphasisAvgL = (1f - _deemphasisAlpha) * _deemphasisAvgL + _deemphasisAlpha * _channelAPtr[i];
+                    _deemphasisAvgL += _deemphasisAlpha * (_channelAPtr[i] - _deemphasisAvgL);
                     _channelAPtr[i] = _deemphasisAvgL;
                 }
 
@@ -235,10 +235,10 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < audioLength; i++)
             {
-                _deemphasisAvgL = (1f - _deemphasisAlpha) * _deemphasisAvgL + _deemphasisAlpha * interleavedStereo[i * 2];
+                _deemphasisAvgL += _deemphasisAlpha * (interleavedStereo[i * 2] - _deemphasisAvgL);
                 interleavedStereo[i * 2] = _deemphasisAvgL;
 
-                _deemphasisAvgR = (1f - _deemphasisAlpha) * _deemphasisAvgR + _deemphasisAlpha * interleavedStereo[i * 2 + 1];
+                _deemphasisAvgR += _deemphasisAlpha * (interleavedStereo[i * 2 + 1] - _deemphasisAvgR);
                 interleavedStereo[i * 2 + 1] = _deemphasisAvgR;
             }
 

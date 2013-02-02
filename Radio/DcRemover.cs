@@ -9,19 +9,16 @@ namespace SDRSharp.Radio
     {
         private float _average;
         private float _ratio;
-        private float _oneMinusRatio;
 
         public DcRemover(float ratio)
         {
             _ratio = ratio;
-            _oneMinusRatio = 1.0f - ratio;
             _average = 0.0f;
         }
 
         public void Init(float ratio)
         {
             _ratio = ratio;
-            _oneMinusRatio = 1.0f - ratio;
             _average = 0.0f;
         }
 
@@ -34,7 +31,7 @@ namespace SDRSharp.Radio
         {
             for (var i = 0; i < length; i++)
             {
-                _average = _average * _oneMinusRatio + buffer[i] * _ratio;
+                _average += _ratio * (buffer[i] - _average);
                 buffer[i] -= _average;
             }
         }
@@ -45,7 +42,7 @@ namespace SDRSharp.Radio
 
             for (var i = 0; i < length; i += 2)
             {
-                _average = _average * _oneMinusRatio + buffer[i] * _ratio;
+                _average += _ratio * (buffer[i] - _average);
                 buffer[i] -= _average;
             }
         }
