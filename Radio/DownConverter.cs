@@ -67,8 +67,8 @@ namespace SDRSharp.Radio
             }
 
             var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
-            var targetSin = Math.Sin(targetAngularFrequency);
-            var targetCos = Math.Cos(targetAngularFrequency);
+            var targetSin = (float) Math.Sin(targetAngularFrequency);
+            var targetCos = (float) Math.Cos(targetAngularFrequency);
 
             var vectR = _oscillators[0].StateReal;
             var vectI = _oscillators[0].StateImag;
@@ -77,7 +77,7 @@ namespace SDRSharp.Radio
             {
                 var outR = vectR * targetCos - vectI * targetSin;
                 var outI = vectI * targetCos + vectR * targetSin;
-                var oscGn = 1.95 - (vectR * vectR + vectI * vectI);
+                var oscGn = 1.95f - (vectR * vectR + vectI * vectI);
                 vectR = oscGn * outR;
                 vectI = oscGn * outI;
 

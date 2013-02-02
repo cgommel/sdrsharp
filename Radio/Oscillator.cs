@@ -8,12 +8,12 @@ namespace SDRSharp.Radio
 #endif
     public unsafe struct Oscillator
     {
-        private double _sinOfAnglePerSample;
-        private double _cosOfAnglePerSample;
-        private double _vectR;
-        private double _vectI;
-        private double _outR;
-        private double _outI;
+        private float _sinOfAnglePerSample;
+        private float _cosOfAnglePerSample;
+        private float _vectR;
+        private float _vectI;
+        private float _outR;
+        private float _outI;
         private double _sampleRate;
         private double _frequency;
         private double _anglePerSample;
@@ -44,25 +44,25 @@ namespace SDRSharp.Radio
             }
         }
 
-        public double StateReal
+        public float StateReal
         {
             get { return _vectR; }
             set { _vectR = value; }
         }
 
-        public double StateImag
+        public float StateImag
         {
             get { return _vectI; }
             set { _vectI = value; }
         }
 
-        public double StateSin
+        public float StateSin
         {
             get { return _sinOfAnglePerSample; }
             set { _sinOfAnglePerSample = value; }
         }
 
-        public double StateCos
+        public float StateCos
         {
             get { return _cosOfAnglePerSample; }
             set { _cosOfAnglePerSample = value; }
@@ -72,13 +72,13 @@ namespace SDRSharp.Radio
         {
             if (_vectI == default(double) && _vectR == default(double))
             {
-                _vectR = 1.0;
+                _vectR = 1.0f;
             }
             if (_sampleRate != default(double))
             {
                 _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
-                _sinOfAnglePerSample = Math.Sin(_anglePerSample);
-                _cosOfAnglePerSample = Math.Cos(_anglePerSample);
+                _sinOfAnglePerSample = (float) Math.Sin(_anglePerSample);
+                _cosOfAnglePerSample = (float) Math.Cos(_anglePerSample);
             }
         }
 
@@ -86,25 +86,25 @@ namespace SDRSharp.Radio
         {
             get
             {
-                return new Complex((float) _outR, (float) _outI);
+                return new Complex(_outR, _outI);
             }
         }
 
         public float OutI
         {
-            get { return (float) _outR; }
+            get { return _outR; }
         }
 
         public float OutQ
         {
-            get { return (float) _outI; }
+            get { return _outI; }
         }
 
         public void Tick()
         {
             _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
             _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-            var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+            var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
             _vectR = oscGn * _outR;
             _vectI = oscGn * _outI;
         }
@@ -115,11 +115,11 @@ namespace SDRSharp.Radio
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
                 _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+                var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
                 _vectR = oscGn * _outR;
                 _vectI = oscGn * _outI;
 
-                buffer[i] *= (float) _outR;
+                buffer[i] *= _outR;
             }
         }
 
@@ -134,13 +134,13 @@ namespace SDRSharp.Radio
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
                 _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95 - (_vectR * _vectR + _vectI * _vectI);
+                var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
                 _vectR = oscGn * _outR;
                 _vectI = oscGn * _outI;
 
                 Complex osc;
-                osc.Real = (float) _outR;
-                osc.Imag = (float) _outI;
+                osc.Real = _outR;
+                osc.Imag = _outI;
 
                 buffer[i] *= osc;
             }
