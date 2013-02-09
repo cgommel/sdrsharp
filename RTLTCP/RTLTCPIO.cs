@@ -320,7 +320,7 @@ namespace SDRSharp.RTLTCP
             {
                 try
                 {
-                    var bytesRec = _s.Receive(recBuffer, offs, _bufferSize, SocketFlags.None);
+                    var bytesRec = _s.Receive(recBuffer, offs, _bufferSize - offs, SocketFlags.None);
                     var totalBytes = offs + bytesRec;
                     offs = totalBytes % 2; //Need to correctly handle the hypothetical case where we somehow get an odd number of bytes
                     ProcessSamples(recPtr, totalBytes - offs); //This might work.
