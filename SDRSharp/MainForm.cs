@@ -75,7 +75,7 @@ namespace SDRSharp
         private bool _extioChangingSamplerate;
         private bool _changingFrequency;
         private bool _changingFrequencyByScroll;
-        private bool _changingFrequencyFromPanView;
+        private bool _changingFrequencyByDirectSelection;
         private bool _configuringSnap;
         private bool _configuringSquelch;
         private bool _terminated;
@@ -152,7 +152,12 @@ namespace SDRSharp
         public long Frequency
         {
             get { return vfoFrequencyEdit.Frequency; }
-            set { vfoFrequencyEdit.Frequency = value; }
+            set
+            {
+                _changingFrequencyByDirectSelection = true;
+                vfoFrequencyEdit.Frequency = value;
+                _changingFrequencyByDirectSelection = false;
+            }
         }
 
         public long CenterFrequency
@@ -1182,7 +1187,7 @@ namespace SDRSharp
             var delta = e.Frequency - vfoFrequencyEdit.Frequency;
             var lowerMargin = (e.Frequency - _vfo.Bandwidth * 0.5f) - (_centerFrequency - 0.5f * _vfo.SampleRate + _frequencyShift);
             var upperMargin = (_centerFrequency + 0.5f * _vfo.SampleRate + _frequencyShift) - (e.Frequency + _vfo.Bandwidth * 0.5f);
-            if ((Math.Abs(delta) > _centerScrollLimit && _changingFrequencyByScroll) || (Math.Abs(delta) > _centerScrollLimit && !_changingFrequencyFromPanView) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
+            if ((Math.Abs(delta) > _centerScrollLimit && _changingFrequencyByScroll) || (Math.Abs(delta) > _centerScrollLimit && !_changingFrequencyByDirectSelection) || (delta < 0 && lowerMargin < 0) || (delta > 0 && upperMargin < 0))
             {
                 if (!_changingFrequency && !_initializing)
                 {
@@ -1238,13 +1243,13 @@ namespace SDRSharp
         private void panview_FrequencyChanged(object sender, FrequencyEventArgs e)
         {
             _changingFrequencyByScroll = e.Source == FrequencyChangeSource.Scroll;
-            _changingFrequencyFromPanView = true;
+            _changingFrequencyByDirectSelection = true;
             vfoFrequencyEdit.Frequency = e.Frequency;
             if (vfoFrequencyEdit.Frequency != e.Frequency)
             {
                 e.Cancel = true;
             }
-            _changingFrequencyFromPanView = false;
+            _changingFrequencyByDirectSelection = false;
             _changingFrequencyByScroll = false;
         }
 

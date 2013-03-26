@@ -177,6 +177,7 @@ namespace SDRSharp
             // spectrumAnalyzer
             // 
             this.spectrumAnalyzer.Attack = 0.9D;
+            this.spectrumAnalyzer.AutoSize = true;
             this.spectrumAnalyzer.BandType = SDRSharp.PanView.BandType.Center;
             this.spectrumAnalyzer.CenterFrequency = ((long)(0));
             this.spectrumAnalyzer.Decay = 0.3D;
@@ -204,6 +205,7 @@ namespace SDRSharp
             // waterfall
             // 
             this.waterfall.Attack = 0.9D;
+            this.waterfall.AutoSize = true;
             this.waterfall.BandType = SDRSharp.PanView.BandType.Center;
             this.waterfall.CenterFrequency = ((long)(0));
             this.waterfall.Contrast = 0;
@@ -1394,7 +1396,9 @@ namespace SDRSharp
             this.Move += new System.EventHandler(this.MainForm_Move);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.panSplitContainer.Panel1.ResumeLayout(false);
+            this.panSplitContainer.Panel1.PerformLayout();
             this.panSplitContainer.Panel2.ResumeLayout(false);
+            this.panSplitContainer.Panel2.PerformLayout();
             this.panSplitContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.fftContrastTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fftZoomTrackBar)).EndInit();
