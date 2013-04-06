@@ -510,7 +510,7 @@ namespace SDRSharp
             this.cwShiftNumericUpDown.Enabled = false;
             this.cwShiftNumericUpDown.Location = new System.Drawing.Point(111, 183);
             this.cwShiftNumericUpDown.Maximum = new decimal(new int[] {
-            1200,
+            2000,
             0,
             0,
             0});
