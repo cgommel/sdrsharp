@@ -161,10 +161,9 @@ namespace SDRSharp.PanView
             {
                 if (_centerFrequency != value)
                 {
-                    var delta = value - _centerFrequency;
-                    _displayCenterFrequency += delta;
                     _centerFrequency = value;
                     _performNeeded = true;
+                    ApplyZoom();
                 }
             }
         }
@@ -197,6 +196,7 @@ namespace SDRSharp.PanView
                 {
                     _frequency = value;
                     _performNeeded = true;
+                    ApplyZoom();
                 }
             }
         }
