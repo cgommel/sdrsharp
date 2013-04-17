@@ -161,9 +161,9 @@ namespace SDRSharp.PanView
             {
                 if (_centerFrequency != value)
                 {
+                    _displayCenterFrequency += value - _centerFrequency;
                     _centerFrequency = value;
                     _performNeeded = true;
-                    ApplyZoom();
                 }
             }
         }
@@ -196,7 +196,6 @@ namespace SDRSharp.PanView
                 {
                     _frequency = value;
                     _performNeeded = true;
-                    ApplyZoom();
                 }
             }
         }
@@ -348,6 +347,11 @@ namespace SDRSharp.PanView
                 _xIncrement = _scale * (ClientRectangle.Width - 2 * AxisMargin) / _spectrumWidth;
                 _performNeeded = true;
             }
+        }
+
+        public void CenterZoom()
+        {
+            _displayCenterFrequency = GetDisplayCenterFrequency();
         }
 
         private long GetDisplayCenterFrequency()

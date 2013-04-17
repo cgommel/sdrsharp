@@ -157,6 +157,8 @@ namespace SDRSharp
                 _changingFrequencyByDirectSelection = true;
                 vfoFrequencyEdit.Frequency = value;
                 _changingFrequencyByDirectSelection = false;
+                waterfall.CenterZoom();
+                spectrumAnalyzer.CenterZoom();
             }
         }
 
@@ -170,6 +172,8 @@ namespace SDRSharp
                     throw new ApplicationException("Cannot set the center frequency when no front end is connected");
                 }
                 SetCenterFrequency(value);
+                waterfall.CenterZoom();
+                spectrumAnalyzer.CenterZoom();
             }
         }
 
