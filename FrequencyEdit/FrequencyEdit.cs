@@ -313,8 +313,12 @@ namespace SDRSharp.FrequencyEdit
                 _newFrequency = newFrequency;
 
                 if (oldDigit == 0 && index < DigitCount - 1)
-                {
-                    DecrementDigit(index + 1, updateDigit);
+                {                                        
+                    var needDecrement = (_newFrequency > Math.Pow(10, index + 1));                                       
+                    if (needDecrement)
+                    {
+                        DecrementDigit(index + 1, updateDigit);
+                    }
                 }
             }
         }
@@ -512,12 +516,23 @@ namespace SDRSharp.FrequencyEdit
                         _digitControls[_editModePosition].Highlight = true;
                     }
                     break;
-                case Keys.Tab:
+                case Keys.Tab:                
+                case Keys.Decimal:
+                case Keys.OemPeriod:
                     _digitControls[_editModePosition].Highlight = false;
                     _editModePosition -= (_editModePosition % 3) + 1;
                     if (_editModePosition < 2)
                     {
-                        _editModePosition = _digitControls.Length - 1;
+                        if (args.KeyCode == Keys.Tab)
+                        {
+                            _editModePosition = _digitControls.Length - 1;
+                        }
+                        else
+                        {
+                            _editModePosition = 0;
+                            LeaveEntryMode();
+                            break;
+                        }
                     }
                     _digitControls[_editModePosition].Highlight = true;
                     break;
@@ -527,7 +542,7 @@ namespace SDRSharp.FrequencyEdit
                 case Keys.Enter:
                     LeaveEntryMode();
                     break;
-            }     
+            }            
         }
 
         #endregion
