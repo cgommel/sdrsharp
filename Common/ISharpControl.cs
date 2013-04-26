@@ -45,6 +45,10 @@ namespace SDRSharp.Common
         string RdsRadioText { get; }
 
         int RFBandwidth { get; }
+
+        bool SourceIsSoundCard { get; }
+        bool SourceIsWaveFile { get; }
+        bool SourceIsTunable { get; }
         
         void GetSpectrumSnapshot(byte[] destArray);
 

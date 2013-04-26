@@ -491,6 +491,21 @@ namespace SDRSharp
             get { return _owner.StepSize; }
         }
 
+        public bool SourceIsWaveFile
+        {
+            get { return _owner.SourceIsWaveFile; }
+        }
+
+        public bool SourceIsSoundCard
+        {
+            get { return _owner.SourceIsSoundCard; }
+        }
+
+        public bool SourceIsTunable
+        {
+            get { return _owner.SourceIsTunable; }
+        }
+
         #endregion
 
 

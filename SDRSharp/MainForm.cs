@@ -343,6 +343,11 @@ namespace SDRSharp
             get { return iqSourceComboBox.SelectedIndex == iqSourceComboBox.Items.Count - 1; }
         }
 
+        public bool SourceIsTunable
+        {
+            get { return !SourceIsSoundCard && !SourceIsWaveFile; }
+        }
+
         public bool IsSquelchOpen
         {
             get { return _vfo.IsSquelchOpen; }
