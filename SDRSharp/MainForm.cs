@@ -358,6 +358,16 @@ namespace SDRSharp
             get { return _fftBins; }
         }
 
+        public float FFTRange
+        {
+            get { return spectrumAnalyzer.DisplayRange; }
+        }
+
+        public float FFTOffset
+        {
+            get { return spectrumAnalyzer.DisplayOffset; }
+        }
+
         public int StepSize
         {
             get { return _stepSize; }

@@ -31,6 +31,8 @@ namespace SDRSharp.Common
         int AgcSlope { get; set; }
 
         int FFTResolution { get; }
+        float FFTRange { get; }
+        float FFTOffset { get; }
         int StepSize { get; }
         bool IsPlaying { get; }
 

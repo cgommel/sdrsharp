@@ -486,6 +486,16 @@ namespace SDRSharp
             get { return _owner.FFTResolution; }
         }
 
+        public float FFTRange
+        {
+            get { return _owner.FFTRange; }
+        }
+
+        public float FFTOffset
+        {
+            get { return _owner.FFTOffset; }
+        }
+
         public int StepSize
         {
             get { return _owner.StepSize; }
