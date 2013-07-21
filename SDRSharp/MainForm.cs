@@ -32,12 +32,14 @@ namespace SDRSharp
         // CWShift
         // StepSize
         // SnapToGrid
-        private static readonly int[] _defaultNFMState = {   8000, 300, 3, 50, 1, 600, 1, 12 };
-        private static readonly int[] _defaultWFMState = { 180000, 100, 3, 50, 0, 600, 1, 17 };
-        private static readonly int[] _defaultAMState =  {  10000, 450, 3, 50, 0, 600, 1,  4 };
-        private static readonly int[] _defaultSSBState = {   2400, 500, 3, 50, 0, 600, 1,  1 };
-        private static readonly int[] _defaultDSBState = {   6000, 500, 3, 50, 0, 600, 1,  1 };
-        private static readonly int[] _defaultCWState =  {    300, 800, 3, 50, 0, 600, 1,  1 };
+        // UnityGain
+        private static readonly int[] _defaultNFMState = {   8000, 300, 3, 50, 1, 600, 1, 12, 0 };
+        private static readonly int[] _defaultWFMState = { 180000, 100, 3, 50, 0, 600, 1, 17, 0 };
+        private static readonly int[] _defaultAMState =  {  10000, 450, 3, 50, 0, 600, 1,  4, 0 };
+        private static readonly int[] _defaultSSBState = {   2400, 500, 3, 50, 0, 600, 1,  1, 0 };
+        private static readonly int[] _defaultDSBState = {   6000, 500, 3, 50, 0, 600, 1,  1, 0 };
+        private static readonly int[] _defaultCWState =  {    300, 800, 3, 50, 0, 600, 1,  1, 0 };
+        private static readonly int[] _defaultRAWState = {  10000, 450, 3, 50, 0, 600, 1,  4, 1 };
 
         private WindowType _fftWindowType;
         private IFrontendController _frontendController;
@@ -255,6 +257,12 @@ namespace SDRSharp
             set { filterAudioCheckBox.Checked = value; }
         }
 
+        public bool UnityGain
+        {
+            get { return unityGainCheckBox.Checked; }
+            set { unityGainCheckBox.Checked = value; }
+        }
+
         public bool UseAgc
         {
             get { return agcCheckBox.Checked; }
@@ -399,7 +407,7 @@ namespace SDRSharp
             _modeStates[DetectorType.USB] = Utils.GetIntArraySetting("usbState", _defaultSSBState);
             _modeStates[DetectorType.DSB] = Utils.GetIntArraySetting("dsbState", _defaultDSBState);
             _modeStates[DetectorType.CW] = Utils.GetIntArraySetting("cwState", _defaultCWState);
-            _modeStates[DetectorType.RAW] = Utils.GetIntArraySetting("rawState", _defaultAMState);
+            _modeStates[DetectorType.RAW] = Utils.GetIntArraySetting("rawState", _defaultRAWState);
 
             #endregion
 
@@ -502,6 +510,9 @@ namespace SDRSharp
 
             filterAudioCheckBox.Checked = Utils.GetBooleanSetting("filterAudio");
             filterAudioCheckBox_CheckStateChanged(null, null);
+
+            unityGainCheckBox.Checked = Utils.GetBooleanSetting("unityGain");
+            unityGainCheckBox_CheckStateChanged(null, null);
 
             audioGainTrackBar.Value = Utils.GetIntSetting("audioGain", 30);
             audioGainTrackBar_ValueChanged(null, null);
@@ -737,6 +748,7 @@ namespace SDRSharp
             Utils.SaveSetting("markPeaks", markPeaksCheckBox.Checked);
             Utils.SaveSetting("fmStereo", fmStereoCheckBox.Checked);
             Utils.SaveSetting("filterAudio", filterAudioCheckBox.Checked);
+            Utils.SaveSetting("unityGain", unityGainCheckBox.Checked);
             Utils.SaveSetting("latency", (int) latencyNumericUpDown.Value);
             Utils.SaveSetting("sampleRate", sampleRateComboBox.Text);
             Utils.SaveSetting("audioGain", audioGainTrackBar.Value);
@@ -760,7 +772,7 @@ namespace SDRSharp
             Utils.SaveSetting("lsbState", Utils.IntArrayToString(_modeStates[DetectorType.LSB]));
             Utils.SaveSetting("usbState", Utils.IntArrayToString(_modeStates[DetectorType.USB]));
             Utils.SaveSetting("dsbState", Utils.IntArrayToString(_modeStates[DetectorType.DSB]));
-            Utils.SaveSetting("cwState", Utils.IntArrayToString(_modeStates[DetectorType.CW]));
+            Utils.SaveSetting("cwState",  Utils.IntArrayToString(_modeStates[DetectorType.CW]));
             Utils.SaveSetting("rawState", Utils.IntArrayToString(_modeStates[DetectorType.RAW]));
         }
 
@@ -1136,6 +1148,12 @@ namespace SDRSharp
             NotifyPropertyChanged("FilterAudio");
         }
 
+        private void unityGainCheckBox_CheckStateChanged(object sender, EventArgs e)
+        {
+            _streamControl.ScaleOutput = !unityGainCheckBox.Checked;
+            audioGainTrackBar.Enabled = !unityGainCheckBox.Checked;
+        }
+
         #endregion
 
         #region Main controls
@@ -1357,17 +1375,22 @@ namespace SDRSharp
         {
             filterOrderNumericUpDown.Enabled = !wfmRadioButton.Checked;
 
-            agcDecayNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
-            agcSlopeNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
-            agcThresholdNumericUpDown.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
-            agcUseHangCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
-            agcCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked;
+            agcCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked && !rawRadioButton.Checked;
+            agcDecayNumericUpDown.Enabled = agcCheckBox.Enabled;
+            agcSlopeNumericUpDown.Enabled = agcCheckBox.Enabled;
+            agcThresholdNumericUpDown.Enabled = agcCheckBox.Enabled;
+            agcUseHangCheckBox.Enabled = agcCheckBox.Enabled;
 
             fmStereoCheckBox.Enabled = wfmRadioButton.Checked;
 
             useSquelchCheckBox.Enabled = nfmRadioButton.Checked || amRadioButton.Checked;
             squelchNumericUpDown.Enabled = useSquelchCheckBox.Enabled && useSquelchCheckBox.Checked;
-            cwShiftNumericUpDown.Enabled = cwRadioButton.Checked || rawRadioButton.Checked;
+            cwShiftNumericUpDown.Enabled = cwRadioButton.Checked;
+
+            _streamControl.ScaleOutput = !unityGainCheckBox.Checked;
+            audioGainTrackBar.Enabled = !unityGainCheckBox.Checked;
+
+            filterAudioCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked && !rawRadioButton.Checked;
 
             if (!_initializing)
             {
@@ -1566,7 +1589,7 @@ namespace SDRSharp
 
         private int[] GetModeState()
         {
-            var result = new int[8];
+            var result = new int[9];
 
             result[0] = FilterBandwidth;
             result[1] = FilterOrder;
@@ -1576,6 +1599,7 @@ namespace SDRSharp
             result[5] = CWShift;
             result[6] = SnapToGrid ? 1 : 0;
             result[7] = stepSizeComboBox.SelectedIndex;
+            result[8] = unityGainCheckBox.Checked ? 1 : 0;
 
             return result;
         }
@@ -1599,6 +1623,9 @@ namespace SDRSharp
             stepSizeComboBox.SelectedIndex = state[7];
             _configuringSnap = false;
             stepSizeComboBox_SelectedIndexChanged(null, null);
+
+            unityGainCheckBox.Checked = state[8] == 1;
+            unityGainCheckBox_CheckStateChanged(null, null);
         }
        
         #endregion
@@ -1610,10 +1637,10 @@ namespace SDRSharp
         private void agcCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             _vfo.UseAGC = agcCheckBox.Checked;
-            agcThresholdNumericUpDown.Enabled = agcCheckBox.Checked;
-            agcDecayNumericUpDown.Enabled = agcCheckBox.Checked;
-            agcSlopeNumericUpDown.Enabled = agcCheckBox.Checked;
-            agcUseHangCheckBox.Enabled = agcCheckBox.Checked;
+            agcThresholdNumericUpDown.Enabled = agcCheckBox.Checked && agcCheckBox.Enabled;
+            agcDecayNumericUpDown.Enabled = agcCheckBox.Checked && agcCheckBox.Enabled;
+            agcSlopeNumericUpDown.Enabled = agcCheckBox.Checked && agcCheckBox.Enabled;
+            agcUseHangCheckBox.Enabled = agcCheckBox.Checked && agcCheckBox.Enabled;
 
             NotifyPropertyChanged("UseAgc");
         }

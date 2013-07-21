@@ -12,6 +12,7 @@ namespace SDRSharp.Common
         long CenterFrequency { get; set; }
         int CWShift { get; set; }
         bool FilterAudio { get; set; }
+        bool UnityGain { get; set; }
         int FilterBandwidth { get; set; }
         int FilterOrder { get; set; }
         bool FmStereo { get; set; }

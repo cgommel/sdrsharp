@@ -117,6 +117,21 @@ namespace SDRSharp
             }
         }
 
+        public bool UnityGain
+        {
+            get { return _owner.UnityGain; }
+            set
+            {
+                if (_owner.InvokeRequired)
+                {
+                    _owner.Invoke(new MethodInvoker(() => { _owner.UnityGain = value; }));
+                }
+                else
+                {
+                    _owner.UnityGain = value;
+                }
+            }
+        }
 
         public int FilterBandwidth
         {
@@ -580,9 +595,10 @@ namespace SDRSharp
         {
 
             switch (e.PropertyName)
-            {              
+            {
                 case "AudioGain":
                 case "FilterAudio":
+                case "UnityGain":
                 case "Frequency":
                 case "CenterFrequency":
                 case "FilterBandwidth":

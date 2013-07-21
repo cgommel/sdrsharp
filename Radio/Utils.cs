@@ -207,6 +207,10 @@ namespace SDRSharp.Radio
             {
                 var strValue = ConfigurationManager.AppSettings[name];
                 var values = strValue.Split(',');
+                if (values.Length != defaultValue.Length)
+                {
+                    return defaultValue;
+                }
                 var result = new int[values.Length];
                 for (var i = 0; i < result.Length; i++ )
                 {

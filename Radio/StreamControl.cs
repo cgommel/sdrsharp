@@ -66,6 +66,7 @@ namespace SDRSharp.Radio
         public StreamControl(StreamHookManager streamHookManager)
         {
             AudioGain = 10.0f;
+            ScaleOutput = true;
 
             _streamHookManager = streamHookManager;
         }
@@ -93,6 +94,8 @@ namespace SDRSharp.Radio
                 _outputGain = (float) Math.Pow(value / 10.0, 10);
             }
         }
+
+        public bool ScaleOutput { get; set; }
 
         public bool SwapIQ
         {
@@ -168,7 +171,7 @@ namespace SDRSharp.Radio
 
             ProcessIQ();
 
-            ScaleAudio(_dspOutPtr, _dspOutBuffer.Length);
+            ScaleBuffer(_dspOutPtr, _dspOutBuffer.Length);
             Utils.Memcpy(buffer, _dspOutPtr, _dspOutBuffer.Length * sizeof(float));
         }
 
@@ -185,7 +188,7 @@ namespace SDRSharp.Radio
 
             var count = _audioStream.Read(buffer, sampleCount);
 
-            ScaleAudio(buffer, count);
+            ScaleBuffer(buffer, count);
 
             for (var i = count; i < sampleCount; i++)
             {
@@ -242,11 +245,14 @@ namespace SDRSharp.Radio
             }
         }
 
-        private void ScaleAudio(float* buffer, int length)
+        private void ScaleBuffer(float* buffer, int length)
         {
-            for (var i = 0; i < length; i++)
+            if (ScaleOutput)
             {
-                buffer[i] *= _outputGain;
+                for (var i = 0; i < length; i++)
+                {
+                    buffer[i] *= _outputGain;
+                }
             }
         }
 

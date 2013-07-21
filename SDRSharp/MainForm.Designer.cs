@@ -55,6 +55,7 @@ namespace SDRSharp
             this.label5 = new System.Windows.Forms.Label();
             this.swapIQCheckBox = new System.Windows.Forms.CheckBox();
             this.audioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.unityGainCheckBox = new System.Windows.Forms.CheckBox();
             this.audioGainTrackBar = new System.Windows.Forms.TrackBar();
             this.latencyNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.filterAudioCheckBox = new System.Windows.Forms.CheckBox();
@@ -727,6 +728,7 @@ namespace SDRSharp
             // 
             // audioCollapsiblePanel
             // 
+            this.audioCollapsiblePanel.Controls.Add(this.unityGainCheckBox);
             this.audioCollapsiblePanel.Controls.Add(this.audioGainTrackBar);
             this.audioCollapsiblePanel.Controls.Add(this.latencyNumericUpDown);
             this.audioCollapsiblePanel.Controls.Add(this.filterAudioCheckBox);
@@ -746,6 +748,16 @@ namespace SDRSharp
             this.audioCollapsiblePanel.Size = new System.Drawing.Size(217, 196);
             this.audioCollapsiblePanel.TabIndex = 22;
             // 
+            // unityGainCheckBox
+            // 
+            this.unityGainCheckBox.Location = new System.Drawing.Point(9, 177);
+            this.unityGainCheckBox.Name = "unityGainCheckBox";
+            this.unityGainCheckBox.Size = new System.Drawing.Size(87, 17);
+            this.unityGainCheckBox.TabIndex = 5;
+            this.unityGainCheckBox.Text = "Unity Gain";
+            this.unityGainCheckBox.UseVisualStyleBackColor = true;
+            this.unityGainCheckBox.CheckStateChanged += new System.EventHandler(this.unityGainCheckBox_CheckStateChanged);
+            // 
             // audioGainTrackBar
             // 
             this.audioGainTrackBar.Location = new System.Drawing.Point(57, 24);
@@ -760,7 +772,7 @@ namespace SDRSharp
             // 
             // latencyNumericUpDown
             // 
-            this.latencyNumericUpDown.Location = new System.Drawing.Point(126, 151);
+            this.latencyNumericUpDown.Location = new System.Drawing.Point(125, 151);
             this.latencyNumericUpDown.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -783,11 +795,10 @@ namespace SDRSharp
             // 
             // filterAudioCheckBox
             // 
-            this.filterAudioCheckBox.Location = new System.Drawing.Point(118, 177);
+            this.filterAudioCheckBox.Location = new System.Drawing.Point(125, 177);
             this.filterAudioCheckBox.Name = "filterAudioCheckBox";
-            this.filterAudioCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.filterAudioCheckBox.Size = new System.Drawing.Size(87, 17);
-            this.filterAudioCheckBox.TabIndex = 34;
+            this.filterAudioCheckBox.TabIndex = 6;
             this.filterAudioCheckBox.Text = "Filter Audio";
             this.filterAudioCheckBox.UseVisualStyleBackColor = true;
             this.filterAudioCheckBox.CheckedChanged += new System.EventHandler(this.filterAudioCheckBox_CheckStateChanged);
@@ -1534,5 +1545,6 @@ namespace SDRSharp
         private Panel scrollPanel;
         private FrequencyEdit.FrequencyEdit vfoFrequencyEdit;
         private Label label2;
+        private CheckBox unityGainCheckBox;
     }
 }
