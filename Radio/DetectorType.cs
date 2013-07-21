@@ -8,8 +8,7 @@
         DSB,
         LSB,
         USB,
-        CWL,
-        CWU,
+        CW,
         RAW
     }
 }

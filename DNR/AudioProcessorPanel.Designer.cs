@@ -79,8 +79,8 @@
             this.thresholdTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.thresholdTrackBar.Location = new System.Drawing.Point(3, 40);
-            this.thresholdTrackBar.Maximum = 0;
-            this.thresholdTrackBar.Minimum = -100;
+            this.thresholdTrackBar.Maximum = -20;
+            this.thresholdTrackBar.Minimum = -120;
             this.thresholdTrackBar.Name = "thresholdTrackBar";
             this.thresholdTrackBar.Size = new System.Drawing.Size(198, 45);
             this.thresholdTrackBar.TabIndex = 5;

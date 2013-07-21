@@ -107,12 +107,8 @@ namespace SDRSharp
                         amRadioButton.Checked = true;
                         break;
 
-                    case DetectorType.CWL:
-                        cwlRadioButton.Checked = true;
-                        break;
-
-                    case DetectorType.CWU:
-                        cwuRadioButton.Checked = true;
+                    case DetectorType.CW:
+                        cwRadioButton.Checked = true;
                         break;
 
                     case DetectorType.DSB:
@@ -133,6 +129,10 @@ namespace SDRSharp
 
                     case DetectorType.WFM:
                         wfmRadioButton.Checked = true;
+                        break;
+
+                    case DetectorType.RAW:
+                        rawRadioButton.Checked = true;
                         break;
                 }
             }
@@ -398,8 +398,7 @@ namespace SDRSharp
             _modeStates[DetectorType.LSB] = Utils.GetIntArraySetting("lsbState", _defaultSSBState);
             _modeStates[DetectorType.USB] = Utils.GetIntArraySetting("usbState", _defaultSSBState);
             _modeStates[DetectorType.DSB] = Utils.GetIntArraySetting("dsbState", _defaultDSBState);
-            _modeStates[DetectorType.CWL] = Utils.GetIntArraySetting("cwlState", _defaultCWState);
-            _modeStates[DetectorType.CWU] = Utils.GetIntArraySetting("cwuState", _defaultCWState);
+            _modeStates[DetectorType.CW] = Utils.GetIntArraySetting("cwState", _defaultCWState);
             _modeStates[DetectorType.RAW] = Utils.GetIntArraySetting("rawState", _defaultAMState);
 
             #endregion
@@ -761,8 +760,7 @@ namespace SDRSharp
             Utils.SaveSetting("lsbState", Utils.IntArrayToString(_modeStates[DetectorType.LSB]));
             Utils.SaveSetting("usbState", Utils.IntArrayToString(_modeStates[DetectorType.USB]));
             Utils.SaveSetting("dsbState", Utils.IntArrayToString(_modeStates[DetectorType.DSB]));
-            Utils.SaveSetting("cwlState", Utils.IntArrayToString(_modeStates[DetectorType.CWL]));
-            Utils.SaveSetting("cwuState", Utils.IntArrayToString(_modeStates[DetectorType.CWU]));
+            Utils.SaveSetting("cwState", Utils.IntArrayToString(_modeStates[DetectorType.CW]));
             Utils.SaveSetting("rawState", Utils.IntArrayToString(_modeStates[DetectorType.RAW]));
         }
 
@@ -1292,13 +1290,13 @@ namespace SDRSharp
 
         private void filterBandwidthNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            _vfo.Bandwidth = (int)filterBandwidthNumericUpDown.Value;
+            _vfo.Bandwidth = (int) filterBandwidthNumericUpDown.Value;
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
 
-            if (_vfo.DetectorType == DetectorType.CWL || _vfo.DetectorType == DetectorType.CWU)
+            if (_vfo.DetectorType == DetectorType.CW)
             {
-                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
+                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
 
@@ -1369,7 +1367,7 @@ namespace SDRSharp
 
             useSquelchCheckBox.Enabled = nfmRadioButton.Checked || amRadioButton.Checked;
             squelchNumericUpDown.Enabled = useSquelchCheckBox.Enabled && useSquelchCheckBox.Checked;
-            cwShiftNumericUpDown.Enabled = cwlRadioButton.Checked || cwuRadioButton.Checked;
+            cwShiftNumericUpDown.Enabled = cwRadioButton.Checked || rawRadioButton.Checked;
 
             if (!_initializing)
             {
@@ -1424,21 +1422,21 @@ namespace SDRSharp
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
             }
-            else if (cwlRadioButton.Checked)
+            else if (cwRadioButton.Checked)
             {
-                _vfo.DetectorType = DetectorType.CWL;
-                waterfall.BandType = BandType.Lower;
-                spectrumAnalyzer.BandType = BandType.Lower;
-                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
+                _vfo.DetectorType = DetectorType.CW;
+                waterfall.BandType = _vfo.CWToneShift > 0 ? BandType.Upper : BandType.Lower;
+                spectrumAnalyzer.BandType = waterfall.BandType;
+                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
-            else if (cwuRadioButton.Checked)
+            else if (rawRadioButton.Checked)
             {
-                _vfo.DetectorType = DetectorType.CWU;
-                waterfall.BandType = BandType.Upper;
-                spectrumAnalyzer.BandType = BandType.Upper;
-                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
-                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+                _vfo.DetectorType = DetectorType.RAW;
+                waterfall.BandType = BandType.Center;
+                spectrumAnalyzer.BandType = BandType.Center;
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
             }
 
             SetModeState(_modeStates[_vfo.DetectorType]);
@@ -1455,9 +1453,11 @@ namespace SDRSharp
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
-            if (_vfo.DetectorType == DetectorType.CWL || _vfo.DetectorType == DetectorType.CWU)
+            if (_vfo.DetectorType == DetectorType.CW)
             {
-                waterfall.FilterOffset = _vfo.CWToneShift - _vfo.Bandwidth / 2;
+                waterfall.BandType = _vfo.CWToneShift > 0 ? BandType.Upper : BandType.Lower;
+                spectrumAnalyzer.BandType = waterfall.BandType;
+                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
                 spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
             }
             NotifyPropertyChanged("CWShift");

@@ -27,11 +27,11 @@ namespace SDRSharp
             this.label20 = new System.Windows.Forms.Label();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.radioCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
-            this.cwuRadioButton = new System.Windows.Forms.RadioButton();
+            this.rawRadioButton = new System.Windows.Forms.RadioButton();
             this.frequencyShiftCheckBox = new System.Windows.Forms.CheckBox();
             this.markPeaksCheckBox = new System.Windows.Forms.CheckBox();
             this.frequencyShiftNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.cwlRadioButton = new System.Windows.Forms.RadioButton();
+            this.cwRadioButton = new System.Windows.Forms.RadioButton();
             this.nfmRadioButton = new System.Windows.Forms.RadioButton();
             this.useSquelchCheckBox = new System.Windows.Forms.CheckBox();
             this.fmStereoCheckBox = new System.Windows.Forms.CheckBox();
@@ -301,11 +301,11 @@ namespace SDRSharp
             // 
             // radioCollapsiblePanel
             // 
-            this.radioCollapsiblePanel.Controls.Add(this.cwuRadioButton);
+            this.radioCollapsiblePanel.Controls.Add(this.rawRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.frequencyShiftCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.markPeaksCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.frequencyShiftNumericUpDown);
-            this.radioCollapsiblePanel.Controls.Add(this.cwlRadioButton);
+            this.radioCollapsiblePanel.Controls.Add(this.cwRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.nfmRadioButton);
             this.radioCollapsiblePanel.Controls.Add(this.useSquelchCheckBox);
             this.radioCollapsiblePanel.Controls.Add(this.fmStereoCheckBox);
@@ -336,16 +336,16 @@ namespace SDRSharp
             this.radioCollapsiblePanel.Size = new System.Drawing.Size(217, 297);
             this.radioCollapsiblePanel.TabIndex = 21;
             // 
-            // cwuRadioButton
+            // rawRadioButton
             // 
-            this.cwuRadioButton.AutoSize = true;
-            this.cwuRadioButton.Location = new System.Drawing.Point(154, 49);
-            this.cwuRadioButton.Name = "cwuRadioButton";
-            this.cwuRadioButton.Size = new System.Drawing.Size(54, 17);
-            this.cwuRadioButton.TabIndex = 7;
-            this.cwuRadioButton.Text = "CW-U";
-            this.cwuRadioButton.UseVisualStyleBackColor = true;
-            this.cwuRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            this.rawRadioButton.AutoSize = true;
+            this.rawRadioButton.Location = new System.Drawing.Point(154, 49);
+            this.rawRadioButton.Name = "rawRadioButton";
+            this.rawRadioButton.Size = new System.Drawing.Size(51, 17);
+            this.rawRadioButton.TabIndex = 7;
+            this.rawRadioButton.Text = "RAW";
+            this.rawRadioButton.UseVisualStyleBackColor = true;
+            this.rawRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // frequencyShiftCheckBox
             // 
@@ -396,16 +396,16 @@ namespace SDRSharp
             this.frequencyShiftNumericUpDown.ThousandsSeparator = true;
             this.frequencyShiftNumericUpDown.ValueChanged += new System.EventHandler(this.frequencyShiftNumericUpDown_ValueChanged);
             // 
-            // cwlRadioButton
+            // cwRadioButton
             // 
-            this.cwlRadioButton.AutoSize = true;
-            this.cwlRadioButton.Location = new System.Drawing.Point(106, 49);
-            this.cwlRadioButton.Name = "cwlRadioButton";
-            this.cwlRadioButton.Size = new System.Drawing.Size(52, 17);
-            this.cwlRadioButton.TabIndex = 6;
-            this.cwlRadioButton.Text = "CW-L";
-            this.cwlRadioButton.UseVisualStyleBackColor = true;
-            this.cwlRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
+            this.cwRadioButton.AutoSize = true;
+            this.cwRadioButton.Location = new System.Drawing.Point(106, 49);
+            this.cwRadioButton.Name = "cwRadioButton";
+            this.cwRadioButton.Size = new System.Drawing.Size(43, 17);
+            this.cwRadioButton.TabIndex = 6;
+            this.cwRadioButton.Text = "CW";
+            this.cwRadioButton.UseVisualStyleBackColor = true;
+            this.cwRadioButton.CheckedChanged += new System.EventHandler(this.modeRadioButton_CheckStateChanged);
             // 
             // nfmRadioButton
             // 
@@ -515,10 +515,10 @@ namespace SDRSharp
             0,
             0});
             this.cwShiftNumericUpDown.Minimum = new decimal(new int[] {
-            200,
+            2000,
             0,
             0,
-            0});
+            -2147483648});
             this.cwShiftNumericUpDown.Name = "cwShiftNumericUpDown";
             this.cwShiftNumericUpDown.Size = new System.Drawing.Size(94, 20);
             this.cwShiftNumericUpDown.TabIndex = 19;
@@ -1476,8 +1476,8 @@ namespace SDRSharp
         private NumericUpDown agcSlopeNumericUpDown;
         private Label label22;
         private RadioButton nfmRadioButton;
-        private RadioButton cwuRadioButton;
-        private RadioButton cwlRadioButton;
+        private RadioButton rawRadioButton;
+        private RadioButton cwRadioButton;
         private RadioButton amRadioButton;
         private RadioButton dsbRadioButton;
         private RadioButton wfmRadioButton;

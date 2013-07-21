@@ -363,14 +363,16 @@ namespace SDRSharp.Radio
                     _downConverter.Frequency += _lsbDetector.BfoFrequency;
                     break;
 
-                case DetectorType.CWU:
-                    _usbDetector.BfoFrequency = -_cwToneShift;
-                    _downConverter.Frequency -= _usbDetector.BfoFrequency;
-                    break;
-
-                case DetectorType.CWL:
-                    _lsbDetector.BfoFrequency = -_cwToneShift;
-                    _downConverter.Frequency += _lsbDetector.BfoFrequency;
+                case DetectorType.CW:
+                    if (_cwToneShift > 0)
+                    {
+                        _usbDetector.BfoFrequency = -_cwToneShift;
+                    }
+                    else
+                    {
+                        _lsbDetector.BfoFrequency = _cwToneShift;
+                    }
+                    _downConverter.Frequency += _cwToneShift;
                     break;
 
                 case DetectorType.NFM:
@@ -416,10 +418,9 @@ namespace SDRSharp.Radio
                     cutoff2 = Math.Min(_bandwidth / 2, MaxBCAudioFrequency);
                     break;
 
-                case DetectorType.CWU:
-                case DetectorType.CWL:
-                    cutoff1 = _cwToneShift - _bandwidth / 2;
-                    cutoff2 = _cwToneShift + _bandwidth / 2;
+                case DetectorType.CW:
+                    cutoff1 = Math.Abs(_cwToneShift) - _bandwidth / 2;
+                    cutoff2 = Math.Abs(_cwToneShift) + _bandwidth / 2;
                     break;
 
                 case DetectorType.USB:
@@ -545,14 +546,23 @@ namespace SDRSharp.Radio
                     _dsbDetector.Demodulate(iq, audio, length);
                     break;
 
-                case DetectorType.CWL:
                 case DetectorType.LSB:
                     _lsbDetector.Demodulate(iq, audio, length);
                     break;
 
-                case DetectorType.CWU:
                 case DetectorType.USB:
                     _usbDetector.Demodulate(iq, audio, length);
+                    break;
+
+                case DetectorType.CW:
+                    if (_cwToneShift > 0)
+                    {
+                        _usbDetector.Demodulate(iq, audio, length);
+                    }
+                    else
+                    {
+                        _lsbDetector.Demodulate(iq, audio, length);
+                    }
                     break;
             }
         }
