@@ -1390,7 +1390,7 @@ namespace SDRSharp
             _streamControl.ScaleOutput = !unityGainCheckBox.Checked;
             audioGainTrackBar.Enabled = !unityGainCheckBox.Checked;
 
-            filterAudioCheckBox.Enabled = !wfmRadioButton.Checked && !nfmRadioButton.Checked && !rawRadioButton.Checked;
+            filterAudioCheckBox.Enabled = !wfmRadioButton.Checked && !rawRadioButton.Checked;
 
             if (!_initializing)
             {
