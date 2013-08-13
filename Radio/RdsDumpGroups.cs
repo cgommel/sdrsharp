@@ -10,6 +10,8 @@ namespace SDRSharp.Radio
         private StringBuilder _programServiceSB = new StringBuilder("                                                                        ");
         private string _radioText = string.Empty;
         private string _programService = string.Empty;
+        private ushort _piCode;
+        private bool _radioTextABFlag;
 
         public string RadioText
         {
@@ -21,6 +23,11 @@ namespace SDRSharp.Radio
             get { return _programService; }
         }
 
+        public ushort PICode
+        {
+            get { return _piCode; }
+        }
+
         public void Reset()
         {
             lock (this)
@@ -29,6 +36,8 @@ namespace SDRSharp.Radio
                 _programServiceSB = new StringBuilder("                                                                        ");
                 _radioText = string.Empty;
                 _programService = string.Empty;
+                _piCode = 0;
+                _radioTextABFlag = false;
             }
         }
 
@@ -45,6 +54,7 @@ namespace SDRSharp.Radio
             if ((groupB & 0xf800) == 0x2000) // 2a group radio text
             {
                 int index = (groupB & 0xf) * 4; // text segment
+                var abFlag = ((groupB >> 4) & 0x1) == 1;
 
                 var sb = new StringBuilder();
                 sb.Append((char)(groupC >> 8));
@@ -58,9 +68,21 @@ namespace SDRSharp.Radio
 
                 lock (this)
                 {
-                    _radioTextSB.Remove(index, 4);
+                    if (abFlag != _radioTextABFlag)
+                    {
+                        for (var i = 0; i < _radioTextSB.Length; i++)
+                        {
+                            _radioTextSB[i] = ' ';
+                        }
+                        _radioTextABFlag = abFlag;
+                    }
+                    else
+                    {
+                        _radioTextSB.Remove(index, 4);
+                    }                    
                     _radioTextSB.Insert(index, sb.ToString());
                     _radioText = _radioTextSB.ToString().Trim();
+                    _piCode = groupA;
                 }
 
                 result = true;
@@ -86,6 +108,7 @@ namespace SDRSharp.Radio
                     _programServiceSB.Remove(index, 2);
                     _programServiceSB.Insert(index, sb.ToString());
                     _programService = _programServiceSB.ToString().Substring(0, 8);
+                    _piCode = groupA;
                 }
 
                 result = true;

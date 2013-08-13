@@ -300,6 +300,11 @@ namespace SDRSharp.Radio
             get { return _rdsDecoder.RadioText; }
         }
 
+        public ushort RdsPICode
+        {
+            get { return _rdsDecoder.PICode; }
+        }
+
         public bool FilterAudio
         {
             get { return _filterAudio; }

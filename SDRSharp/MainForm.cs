@@ -336,6 +336,11 @@ namespace SDRSharp
             get { return _vfo.RdsStationText; }
         }
 
+        public ushort RdsPICode
+        {
+            get { return _vfo.RdsPICode; }
+        }
+
         public int RFBandwidth
         {
             get { return (int) _vfo.SampleRate; }
@@ -920,6 +925,10 @@ namespace SDRSharp
                 if (!string.IsNullOrEmpty(_vfo.RdsStationName.Trim()))
                 {
                     spectrumAnalyzer.StatusText = _vfo.RdsStationName;
+                }
+                if (_vfo.RdsPICode != 0)
+                {
+                    spectrumAnalyzer.StatusText += " [ " + string.Format("{0:X4}", _vfo.RdsPICode) + " ] ";
                 }
                 if (!string.IsNullOrEmpty(_vfo.RdsStationText))
                 {

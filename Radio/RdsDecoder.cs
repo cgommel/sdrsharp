@@ -73,6 +73,11 @@ namespace SDRSharp.Radio
             get { return _bitDecoder.ProgramService; }
         }
 
+        public ushort PICode
+        {
+            get { return _bitDecoder.PICode; }
+        }
+
         private void Configure()
         {
             _osc->SampleRate = _sampleRate;

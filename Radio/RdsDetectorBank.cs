@@ -17,6 +17,11 @@ namespace SDRSharp.Radio
             get { return _dumpGroups.ProgramService; }
         }
 
+        public ushort PICode
+        {
+            get { return _dumpGroups.PICode; }
+        }
+
         public RdsDetectorBank()
         {
             for (var i = 0; i < _detectors.Length; i++)
