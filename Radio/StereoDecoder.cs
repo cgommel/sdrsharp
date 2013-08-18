@@ -270,8 +270,8 @@ namespace SDRSharp.Radio
                 
                 var outputSampleRate = sampleRate / _audioDecimationFactor;
                 var coefficients = FilterBuilder.MakeBandPassKernel(outputSampleRate, 250, Vfo.MinBCAudioFrequency, Vfo.MaxBCAudioFrequency, WindowType.BlackmanHarris);
-                _channelAFilter = new FirFilter(coefficients);
-                _channelBFilter = new FirFilter(coefficients);
+                _channelAFilter = new FirFilter(coefficients, 1);
+                _channelBFilter = new FirFilter(coefficients, 1);
 
                 _deemphasisAlpha = (float) (1.0 - Math.Exp(-1.0 / (outputSampleRate * _deemphasisTime)));
                 _deemphasisAvgL = 0;

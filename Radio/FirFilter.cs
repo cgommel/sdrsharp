@@ -15,7 +15,7 @@ namespace SDRSharp.Radio
     public unsafe sealed class FirFilter : IDisposable, IFilter
     {
         private const double Epsilon = 1e-6;
-        private const int CircularBufferSize = 4;
+        private const int CircularBufferSize = 2;
 
         private float* _coeffPtr;
         private UnsafeBuffer _coeffBuffer;
@@ -26,15 +26,31 @@ namespace SDRSharp.Radio
         private int _queueSize;
         private int _offset;
         private bool _isSymmetric;
-        private bool _isSparse;
+        private bool _isHalfBand;
+        private int _decimationFactor;
 
-        public FirFilter() : this(new float[0])
+        public FirFilter()
+            : this(new float[0])
         {
         }
 
         public FirFilter(float[] coefficients)
+            : this(coefficients, 1)
+        {
+        }
+
+        public FirFilter(float[] coefficients, int decimationFactor)
         {
             SetCoefficients(coefficients);
+            if (_decimationFactor != 0 && _decimationFactor != decimationFactor)
+            {
+                throw new ArgumentException("This decimation factor cannot be used with a half band filter", "decimationFactor");
+            }
+            if (decimationFactor <= 0)
+            {
+                throw new ArgumentException("The decimation factor must be greater than zero", "decimationFactor");
+            }
+            _decimationFactor = decimationFactor;
         }
 
         ~FirFilter()
@@ -80,11 +96,11 @@ namespace SDRSharp.Radio
                 _coeffPtr[i] = coefficients[i];
             }
 
-            _isSymmetric = true;
-            _isSparse = true;
-
             if (_queueSize % 2 != 0)
             {
+                _isSymmetric = true;
+                _isHalfBand = true;
+
                 var halfLen = _queueSize / 2;
 
                 for (var i = 0; i < halfLen; i++)
@@ -93,24 +109,32 @@ namespace SDRSharp.Radio
                     if (Math.Abs(_coeffPtr[i] - _coeffPtr[j]) > Epsilon)
                     {
                         _isSymmetric = false;
-                        _isSparse = false;
+                        _isHalfBand = false;
                         break;
                     }
                     if (i % 2 != 0)
                     {
-                        _isSparse = _coeffPtr[i] == 0f && _coeffPtr[j] == 0f;
+                        _isHalfBand = _coeffPtr[i] == 0f && _coeffPtr[j] == 0f;
                     }
+                }
+
+                if (_isHalfBand)
+                {
+                    _decimationFactor = 2;
                 }
             }
         }
 
         private void ProcessSymmetricKernel(float* buffer, int length)
         {
-            for (var n = 0; n < length; n++)
+            for (int n = 0, m = 0; n < length; n += _decimationFactor, m++)
             {
                 var queue = _queuePtr + _offset;
 
-                queue[0] = buffer[n];
+                for (int k = 0, l = n + _decimationFactor - 1; k < _decimationFactor; k++, l--)
+                {
+                    queue[k] = buffer[l];
+                }
 
                 var acc = 0.0f;
 
@@ -141,24 +165,28 @@ namespace SDRSharp.Radio
                 }
                 acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
         private void ProcessSymmetricKernelInterleaved(float* buffer, int length)
         {
             length <<= 1;
-            for (var n = 0; n < length; n += 2)
+            for (int n = 0, m = 0; n < length; n += _decimationFactor * 2, m += 2)
             {
                 var queue = _queuePtr + _offset;
 
-                queue[0] = buffer[n];
+                for (int k = 0, l = n + 2 * (_decimationFactor - 1); k < _decimationFactor; k++, l -= 2)
+                {
+                    queue[k] = buffer[l];
+                }
 
                 var acc = 0.0f;
 
@@ -189,22 +217,25 @@ namespace SDRSharp.Radio
                 }
                 acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
-        private void ProcessSparseSymmetricKernel(float* buffer, int length)
+        private void ProcessHalfBandKernel(float* buffer, int length)
         {
-            for (var n = 0; n < length; n++)
+            for (int n = 0, m = 0; n < length; n += 2, m++)
             {
                 var queue = _queuePtr + _offset;
-                queue[0] = buffer[n];
+
+                queue[0] = buffer[n + 1];
+                queue[1] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -244,23 +275,26 @@ namespace SDRSharp.Radio
                 }
                 acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
-        private void ProcessSparseSymmetricKernelInterleaved(float* buffer, int length)
+        private void ProcessHalfBandInterleaved(float* buffer, int length)
         {
             length <<= 1;
-            for (var n = 0; n < length; n += 2)
+            for (int n = 0, m = 0; n < length; n += 4, m += 2)
             {
                 var queue = _queuePtr + _offset;
-                queue[0] = buffer[n];
+
+                queue[0] = buffer[n + 2];
+                queue[1] = buffer[n];
 
                 var acc = 0.0f;
 
@@ -300,22 +334,27 @@ namespace SDRSharp.Radio
                 }
                 acc += queue[halfLen] * _coeffPtr[halfLen];
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
         private void ProcessStandard(float* buffer, int length)
         {
-            for (var n = 0; n < length; n++)
+            for (int n = 0, m = 0; n < length; n+= _decimationFactor, m++)
             {
                 var queue = _queuePtr + _offset;
-                queue[0] = buffer[n];
+
+                for (int k = 0, l = n + _decimationFactor - 1; k < _decimationFactor; k++, l--)
+                {
+                    queue[k] = buffer[l];
+                }
 
                 var acc = 0.0f;
 
@@ -339,23 +378,28 @@ namespace SDRSharp.Radio
                     acc += *ptr1++ * *ptr2++;
                 }
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
         private void ProcessStandardInterleaved(float* buffer, int length)
         {
             length <<= 1;
-            for (var n = 0; n < length; n += 2)
+            for (int n = 0, m = 0; n < length; n += _decimationFactor * 2, m += 2)
             {
                 var queue = _queuePtr + _offset;
-                queue[0] = buffer[n];
+
+                for (int k = 0, l = n + 2 * (_decimationFactor - 1); k < _decimationFactor; k++, l -= 2)
+                {
+                    queue[k] = buffer[l];
+                }
 
                 var acc = 0.0f;
 
@@ -379,21 +423,22 @@ namespace SDRSharp.Radio
                     acc += *ptr1++ * *ptr2++;
                 }
 
-                if (--_offset < 0)
+                if ((_offset -= _decimationFactor) < 0)
                 {
-                    _offset = _queueSize * (CircularBufferSize - 1);
-                    Utils.Memcpy(_queuePtr + _offset + 1, _queuePtr, (_queueSize - 1) * sizeof(float));
+                    var oldOffset = _offset + _decimationFactor;
+                    _offset += _queueSize * (CircularBufferSize - 1);
+                    Utils.Memcpy(_queuePtr + _offset + _decimationFactor, _queuePtr + oldOffset, (_queueSize - _decimationFactor) * sizeof(float));
                 }
 
-                buffer[n] = acc;
+                buffer[m] = acc;
             }
         }
 
         public void Process(float* buffer, int length)
         {
-            if (_isSparse)
+            if (_isHalfBand)
             {
-                ProcessSparseSymmetricKernel(buffer, length);
+                ProcessHalfBandKernel(buffer, length);
             }
             else if (_isSymmetric)
             {
@@ -407,9 +452,9 @@ namespace SDRSharp.Radio
 
         public void ProcessInterleaved(float* buffer, int length)
         {
-            if (_isSparse)
+            if (_isHalfBand)
             {
-                ProcessSparseSymmetricKernelInterleaved(buffer, length);
+                ProcessHalfBandInterleaved(buffer, length);
             }
             else if (_isSymmetric)
             {

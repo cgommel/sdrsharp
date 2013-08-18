@@ -9,14 +9,14 @@ namespace SDRSharp.Radio
         private readonly FirFilter _iFilter;
         private readonly SharpEvent _event;
 
-        public IQFirFilter(float[] coefficients) : this (coefficients, false)
+        public IQFirFilter(float[] coefficients) : this (coefficients, false, 1)
         {
         }
 
-        public IQFirFilter(float[] coefficients, bool isMultiThteaded)
+        public IQFirFilter(float[] coefficients, bool isMultiThteaded, int decimationFactor)
         {
-            _rFilter = new FirFilter(coefficients);
-            _iFilter = new FirFilter(coefficients);
+            _rFilter = new FirFilter(coefficients, decimationFactor);
+            _iFilter = new FirFilter(coefficients, decimationFactor);
             _isMultiThteaded = isMultiThteaded;
             if (_isMultiThteaded)
             {

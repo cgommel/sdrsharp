@@ -439,27 +439,29 @@ namespace SDRSharp.Radio
             _iDecimator = new FloatDecimator(stageCount, samplerate, filterType, childThreads);
         }
 
-        public IQDecimator(int stageCount, double samplerate, bool useFastFilters) : this(stageCount, samplerate, useFastFilters, false)
+        public IQDecimator(int stageCount, double samplerate, bool useFastFilters)
+            : this(stageCount, samplerate, useFastFilters, false)
         {
         }
 
-        public IQDecimator(int stageCount, double samplerate) : this(stageCount, samplerate, false)
+        public IQDecimator(int stageCount, double samplerate)
+            : this(stageCount, samplerate, false)
         {
         }
 
         public void Process(Complex* buffer, int length)
         {
-            var rPtr = (float*) buffer;
+            var rPtr = (float*)buffer;
             var iPtr = rPtr + 1;
 
             if (_isMultithreaded)
             {
                 DSPThreadPool.QueueUserWorkItem(
                     delegate
-                        {
-                            _rDecimator.ProcessInterleaved(rPtr, length);
-                            _event.Set();
-                        });
+                    {
+                        _rDecimator.ProcessInterleaved(rPtr, length);
+                        _event.Set();
+                    });
             }
             else
             {
@@ -488,8 +490,11 @@ namespace SDRSharp.Radio
         private readonly UnsafeBuffer _cicDecimatorsBuffer;
         private readonly CicDecimator* _cicDecimators;
         private readonly FirFilter[] _firFilters;
+        private static readonly double _minimumCICSampleRate = Utils.GetDoubleSetting("minimumCICSampleRate", 1500000);
 
-        public FloatDecimator(int stageCount) : this(stageCount, 0, DecimationFilterType.Audio, 1)
+
+        public FloatDecimator(int stageCount)
+            : this(stageCount, 0, DecimationFilterType.Audio, 1)
         {
         }
 
@@ -517,7 +522,7 @@ namespace SDRSharp.Radio
                     break;
 
                 case DecimationFilterType.Baseband:
-                    while (_cicCount < stageCount && samplerate >= 500000)
+                    while (_cicCount < stageCount && samplerate >= _minimumCICSampleRate)
                     {
                         _cicCount++;
                         samplerate /= 2;
@@ -527,7 +532,8 @@ namespace SDRSharp.Radio
             }
 
             _cicDecimatorsBuffer = UnsafeBuffer.Create(_threadCount * _cicCount, sizeof(CicDecimator));
-            _cicDecimators = (CicDecimator*) _cicDecimatorsBuffer;
+            _cicDecimators = (CicDecimator*)_cicDecimatorsBuffer;
+
             for (var i = 0; i < _threadCount; i++)
             {
                 for (var j = 0; j < _cicCount; j++)
@@ -536,11 +542,10 @@ namespace SDRSharp.Radio
                 }
             }
 
-            var kernel = filterType == DecimationFilterType.Audio ? DecimationKernels.Kernel47 : DecimationKernels.Kernel23;
             _firFilters = new FirFilter[firCount];
             for (var i = 0; i < firCount; i++)
             {
-                _firFilters[i] = new FirFilter(kernel);
+                _firFilters[i] = new FirFilter(DecimationKernels.Kernel51, 2);
             }
         }
 
@@ -557,7 +562,7 @@ namespace SDRSharp.Radio
         }
 
         public void ProcessInterleaved(float* buffer, int length)
-        {            
+        {
             DecimateStage1Interleaved(buffer, length);
             length >>= _cicCount;
             DecimateStage2Interleaved(buffer, length);
@@ -587,10 +592,6 @@ namespace SDRSharp.Radio
             {
                 _firFilters[n].Process(buffer, length);
                 length /= 2;
-                for (int i = 0, j = 0; i < length; i++, j += 2)
-                {
-                    buffer[i] = buffer[j];
-                }
             }
         }
 
@@ -617,17 +618,13 @@ namespace SDRSharp.Radio
             for (var n = 0; n < _firFilters.Length; n++)
             {
                 _firFilters[n].ProcessInterleaved(buffer, length);
-                for (int i = 0, j = 0; i < length; i += 2, j += 4)
-                {
-                    buffer[i] = buffer[j];
-                }
                 length /= 2;
             }
         }
     }
 
 #if !__MonoCS__
-    [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 32)]
+    [StructLayout(LayoutKind.Sequential, Pack = 16, Size = 96)]
 #endif
     public unsafe struct CicDecimator
     {

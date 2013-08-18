@@ -12,7 +12,7 @@ namespace SDRSharp.Radio
         private const float PllLockThreshold = 3.2f;
         private const float RdsBitRate = 1187.5f;
 
-        private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false);
+        private readonly IQFirFilter _baseBandFilter = new IQFirFilter(null, false, 1);
         private readonly FirFilter _matchedFilter = new FirFilter();
         private readonly RdsDetectorBank _bitDecoder = new RdsDetectorBank();
         private readonly Pll* _pll;

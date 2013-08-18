@@ -65,7 +65,7 @@ namespace SDRSharp.Radio
 
                 _iqState = iq[i];
             }
-            _dcRemoverPtr->Process(audio, length);
+            //_dcRemoverPtr->Process(audio, length);
             if (_mode == FmMode.Narrow)
             {
                 ProcessSquelch(audio, length);
@@ -133,7 +133,7 @@ namespace SDRSharp.Radio
                     {
                         _hissFilter.Dispose();
                     }
-                    _hissFilter = new FirFilter(bpk);
+                    _hissFilter = new FirFilter(bpk, 1);
                     _dcRemoverPtr->Reset();
                 }
             }

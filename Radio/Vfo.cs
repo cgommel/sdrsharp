@@ -403,13 +403,13 @@ namespace SDRSharp.Radio
             int cutoff1 = 0;
             int cutoff2 = 10000;
             var iqBW = _bandwidth / 2;
-            int iqOrder = _actualDetectorType == DetectorType.WFM ? 30 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
+            int iqOrder = _actualDetectorType == DetectorType.WFM ? 60 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
             
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
 
             if (_iqFilter == null || _decimationModeHasChanged)
             {
-                _iqFilter = new IQFirFilter(coeffs, _actualDetectorType == DetectorType.WFM);
+                _iqFilter = new IQFirFilter(coeffs, _actualDetectorType == DetectorType.WFM, 1);
             }
             else
             {
