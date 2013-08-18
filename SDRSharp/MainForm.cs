@@ -1320,13 +1320,6 @@ namespace SDRSharp
             _vfo.Bandwidth = (int) filterBandwidthNumericUpDown.Value;
             waterfall.FilterBandwidth = _vfo.Bandwidth;
             spectrumAnalyzer.FilterBandwidth = _vfo.Bandwidth;
-
-            if (_vfo.DetectorType == DetectorType.CW)
-            {
-                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
-                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
-            }
-
             NotifyPropertyChanged("FilterBandwidth");
         }
 
@@ -1457,10 +1450,10 @@ namespace SDRSharp
             else if (cwRadioButton.Checked)
             {
                 _vfo.DetectorType = DetectorType.CW;
-                waterfall.BandType = _vfo.CWToneShift > 0 ? BandType.Upper : BandType.Lower;
-                spectrumAnalyzer.BandType = waterfall.BandType;
-                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
-                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
+                waterfall.BandType = BandType.Center;
+                spectrumAnalyzer.BandType = BandType.Center;
+                waterfall.FilterOffset = 0;
+                spectrumAnalyzer.FilterOffset = 0;
             }
             else if (rawRadioButton.Checked)
             {
@@ -1485,13 +1478,6 @@ namespace SDRSharp
         private void cwShiftNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             _vfo.CWToneShift = (int) cwShiftNumericUpDown.Value;
-            if (_vfo.DetectorType == DetectorType.CW)
-            {
-                waterfall.BandType = _vfo.CWToneShift > 0 ? BandType.Upper : BandType.Lower;
-                spectrumAnalyzer.BandType = waterfall.BandType;
-                waterfall.FilterOffset = Math.Abs(_vfo.CWToneShift) - _vfo.Bandwidth / 2;
-                spectrumAnalyzer.FilterOffset = waterfall.FilterOffset;
-            }
             NotifyPropertyChanged("CWShift");
         }
 

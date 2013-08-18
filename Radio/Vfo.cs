@@ -11,7 +11,6 @@ namespace SDRSharp.Radio
         public const int MinSSBAudioFrequency = 100;
         public const int MinBCAudioFrequency = 20;
         public const int MaxBCAudioFrequency = 16000;
-        public const int MaxQuadratureFilterOrder = 300;
         public const int MaxNFMBandwidth = 15000;
         public const int MinNFMAudioFrequency = 300;
 
@@ -21,6 +20,7 @@ namespace SDRSharp.Radio
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
         private readonly UsbDetector _usbDetector = new UsbDetector();
+        private readonly CwDetector _cwDetector = new CwDetector();
         private readonly DsbDetector _dsbDetector = new DsbDetector();
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
         private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
@@ -350,6 +350,7 @@ namespace SDRSharp.Radio
             var baseBandSampleRate = _sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount);
             _usbDetector.SampleRate = baseBandSampleRate;
             _lsbDetector.SampleRate = baseBandSampleRate;
+            _cwDetector.SampleRate = baseBandSampleRate;
             _fmDetector.SampleRate = baseBandSampleRate;
             _fmDetector.SquelchThreshold = _squelchThreshold;
             _amDetector.SquelchThreshold = _squelchThreshold;
@@ -369,15 +370,8 @@ namespace SDRSharp.Radio
                     break;
 
                 case DetectorType.CW:
-                    if (_cwToneShift > 0)
-                    {
-                        _usbDetector.BfoFrequency = -_cwToneShift;
-                    }
-                    else
-                    {
-                        _lsbDetector.BfoFrequency = _cwToneShift;
-                    }
-                    _downConverter.Frequency += _cwToneShift;
+                    _cwDetector.BfoFrequency = _cwToneShift;
+                    //_downConverter.Frequency += _cwToneShift;
                     break;
 
                 case DetectorType.NFM:
@@ -403,7 +397,7 @@ namespace SDRSharp.Radio
             int cutoff1 = 0;
             int cutoff2 = 10000;
             var iqBW = _bandwidth / 2;
-            int iqOrder = _actualDetectorType == DetectorType.WFM ? 60 : Math.Min(_filterOrder, MaxQuadratureFilterOrder);
+            int iqOrder = _actualDetectorType == DetectorType.WFM ? 60 : _filterOrder;
             
             var coeffs = FilterBuilder.MakeLowPassKernel(_sampleRate / Math.Pow(2.0, _baseBandDecimationStageCount), iqOrder, iqBW, _windowType);
 
@@ -560,14 +554,7 @@ namespace SDRSharp.Radio
                     break;
 
                 case DetectorType.CW:
-                    if (_cwToneShift > 0)
-                    {
-                        _usbDetector.Demodulate(iq, audio, length);
-                    }
-                    else
-                    {
-                        _lsbDetector.Demodulate(iq, audio, length);
-                    }
+                    _cwDetector.Demodulate(iq, audio, length);
                     break;
             }
         }

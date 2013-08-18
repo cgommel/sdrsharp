@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmDetector.cs" />
+    <Compile Include="CwDetector.cs" />
     <Compile Include="DownConverter.cs" />
     <Compile Include="DSPThreadPool.cs" />
     <Compile Include="ExtIO.cs" />
