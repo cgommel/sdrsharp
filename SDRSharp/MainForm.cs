@@ -86,7 +86,8 @@ namespace SDRSharp
         private Size _lastSize;
         private bool _initializing;
         private readonly int _centerScrollLimit = Utils.GetIntSetting("centerScrollLimit", 1000);
-        private readonly float _fftOffset = (float) Utils.GetDoubleSetting("fftOffset", -40.0);
+        private readonly float _fftOffset = (float)Utils.GetDoubleSetting("fftOffset", -40.0);
+        private readonly int _minOutputSampleRate = Utils.GetIntSetting("minOutputSampleRate", 24000);
         private readonly Dictionary<string, ISharpPlugin> _sharpPlugins = new Dictionary<string, ISharpPlugin>();
         private readonly Dictionary<DetectorType, int[]> _modeStates = new Dictionary<DetectorType, int[]>();
 
@@ -1406,6 +1407,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = 250000;
             }
             else if (nfmRadioButton.Checked)
             {
@@ -1414,6 +1416,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate;
             }
             else if (amRadioButton.Checked)
             {
@@ -1422,6 +1425,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate;
             }
             else if (lsbRadioButton.Checked)
             {
@@ -1430,6 +1434,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Lower;
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate / 2;
             }
             else if (usbRadioButton.Checked)
             {
@@ -1438,6 +1443,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Upper;
                 waterfall.FilterOffset = Vfo.MinSSBAudioFrequency;
                 spectrumAnalyzer.FilterOffset = Vfo.MinSSBAudioFrequency;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate / 2;
             }
             else if (dsbRadioButton.Checked)
             {
@@ -1446,6 +1452,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate;
             }
             else if (cwRadioButton.Checked)
             {
@@ -1454,6 +1461,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate;
             }
             else if (rawRadioButton.Checked)
             {
@@ -1462,6 +1470,7 @@ namespace SDRSharp
                 spectrumAnalyzer.BandType = BandType.Center;
                 waterfall.FilterOffset = 0;
                 spectrumAnalyzer.FilterOffset = 0;
+                filterBandwidthNumericUpDown.Maximum = _minOutputSampleRate / 2;
             }
 
             SetModeState(_modeStates[_vfo.DetectorType]);
