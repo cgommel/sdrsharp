@@ -77,7 +77,7 @@ namespace SDRSharp.Radio
             {
                 var outR = vectR * targetCos - vectI * targetSin;
                 var outI = vectI * targetCos + vectR * targetSin;
-                var oscGn = 1.95f - (vectR * vectR + vectI * vectI);
+                var oscGn = 1.95f - (outR * outR + outI * outI);
                 vectR = oscGn * outR;
                 vectI = oscGn * outI;
 

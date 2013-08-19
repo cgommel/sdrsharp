@@ -70,7 +70,7 @@ namespace SDRSharp.Radio
 
         private void Configure()
         {
-            if (_vectI == default(double) && _vectR == default(double))
+            if (_vectI == default(float) && _vectR == default(float))
             {
                 _vectR = 1.0f;
             }
@@ -115,7 +115,7 @@ namespace SDRSharp.Radio
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
                 _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
+                var oscGn = 1.95f - (_outR * _outR + _outI * _outI);
                 _vectR = oscGn * _outR;
                 _vectI = oscGn * _outI;
 
@@ -134,7 +134,7 @@ namespace SDRSharp.Radio
             {
                 _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
                 _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
+                var oscGn = 1.95f - (_outR * _outR + _outI * _outI);
                 _vectR = oscGn * _outR;
                 _vectI = oscGn * _outI;
 
