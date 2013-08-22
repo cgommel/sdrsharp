@@ -41,22 +41,25 @@ namespace SDRSharp.Radio
 
     public class SyndromeDetector
     {
-        [Flags]
         protected enum BlockSequence
         {
-            WaitBitSync,
-            GotBitSync,
-            GotA,
+            GotA = 0,
             GotB,
             GotC,
-            GotD
+            GotD,
+            WaitBitSync,
+            GotBitSync
         }
 
-        private BlockSequence _sequence = BlockSequence.WaitBitSync;
-        private UInt32 _raw;
+        private const int MaxCorrectableBits = 5;
+        private const int CheckwordBitsCount = 10;
+
         private readonly RdsDumpGroups _dumpGroups;
-        private readonly bool _useFec = Utils.GetBooleanSetting("rdsUseFEC");
+        private readonly bool _useFec = Utils.GetBooleanSetting("RdsUseFec");
+        private readonly UInt16[] _blocks = new UInt16[4];
+        private BlockSequence _sequence = BlockSequence.WaitBitSync;
         private UInt16 _syndrome;
+        private UInt32 _raw;
         private int _count;
 
         public SyndromeDetector(RdsDumpGroups dumpGroups)
@@ -74,8 +77,9 @@ namespace SDRSharp.Radio
             {
                 _syndrome = BuildSyndrome(_raw);
                 _syndrome ^= 0x3d8;
+
                 _sequence = _syndrome == 0 ? BlockSequence.GotA : BlockSequence.WaitBitSync;
-                Block1 = (UInt16)((_raw >> 10) & 0xffff);
+                _blocks[0] = (UInt16)((_raw >> CheckwordBitsCount) & 0xffff);
                 _count = 0;
             }
 
@@ -84,7 +88,7 @@ namespace SDRSharp.Radio
                 ProcessSyndrome();
                 if (_sequence == BlockSequence.GotD)
                 {
-                    _dumpGroups.AnalyseFrames(Block1, Block2, Block3, Block4);
+                    _dumpGroups.AnalyseFrames(_blocks[0], _blocks[1], _blocks[2], _blocks[3]);
                     _sequence = BlockSequence.GotBitSync;
                 }
 
@@ -106,7 +110,7 @@ namespace SDRSharp.Radio
                     _sequence = BlockSequence.GotB;
                     break;
                 case BlockSequence.GotB:
-                    _syndrome ^= (UInt16)(Block2 & 0x800) == 0 ? (UInt16)0x25c : (UInt16)0x3cc;
+                    _syndrome ^= (UInt16)((_blocks[1] & 0x800) == 0 ? 0x25c : 0x3cc);
                     _sequence = BlockSequence.GotC;
                     break;
                 case BlockSequence.GotC:
@@ -114,18 +118,20 @@ namespace SDRSharp.Radio
                     _sequence = BlockSequence.GotD;
                     break;
             }
+
+            var blockIndex = (int)_sequence;
             if (_syndrome != 0)
             {
                 if (_useFec)
                 {
                     var corrected = ApplyFEC();
-                    if (_syndrome != 0 || corrected > 2)
+                    if (_syndrome != 0 || corrected > MaxCorrectableBits)
                     {
                         _sequence = BlockSequence.WaitBitSync;
                     }
                     else
-                    {
-                        SetBlock(_sequence, (UInt16)(_raw & 0xffff));
+                    {                        
+                        _blocks[blockIndex] = (UInt16)(_raw & 0xffff);                        
                     }
                 }
                 else
@@ -135,51 +141,28 @@ namespace SDRSharp.Radio
             }
             else
             {
-                SetBlock(_sequence, (UInt16)((_raw >> 10) & 0xffff));
-            }
-        }
-
-        private void SetBlock(BlockSequence sequence, UInt16 val)
-        {
-            switch (_sequence)
-            {
-                case BlockSequence.GotA:
-                    Block1 = val;
-                    break;
-                case BlockSequence.GotB:
-                    Block2 = val;
-                    break;
-                case BlockSequence.GotC:
-                    Block3 = val;
-                    break;
-                case BlockSequence.GotD:
-                    Block4 = val;
-                    break;
-                default:
-                    break;
+                _blocks[blockIndex] = (UInt16)((_raw >> CheckwordBitsCount) & 0xffff);
             }
         }
 
         private int ApplyFEC()
         {
-            const int poly = 0x5b9;
+            const UInt16 poly = 0x5b9;
             const int errorMask = (1 << 5);
 
             var correction = (uint)(1 << 25);
             var correctedBitsCount = 0;
-
-            _raw >>= 10;
+            
             for (var i = 0; i < 16; i++)
             {
                 var st = ((_syndrome & 0x200) == 0x200);
                 var bitError = (_syndrome & errorMask) == 0;
                 _raw ^= (st && bitError) ? correction : 0;
                 _syndrome <<= 1;
-                _syndrome ^= (UInt16)((st && !bitError) ? poly : 0);
+                _syndrome ^= ((st && !bitError) ? poly : (UInt16)0);
                 correctedBitsCount += (st && bitError) ? 1 : 0;
                 correction >>= 1;
             }
-
             _syndrome &= 0x3ff;
             return correctedBitsCount;
         }
@@ -206,7 +189,7 @@ namespace SDRSharp.Radio
                 0x31B
             };
 
-            var block = raw & 0x3FFFFFF;
+            var block = raw & 0x3ffffff;
             var syndrome = (UInt16)(block >> 16);
             for (var i = 0; i < 16; i++)
             {
@@ -215,45 +198,6 @@ namespace SDRSharp.Radio
             }
 
             return syndrome;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("st {0:d02} sy {1:x04} r {2:x08}", _count, _syndrome, _raw);
-        }
-
-        public string GroupCode
-        {
-            get
-            {
-                int group = Block2 >> 12;
-                char groupType = ((Block2 & 0x0800) == 0) ? 'A' : 'B';
-                return string.Format("{0:d}{1}", group, groupType);
-            }
-        }
-
-        public ushort Block1
-        {
-            get;
-            private set;
-        }
-
-        public ushort Block2
-        {
-            get;
-            private set;
-        }
-
-        public ushort Block3
-        {
-            get;
-            private set;
-        }
-
-        public ushort Block4
-        {
-            get;
-            private set;
         }
     }
 }
