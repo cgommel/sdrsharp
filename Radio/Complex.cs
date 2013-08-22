@@ -19,16 +19,6 @@ namespace SDRSharp.Radio
             Imag = c.Imag;
         }
 
-        public static Complex ComplexAdd(Complex xy, Complex uv)
-        {
-            return new Complex(xy.Real + uv.Real, xy.Imag + uv.Imag);
-        }
-
-        public static Complex ComplexSubtract(Complex xy, Complex uv)
-        {
-            return new Complex(xy.Real - uv.Real, xy.Imag - uv.Imag);
-        }
-
         public float Modulus()
         {
             return (float) Math.Sqrt(ModulusSquared());
@@ -44,7 +34,7 @@ namespace SDRSharp.Radio
             return (float) Math.Atan2(Imag, Real);
         }
 
-        public float FastArgument()
+        public float ArgumentFast()
         {
             return Trig.Atan2(Imag, Real);
         }
@@ -54,9 +44,29 @@ namespace SDRSharp.Radio
             return new Complex(Real, -Imag);
         }
 
+        public Complex Normalize()
+        {
+            var norm = 1.0f / Modulus();
+            return this * norm;
+        }
+
+        public Complex NormalizeFast()
+        {
+            var norm = 1.95f - ModulusSquared();
+            return this * norm;
+        }
+
         public override string ToString()
         {
             return string.Format("real {0}, imag {1}", Real, Imag);
+        }
+
+        public static Complex FromAngle(double angle)
+        {
+            Complex result;
+            result.Real = (float) Math.Cos(angle);
+            result.Imag = (float) Math.Sin(angle);
+            return result;
         }
 
         public static bool operator ==(Complex leftHandSide, Complex rightHandSide)

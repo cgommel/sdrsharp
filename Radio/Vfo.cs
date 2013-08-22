@@ -371,7 +371,6 @@ namespace SDRSharp.Radio
 
                 case DetectorType.CW:
                     _cwDetector.BfoFrequency = _cwToneShift;
-                    //_downConverter.Frequency += _cwToneShift;
                     break;
 
                 case DetectorType.NFM:

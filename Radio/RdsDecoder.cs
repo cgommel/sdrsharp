@@ -145,7 +145,7 @@ namespace SDRSharp.Radio
             for (var i = 0; i < length; i++)
             {
                 _osc->Tick();
-                _rawPtr[i] = _osc->Out * baseBand[i];
+                _rawPtr[i] = _osc->Phase * baseBand[i];
             }
 
             // Decimate

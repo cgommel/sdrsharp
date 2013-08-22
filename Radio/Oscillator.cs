@@ -8,15 +8,10 @@ namespace SDRSharp.Radio
 #endif
     public unsafe struct Oscillator
     {
-        private float _sinOfAnglePerSample;
-        private float _cosOfAnglePerSample;
-        private float _vectR;
-        private float _vectI;
-        private float _outR;
-        private float _outI;
+        private Complex _rotation;
+        private Complex _vector;
         private double _sampleRate;
         private double _frequency;
-        private double _anglePerSample;
 
         public double SampleRate
         {
@@ -44,82 +39,49 @@ namespace SDRSharp.Radio
             }
         }
 
-        public float StateReal
-        {
-            get { return _vectR; }
-            set { _vectR = value; }
-        }
-
-        public float StateImag
-        {
-            get { return _vectI; }
-            set { _vectI = value; }
-        }
-
-        public float StateSin
-        {
-            get { return _sinOfAnglePerSample; }
-            set { _sinOfAnglePerSample = value; }
-        }
-
-        public float StateCos
-        {
-            get { return _cosOfAnglePerSample; }
-            set { _cosOfAnglePerSample = value; }
-        }
-
         private void Configure()
         {
-            if (_vectI == default(float) && _vectR == default(float))
+            if (_vector.Real == default(float) && _vector.Imag == default(float))
             {
-                _vectR = 1.0f;
+                _vector.Real = 1.0f;
             }
             if (_sampleRate != default(double))
             {
-                _anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
-                _sinOfAnglePerSample = (float) Math.Sin(_anglePerSample);
-                _cosOfAnglePerSample = (float) Math.Cos(_anglePerSample);
+                var anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
+                _rotation = Complex.FromAngle(anglePerSample);
             }
         }
 
-        public Complex Out
+        public Complex Phase
         {
-            get
-            {
-                return new Complex(_outR, _outI);
-            }
+            get { return _vector; }
+            set { _vector = value; }
         }
 
-        public float OutI
+        public float Real
         {
-            get { return _outR; }
+            get { return _vector.Real; }
+            set { _vector.Real = value; }
         }
 
-        public float OutQ
+        public float Imag
         {
-            get { return _outI; }
+            get { return _vector.Imag; }
+            set { _vector.Imag = value; }
         }
 
         public void Tick()
         {
-            _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
-            _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-            var oscGn = 1.95f - (_vectR * _vectR + _vectI * _vectI);
-            _vectR = oscGn * _outR;
-            _vectI = oscGn * _outI;
+            _vector *= _rotation;
+            _vector = _vector.NormalizeFast();
         }
 
         public void Mix(float* buffer, int length)
         {
             for (var i = 0; i < length; i++)
             {
-                _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
-                _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95f - (_outR * _outR + _outI * _outI);
-                _vectR = oscGn * _outR;
-                _vectI = oscGn * _outI;
-
-                buffer[i] *= _outR;
+                Tick();
+                buffer[i] *= _vector.Real;
             }
         }
 
@@ -132,23 +94,14 @@ namespace SDRSharp.Radio
         {
             for (var i = startIndex; i < length; i += stepSize)
             {
-                _outR = _vectR * _cosOfAnglePerSample - _vectI * _sinOfAnglePerSample;
-                _outI = _vectI * _cosOfAnglePerSample + _vectR * _sinOfAnglePerSample;
-                var oscGn = 1.95f - (_outR * _outR + _outI * _outI);
-                _vectR = oscGn * _outR;
-                _vectI = oscGn * _outI;
-
-                Complex osc;
-                osc.Real = _outR;
-                osc.Imag = _outI;
-
-                buffer[i] *= osc;
+                Tick();
+                buffer[i] *= _vector;
             }
         }
 
         public static implicit operator Complex(Oscillator osc)
         {
-            return osc.Out;
+            return osc.Phase;
         }
     }
 }

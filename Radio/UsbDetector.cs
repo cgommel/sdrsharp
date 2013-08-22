@@ -9,7 +9,7 @@
             for (var i = 0; i < length; i++)
             {
                 _bfo.Tick();
-                audio[i] = iq[i].Real * _bfo.OutQ + iq[i].Imag * _bfo.OutI;
+                audio[i] = iq[i].Real * _bfo.Imag + iq[i].Imag * _bfo.Real;
             }
         }
 

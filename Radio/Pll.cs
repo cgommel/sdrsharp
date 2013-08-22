@@ -180,7 +180,7 @@ namespace SDRSharp.Radio
             var osc = Trig.SinCos(_phase);
 
             osc *= sample;
-            var phaseError = -osc.FastArgument();
+            var phaseError = -osc.ArgumentFast();
 
             ProcessPhaseError(phaseError);
 
@@ -192,7 +192,7 @@ namespace SDRSharp.Radio
             var osc = Trig.SinCos(_phase);
 
             osc *= sample;
-            var phaseError = -osc.FastArgument();
+            var phaseError = -osc.ArgumentFast();
 
             ProcessPhaseError(phaseError);
 

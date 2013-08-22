@@ -67,22 +67,16 @@ namespace SDRSharp.Radio
             }
 
             var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
-            var targetSin = (float) Math.Sin(targetAngularFrequency);
-            var targetCos = (float) Math.Cos(targetAngularFrequency);
+            var targetRotation = Complex.FromAngle(targetAngularFrequency);
 
-            var vectR = _oscillators[0].StateReal;
-            var vectI = _oscillators[0].StateImag;
+            var phase = _oscillators[0].Phase;
 
             for (var i = 1; i < _phaseCount; i++)
             {
-                var outR = vectR * targetCos - vectI * targetSin;
-                var outI = vectI * targetCos + vectR * targetSin;
-                var oscGn = 1.95f - (outR * outR + outI * outI);
-                vectR = oscGn * outR;
-                vectI = oscGn * outI;
+                phase *= targetRotation;
+                phase = phase.NormalizeFast();
 
-                _oscillators[i].StateReal = vectR;
-                _oscillators[i].StateImag = vectI;
+                _oscillators[i].Phase = phase;
             }
         }
 
