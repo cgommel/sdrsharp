@@ -4,23 +4,23 @@ namespace SDRSharp.Radio
 {
     public static unsafe class Fourier
     {
-        public const int MaxSizeBits = 22; // 4M
-        public const int MaxSize = 1 << MaxSizeBits;
-        private const int HalfSize = MaxSize / 2;
+        private const int MaxLutBits = 16; // 64k
+        private const int MaxLutBins = 1 << MaxLutBits;
+        private const int LutSize = MaxLutBins / 2;
+        private const double TwoPi = 2.0 * Math.PI;
 
-        private static UnsafeBuffer _lutBuffer = UnsafeBuffer.Create(HalfSize, sizeof(Complex));
+        private static UnsafeBuffer _lutBuffer = UnsafeBuffer.Create(LutSize, sizeof(Complex));
         private static Complex* _lut;
 
         static Fourier()
         {
-            _lut = (Complex*)_lutBuffer;
+            _lut = (Complex*) _lutBuffer;
 
-            const double twoPi = 2.0 * Math.PI;
-            var angle = twoPi / MaxSize;
+            const double angle = TwoPi / MaxLutBins;
 
-            for (var i = 0; i < HalfSize; i++)
+            for (var i = 0; i < LutSize; i++)
             {
-                _lut[i] = Complex.FromAngle((angle * i) % twoPi).Conjugate();
+                _lut[i] = Complex.FromAngle(angle * i).Conjugate();
             }
         }
 
@@ -180,8 +180,20 @@ namespace SDRSharp.Radio
                 buffer[i].Imag *= window[i];
             }
         }
+        
+        public static void ForwardTransform(Complex* buffer, int length)
+        {
+            if (length <= MaxLutBins)
+            {
+                ForwardTransformLut(buffer, length);
+            }
+            else
+            {
+                ForwardTransformRot(buffer, length);
+            }
+        }
 
-        public static void ForwardTransform(Complex[] buffer, int length)
+        private static void ForwardTransformLut(Complex* buffer, int length)
         {
             int nm1 = length - 1;
             int nd2 = length / 2;
@@ -223,7 +235,7 @@ namespace SDRSharp.Radio
                 le = 1 << l;
                 le2 = le / 2;
 
-                n = MaxSizeBits - l;
+                n = MaxLutBits - l;
 
                 for (j = 1; j <= le2; ++j)
                 {
@@ -255,11 +267,11 @@ namespace SDRSharp.Radio
             }
         }
 
-        public static void ForwardTransform(Complex* buffer, int length)
+        private static void ForwardTransformRot(Complex* buffer, int length)
         {
             int nm1 = length - 1;
             int nd2 = length / 2;
-            int i, j, jm1, k, l, m, n, le, le2, ip, nd4;
+            int i, j, jm1, k, l, m, le, le2, ip, nd4;
             Complex u, t;
 
             m = 0;
@@ -297,13 +309,13 @@ namespace SDRSharp.Radio
                 le = 1 << l;
                 le2 = le / 2;
 
-                n = MaxSizeBits - l;
+                var angle = Math.PI / le2;
 
                 for (j = 1; j <= le2; ++j)
                 {
                     jm1 = j - 1;
 
-                    u = _lut[jm1 << n];
+                    u = Complex.FromAngle(angle * jm1).Conjugate();
 
                     for (i = jm1; i <= nm1; i += le)
                     {
