@@ -69,6 +69,11 @@ namespace SDRSharp.Radio
             return result;
         }
 
+        public static Complex FromAngleFast(float angle)
+        {
+            return Trig.SinCos(angle);
+        }
+
         public static bool operator ==(Complex leftHandSide, Complex rightHandSide)
         {            
             if (leftHandSide.Real != rightHandSide.Real)

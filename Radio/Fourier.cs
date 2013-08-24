@@ -4,6 +4,26 @@ namespace SDRSharp.Radio
 {
     public static unsafe class Fourier
     {
+        public const int MaxSizeBits = 22; // 4M
+        public const int MaxSize = 1 << MaxSizeBits;
+        private const int HalfSize = MaxSize / 2;
+
+        private static UnsafeBuffer _lutBuffer = UnsafeBuffer.Create(HalfSize, sizeof(Complex));
+        private static Complex* _lut;
+
+        static Fourier()
+        {
+            _lut = (Complex*)_lutBuffer;
+
+            const double twoPi = 2.0 * Math.PI;
+            var angle = twoPi / MaxSize;
+
+            for (var i = 0; i < HalfSize; i++)
+            {
+                _lut[i] = Complex.FromAngle((angle * i) % twoPi).Conjugate();
+            }
+        }
+
         public static void SpectrumPower(Complex* buffer, float* power, int length)
         {
             SpectrumPower(buffer, power, length, 0.0f);
@@ -165,8 +185,8 @@ namespace SDRSharp.Radio
         {
             int nm1 = length - 1;
             int nd2 = length / 2;
-            int i, j, jm1, k, l, m, le, le2, ip, nd4;
-            float ur, ui, sr, si, tr, ti;
+            int i, j, jm1, k, l, m, n, le, le2, ip, nd4;
+            Complex u, t;
 
             m = 0;
             i = length;
@@ -182,12 +202,9 @@ namespace SDRSharp.Radio
             {
                 if (i < j)
                 {
-                    tr = buffer[j].Real;
-                    ti = buffer[j].Imag;
-                    buffer[j].Real = buffer[i].Real;
-                    buffer[j].Imag = buffer[i].Imag;
-                    buffer[i].Real = tr;
-                    buffer[i].Imag = ti;
+                    t = buffer[j];
+                    buffer[j] = buffer[i];
+                    buffer[i] = t;
                 }
 
                 k = nd2;
@@ -205,43 +222,36 @@ namespace SDRSharp.Radio
             {
                 le = 1 << l;
                 le2 = le / 2;
-                ur = 1;
-                ui = 0;
 
-                sr = (float)Math.Cos(Math.PI / le2);
-                si = (float)-Math.Sin(Math.PI / le2);
+                n = MaxSizeBits - l;
 
                 for (j = 1; j <= le2; ++j)
                 {
                     jm1 = j - 1;
 
+                    u = _lut[jm1 << n];
+
                     for (i = jm1; i <= nm1; i += le)
                     {
                         ip = i + le2;
-                        tr = buffer[ip].Real * ur - buffer[ip].Imag * ui;
-                        ti = buffer[ip].Real * ui + buffer[ip].Imag * ur;
-                        buffer[ip].Real = buffer[i].Real - tr;
-                        buffer[ip].Imag = buffer[i].Imag - ti;
-                        buffer[i].Real = buffer[i].Real + tr;
-                        buffer[i].Imag = buffer[i].Imag + ti;
-                    }
 
-                    tr = ur;
-                    ur = tr * sr - ui * si;
-                    ui = tr * si + ui * sr;
+                        t = u * buffer[ip];
+                        buffer[ip] = buffer[i] - t;
+                        buffer[i] += t;
+                    }
                 }
             }
 
             nd4 = nd2 / 2;
             for (i = 0; i < nd4; i++)
             {
-                Complex tmp = buffer[i];
+                t = buffer[i];
                 buffer[i] = buffer[nd2 - i - 1];
-                buffer[nd2 - i - 1] = tmp;
+                buffer[nd2 - i - 1] = t;
 
-                tmp = buffer[nd2 + i];
+                t = buffer[nd2 + i];
                 buffer[nd2 + i] = buffer[nd2 + nd2 - i - 1];
-                buffer[nd2 + nd2 - i - 1] = tmp;
+                buffer[nd2 + nd2 - i - 1] = t;
             }
         }
 
@@ -249,8 +259,8 @@ namespace SDRSharp.Radio
         {
             int nm1 = length - 1;
             int nd2 = length / 2;
-            int i, j, jm1, k, l, m, le, le2, ip, nd4;
-            float ur, ui, sr, si, tr, ti;
+            int i, j, jm1, k, l, m, n, le, le2, ip, nd4;
+            Complex u, t;
 
             m = 0;
             i = length;
@@ -266,12 +276,9 @@ namespace SDRSharp.Radio
             {
                 if (i < j)
                 {
-                    tr = buffer[j].Real;
-                    ti = buffer[j].Imag;
-                    buffer[j].Real = buffer[i].Real;
-                    buffer[j].Imag = buffer[i].Imag;
-                    buffer[i].Real = tr;
-                    buffer[i].Imag = ti;
+                    t = buffer[j];
+                    buffer[j] = buffer[i];
+                    buffer[i] = t;
                 }
 
                 k = nd2;
@@ -289,43 +296,36 @@ namespace SDRSharp.Radio
             {
                 le = 1 << l;
                 le2 = le / 2;
-                ur = 1;
-                ui = 0;
 
-                sr = (float) Math.Cos(Math.PI / le2);
-                si = (float) -Math.Sin(Math.PI / le2);
+                n = MaxSizeBits - l;
 
                 for (j = 1; j <= le2; ++j)
                 {
                     jm1 = j - 1;
 
+                    u = _lut[jm1 << n];
+
                     for (i = jm1; i <= nm1; i += le)
                     {
                         ip = i + le2;
-                        tr = buffer[ip].Real * ur - buffer[ip].Imag * ui;
-                        ti = buffer[ip].Real * ui + buffer[ip].Imag * ur;
-                        buffer[ip].Real = buffer[i].Real - tr;
-                        buffer[ip].Imag = buffer[i].Imag - ti;
-                        buffer[i].Real = buffer[i].Real + tr;
-                        buffer[i].Imag = buffer[i].Imag + ti;
-                    }
 
-                    tr = ur;
-                    ur = tr * sr - ui * si;
-                    ui = tr * si + ui * sr;
+                        t = u * buffer[ip];
+                        buffer[ip] = buffer[i] - t;
+                        buffer[i] += t;
+                    }
                 }
             }
 
             nd4 = nd2 / 2;
             for (i = 0; i < nd4; i++)
             {
-                Complex tmp = buffer[i];
+                t = buffer[i];
                 buffer[i] = buffer[nd2 - i - 1];
-                buffer[nd2 - i - 1] = tmp;
+                buffer[nd2 - i - 1] = t;
 
-                tmp = buffer[nd2 + i];
+                t = buffer[nd2 + i];
                 buffer[nd2 + i] = buffer[nd2 + nd2 - i - 1];
-                buffer[nd2 + nd2 - i - 1] = tmp;
+                buffer[nd2 + nd2 - i - 1] = t;
             }
         }
     }
