@@ -14,8 +14,9 @@ namespace SDRSharp.Radio
         public const int MaxNFMBandwidth = 15000;
         public const int MinNFMAudioFrequency = 300;
 
+        private readonly double _minThreadedSampleRate = Utils.GetDoubleSetting("minThreadedSampleRate", 1000000);
+
         private readonly AutomaticGainControl _agc = new AutomaticGainControl();
-        private readonly DownConverter _downConverter = new DownConverter();
         private readonly AmDetector _amDetector = new AmDetector();
         private readonly FmDetector _fmDetector = new FmDetector();
         private readonly LsbDetector _lsbDetector = new LsbDetector();
@@ -25,6 +26,7 @@ namespace SDRSharp.Radio
         private readonly StereoDecoder _stereoDecoder = new StereoDecoder();
         private readonly RdsDecoder _rdsDecoder = new RdsDecoder();
         private readonly FirFilter _audioFilter = new FirFilter();
+        private DownConverter _downConverter;
         private DcRemover _dcRemover = new DcRemover(TimeConst);
         private IQFirFilter _iqFilter;
         private IQDecimator _baseBandDecimator;
@@ -319,6 +321,11 @@ namespace SDRSharp.Radio
         private void Configure()
         {
             _actualDetectorType = _detectorType;
+            var multiThreaded = _sampleRate >= _minThreadedSampleRate;
+            if (_downConverter == null || (multiThreaded && _downConverter.PhaseCount > 1))
+            {
+                _downConverter = new DownConverter(multiThreaded ? Environment.ProcessorCount : 1);
+            }
             _downConverter.SampleRate = _sampleRate;
             _downConverter.Frequency = _frequency;
             if (_needNewDecimators || _baseBandDecimator == null)

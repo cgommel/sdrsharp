@@ -21,10 +21,6 @@ namespace SDRSharp.Radio
             _oscillators = (Oscillator*) _oscillatorsBuffer;
         }
 
-        public DownConverter() : this(Environment.ProcessorCount)
-        {
-        }
-
         public double SampleRate
         {
             get { return _sampleRate; }
@@ -51,6 +47,11 @@ namespace SDRSharp.Radio
             }
         }
 
+        public int PhaseCount
+        {
+            get { return _phaseCount; }
+        }
+
         private void Configure()
         {
             if (_sampleRate == default(double))
@@ -66,14 +67,14 @@ namespace SDRSharp.Radio
                 _oscillators[i].Frequency = threadFrequency;
             }
 
-            var targetAngularFrequency = 2.0 * Math.PI * _frequency / _sampleRate;
-            var targetRotation = Complex.FromAngle(targetAngularFrequency);
+            var anglePerSample = 2.0 * Math.PI * _frequency / _sampleRate;
+            var rotation = Complex.FromAngle(anglePerSample);
 
             var phase = _oscillators[0].Phase;
 
             for (var i = 1; i < _phaseCount; i++)
             {
-                phase *= targetRotation;
+                phase *= rotation;
                 phase = phase.NormalizeFast();
 
                 _oscillators[i].Phase = phase;
@@ -87,7 +88,7 @@ namespace SDRSharp.Radio
             for (var i = 1; i < _phaseCount; i++)
             {
                 DSPThreadPool.QueueUserWorkItem(
-                    delegate (object parameter)
+                        parameter =>
                         {
                             var index = (int) parameter;
                             _oscillators[index].Mix(buffer, length, index, _phaseCount);
