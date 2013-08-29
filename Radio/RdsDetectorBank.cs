@@ -193,7 +193,7 @@ namespace SDRSharp.Radio
             var syndrome = (UInt16)(block >> 16);
             for (var i = 0; i < 16; i++)
             {
-                syndrome ^= (UInt16)(((block & 0x8000) == 0x8000) ? Parity[i] : 0);
+                syndrome ^= ((block & 0x8000) == 0x8000) ? Parity[i] : (UInt16) 0;
                 block <<= 1;
             }
 
