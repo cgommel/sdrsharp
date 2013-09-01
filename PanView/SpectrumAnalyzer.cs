@@ -56,6 +56,7 @@ namespace SDRSharp.PanView
         private bool _changingFrequency;
         private bool _changingCenterFrequency;
         private bool _useSmoothing;
+        private bool _enableFilter = true;
         private bool _hotTrackNeeded;
         private bool _useSnap;
         private bool _markPeaks;
@@ -239,6 +240,16 @@ namespace SDRSharp.PanView
             set { _useSmoothing = value; }
         }
 
+        public bool EnableFilter
+        {
+            get { return _enableFilter; }
+            set
+            {
+                _enableFilter = value;
+                _performNeeded = true;
+            }
+        }
+
         public string StatusText
         {
             get { return _statusText; }
@@ -406,7 +417,7 @@ namespace SDRSharp.PanView
             using (var path = new GraphicsPath())
             using (var outlinePen = new Pen(Color.Black))
             {
-                if (cursorWidth < ClientRectangle.Width)
+                if (_enableFilter && cursorWidth < ClientRectangle.Width)
                 {
                     var carrierPen = redPen;
                     carrierPen.Width = CarrierPenWidth;
@@ -878,11 +889,12 @@ namespace SDRSharp.PanView
                     _oldFrequency = _frequency;
                     _changingFrequency = true;
                 }
-                else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
+                else if (_enableFilter &&
+                    ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
                     (_bandType == BandType.Center || _bandType == BandType.Lower))
                     ||
                     (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
-                    (_bandType == BandType.Center || _bandType == BandType.Upper)))
+                    (_bandType == BandType.Center || _bandType == BandType.Upper))))
                 {
                     _oldX = e.X;
                     _oldFilterBandwidth = _filterBandwidth;
@@ -962,11 +974,12 @@ namespace SDRSharp.PanView
                 bw = (int) (bw * _spectrumWidth / _scale / (ClientRectangle.Width - 2 * AxisMargin) + _oldFilterBandwidth);
                 UpdateBandwidth(bw);
             }
-            else if ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
+            else if (_enableFilter &&
+                ((Math.Abs(e.X - _lower + Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
                 (_bandType == BandType.Center || _bandType == BandType.Lower))
                 ||
                 (Math.Abs(e.X - _upper - Waterfall.CursorSnapDistance) <= Waterfall.CursorSnapDistance &&
-                (_bandType == BandType.Center || _bandType == BandType.Upper)))
+                (_bandType == BandType.Center || _bandType == BandType.Upper))))
             {
                 Cursor = Cursors.SizeWE;
             }
