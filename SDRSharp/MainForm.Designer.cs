@@ -696,7 +696,8 @@ namespace SDRSharp
             this.filterTypeComboBox.Items.AddRange(new object[] {
             "Hamming",
             "Blackman",
-            "Blackman-Harris",
+            "Blackman-Harris 4",
+            "Blackman-Harris 7",
             "Hann-Poisson",
             "Youssef"});
             this.filterTypeComboBox.Location = new System.Drawing.Point(70, 102);
@@ -1280,7 +1281,8 @@ namespace SDRSharp
             "None",
             "Hamming",
             "Blackman",
-            "Blackman-Harris",
+            "Blackman-Harris 4",
+            "Blackman-Harris 7",
             "Hann-Poisson",
             "Youssef"});
             this.fftWindowComboBox.Location = new System.Drawing.Point(70, 51);

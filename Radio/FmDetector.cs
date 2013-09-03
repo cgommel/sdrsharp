@@ -128,7 +128,7 @@ namespace SDRSharp.Radio
                 {
                     _sampleRate = value;
                     _noiseAveragingRatio = (float) (30.0 / _sampleRate);
-                    var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris);
+                    var bpk = FilterBuilder.MakeBandPassKernel(_sampleRate, HissFilterOrder, MinHissFrequency, MaxHissFrequency, WindowType.BlackmanHarris4);
                     if (_hissFilter != null)
                     {
                         _hissFilter.Dispose();

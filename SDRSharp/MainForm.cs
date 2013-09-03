@@ -572,8 +572,8 @@ namespace SDRSharp
 
             viewComboBox.SelectedIndex = Utils.GetIntSetting("fftView", 2);
             fftResolutionComboBox.SelectedIndex = Utils.GetIntSetting("fftResolution", 3);
-            fftWindowComboBox.SelectedIndex = Utils.GetIntSetting("fftWindowType", (int) WindowType.BlackmanHarris);
-            filterTypeComboBox.SelectedIndex = Utils.GetIntSetting("filterType", (int) WindowType.BlackmanHarris - 1);
+            fftWindowComboBox.SelectedIndex = Utils.GetIntSetting("fftWindowType", (int) WindowType.BlackmanHarris4);
+            filterTypeComboBox.SelectedIndex = Utils.GetIntSetting("filterType", (int) WindowType.BlackmanHarris4 - 1);
             
             fftSpeedTrackBar.Value = Utils.GetIntSetting("fftSpeed", 40);
             fftSpeedTrackBar_ValueChanged(null, null);

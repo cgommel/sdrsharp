@@ -269,7 +269,7 @@ namespace SDRSharp.Radio
                 _pll->LockThreshold = PllThreshold;
                 
                 var outputSampleRate = sampleRate / _audioDecimationFactor;
-                var coefficients = FilterBuilder.MakeBandPassKernel(outputSampleRate, 250, Vfo.MinBCAudioFrequency, Vfo.MaxBCAudioFrequency, WindowType.BlackmanHarris);
+                var coefficients = FilterBuilder.MakeBandPassKernel(outputSampleRate, 250, Vfo.MinBCAudioFrequency, Vfo.MaxBCAudioFrequency, WindowType.BlackmanHarris4);
                 _channelAFilter = new FirFilter(coefficients, 1);
                 _channelBFilter = new FirFilter(coefficients, 1);
 

@@ -93,7 +93,7 @@ namespace SDRSharp.Radio
             _decimationFactor = (int) Math.Pow(2.0, decimationStageCount);
             _demodulationSampleRate = _sampleRate / _decimationFactor;
 
-            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2500, WindowType.BlackmanHarris);
+            var coefficients = FilterBuilder.MakeLowPassKernel(_demodulationSampleRate, 200, 2500, WindowType.BlackmanHarris4);
             _baseBandFilter.SetCoefficients(coefficients);
             
             _pll->SampleRate = (float) _demodulationSampleRate;

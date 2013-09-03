@@ -7,7 +7,8 @@ namespace SDRSharp.Radio
         None,
         Hamming,
         Blackman,
-        BlackmanHarris,
+        BlackmanHarris4,
+        BlackmanHarris7,
         HannPoisson,
         Youssef
     }
@@ -27,6 +28,9 @@ namespace SDRSharp.Radio
                 float a1;
                 float a2;
                 float a3;
+                float a4;
+                float a5;
+                float a6;
                 float alpha;
 
                 w[i] = 1.0f;
@@ -55,7 +59,7 @@ namespace SDRSharp.Radio
                               - a3 * (float) Math.Cos(6.0 * Math.PI * i / length);
                         break;
 
-                    case WindowType.BlackmanHarris:
+                    case WindowType.BlackmanHarris4:
                         a0 = 0.35875f;
                         a1 = 0.48829f;
                         a2 = 0.14128f;
@@ -64,6 +68,23 @@ namespace SDRSharp.Radio
                               - a1 * (float) Math.Cos(2.0 * Math.PI * i / length)
                               + a2 * (float) Math.Cos(4.0 * Math.PI * i / length)
                               - a3 * (float) Math.Cos(6.0 * Math.PI * i / length);
+                        break;
+
+                    case WindowType.BlackmanHarris7:
+                        a0 = 0.27105140069342f;
+                        a1 = 0.43329793923448f;
+                        a2 = 0.21812299954311f;
+                        a3 = 0.06592544638803f;
+                        a4 = 0.01081174209837f;
+                        a5 = 0.00077658482522f;
+                        a6 = 0.00001388721735f;
+                        w[i] *= a0
+                              - a1 * (float) Math.Cos(2.0 * Math.PI * i / length)
+                              + a2 * (float) Math.Cos(4.0 * Math.PI * i / length)
+                              - a3 * (float) Math.Cos(6.0 * Math.PI * i / length)
+                              + a4 * (float) Math.Cos(8.0 * Math.PI * i / length)
+                              - a5 * (float) Math.Cos(10.0 * Math.PI * i / length)
+                              + a6 * (float) Math.Cos(12.0 * Math.PI * i / length);
                         break;
 
                     case WindowType.HannPoisson:
