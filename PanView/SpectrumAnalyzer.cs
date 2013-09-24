@@ -24,6 +24,7 @@ namespace SDRSharp.PanView
         private double _decay;
         private bool _performNeeded;
         private bool _drawBackgroundNeeded;
+        private byte[] _maxSpectrum;
         private byte[] _spectrum;
         private bool[] _peaks;
         private byte[] _temp;
@@ -74,7 +75,7 @@ namespace SDRSharp.PanView
             _graphics = Graphics.FromImage(_buffer);
             _gradientBrush = new LinearGradientBrush(new Rectangle(AxisMargin, AxisMargin, ClientRectangle.Width - AxisMargin, ClientRectangle.Height - AxisMargin), Color.White, Color.Black, LinearGradientMode.Vertical);
             _gradientBrush.InterpolationColors = _gradientColorBlend;
-
+             
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
             SetStyle(ControlStyles.DoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
@@ -527,6 +528,12 @@ namespace SDRSharp.PanView
             {
                 Fourier.SmoothCopy(_scaledPowerSpectrum, _spectrum, length, _scale, offset);
             }
+
+            for (var i = 0; i < _spectrum.Length; i++)
+            {
+                if (_maxSpectrum[i] < _spectrum[i])
+                    _maxSpectrum[i] = _spectrum[i];
+            }
             _performNeeded = true;
         }
 
@@ -681,6 +688,31 @@ namespace SDRSharp.PanView
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrum.Length;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) byte.MaxValue;
 
+            using (var spectrumPen = new Pen(Color.Red))
+            {
+                for (var i = 0; i < _spectrum.Length; i++)
+                {
+                    var strenght = _maxSpectrum[i];
+                    var x = (int)(AxisMargin + i * xIncrement);
+                    var y = (int)(ClientRectangle.Height - AxisMargin - strenght * yIncrement);
+                    _points[i + 1].X = x;
+                    _points[i + 1].Y = y;
+                }
+                //if (_fillSpectrumAnalyzer)
+                //{
+                //    _points[0].X = AxisMargin;
+                //    _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
+                //    _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
+                //    _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
+                //    _graphics.FillPolygon(_gradientBrush, _points);
+                //}
+
+                _points[0] = _points[1];
+                _points[_points.Length - 1] = _points[_points.Length - 2];
+                _graphics.DrawLines(spectrumPen, _points);
+            }
+
+
             using (var spectrumPen = new Pen(_spectrumColor))
             {
                 for (var i = 0; i < _spectrum.Length; i++)
@@ -704,6 +736,9 @@ namespace SDRSharp.PanView
                 _points[_points.Length - 1] = _points[_points.Length - 2];
                 _graphics.DrawLines(spectrumPen, _points);
             }
+
+
+          
         }
 
         private void DrawStatusText()
@@ -740,6 +775,7 @@ namespace SDRSharp.PanView
                 _bkgBuffer = new Bitmap(ClientRectangle.Width, ClientRectangle.Height, PixelFormat.Format32bppPArgb);
                 var length = ClientRectangle.Width - 2 * AxisMargin;
                 var oldSpectrum = _spectrum;
+                _maxSpectrum = new byte[length];
                 _spectrum = new byte[length];
                 _peaks = new bool[length];
                 if (oldSpectrum != null)
@@ -910,6 +946,8 @@ namespace SDRSharp.PanView
             else if (e.Button == MouseButtons.Right)
             {
                 UpdateFrequency(_frequency / Waterfall.RightClickSnapDistance * Waterfall.RightClickSnapDistance, FrequencyChangeSource.Click);
+                for(int i=0;i<_maxSpectrum.Length;i++)
+                    _maxSpectrum[i] = 0;
             }
         }
 
