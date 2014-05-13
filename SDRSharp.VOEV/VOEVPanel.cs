@@ -30,6 +30,7 @@ namespace SDRSharp.VOEV
         }
         public void updatecnt(int cnt)
         {
+           // button1.Width = 100 + cnt;
             button1.Text = cnt.ToString();
         }
     }

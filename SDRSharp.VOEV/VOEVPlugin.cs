@@ -18,8 +18,7 @@ namespace SDRSharp.VOEV
         {
             _controlInterface = control;
             _voevPanel = new VOEVPanel(_controlInterface);
-            _controlInterface.RegisterStreamHook(this);
-            _controlInterface.rd
+            _controlInterface.RegisterStreamHook(this);           
         }
 
         public void Close()
@@ -62,7 +61,12 @@ namespace SDRSharp.VOEV
         int t = 0;
         public void Process(float* audioBuffer, int length)
         {
-            t=length;
+            double average = 0;
+            for (int i = 0; i < length;i++ )
+                average += Math.Abs(audioBuffer[i]);
+
+            average = Math.Log10(average + 0.00000000001);
+            t=(int)(average*100)+200;
             _voevPanel.updatecnt(t);
 
         }
