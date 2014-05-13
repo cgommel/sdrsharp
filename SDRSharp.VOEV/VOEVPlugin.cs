@@ -66,7 +66,7 @@ namespace SDRSharp.VOEV
                 average += Math.Abs(audioBuffer[i]);
 
             average = Math.Log10(average + 0.00000000001);
-            t=(int)(average*100)+200;
+            t=(int)(average*100)+500;
             _voevPanel.updatecnt(t);
 
         }
