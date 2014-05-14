@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using SDRSharp.Common;
 using SDRSharp.Radio;
+using SDRSharp.VOEV.Properties;
 
 namespace SDRSharp.VOEV
 {
@@ -61,12 +62,15 @@ namespace SDRSharp.VOEV
         int t = 0;
         public void Process(float* audioBuffer, int length)
         {
+            string s = Settings.Default.Bla;
+
             double average = 0;
             for (int i = 0; i < length;i++ )
                 average += Math.Abs(audioBuffer[i]);
 
             average = Math.Log10(average + 0.00000000001);
             t=(int)(average*100)+500;
+            t += 1;
             _voevPanel.updatecnt(t);
 
         }
