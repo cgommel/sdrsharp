@@ -61,6 +61,7 @@ namespace SDRSharp.PanView
         private bool _hotTrackNeeded;
         private bool _useSnap;
         private bool _markPeaks;
+        private bool _showMaxLine;
         private float _trackingPower;
         private string _statusText;
         private int _displayRange = 130;
@@ -321,6 +322,12 @@ namespace SDRSharp.PanView
         {
             get { return _markPeaks; }
             set { _markPeaks = value; }
+        }
+
+        public bool ShowMaxLine
+        {
+            get { return _showMaxLine; }
+            set { _showMaxLine = value; }
         }
 
         private void ApplyZoom()
@@ -688,28 +695,31 @@ namespace SDRSharp.PanView
             var xIncrement = (ClientRectangle.Width - 2 * AxisMargin) / (float) _spectrum.Length;
             var yIncrement = (ClientRectangle.Height - 2 * AxisMargin) / (float) byte.MaxValue;
 
-            using (var spectrumPen = new Pen(Color.Red))
+            if (_showMaxLine != false)
             {
-                for (var i = 0; i < _spectrum.Length; i++)
+                using (var spectrumPen = new Pen(Color.Red))
                 {
-                    var strenght = _maxSpectrum[i];
-                    var x = (int)(AxisMargin + i * xIncrement);
-                    var y = (int)(ClientRectangle.Height - AxisMargin - strenght * yIncrement);
-                    _points[i + 1].X = x;
-                    _points[i + 1].Y = y;
-                }
-                //if (_fillSpectrumAnalyzer)
-                //{
-                //    _points[0].X = AxisMargin;
-                //    _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
-                //    _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
-                //    _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
-                //    _graphics.FillPolygon(_gradientBrush, _points);
-                //}
+                    for (var i = 0; i < _spectrum.Length; i++)
+                    {
+                        var strenght = _maxSpectrum[i];
+                        var x = (int)(AxisMargin + i * xIncrement);
+                        var y = (int)(ClientRectangle.Height - AxisMargin - strenght * yIncrement);
+                        _points[i + 1].X = x;
+                        _points[i + 1].Y = y;
+                    }
+                    //if (_fillSpectrumAnalyzer)
+                    //{
+                    //    _points[0].X = AxisMargin;
+                    //    _points[0].Y = ClientRectangle.Height - AxisMargin + 1;
+                    //    _points[_points.Length - 1].X = ClientRectangle.Width - AxisMargin;
+                    //    _points[_points.Length - 1].Y = ClientRectangle.Height - AxisMargin + 1;
+                    //    _graphics.FillPolygon(_gradientBrush, _points);
+                    //}
 
-                _points[0] = _points[1];
-                _points[_points.Length - 1] = _points[_points.Length - 2];
-                _graphics.DrawLines(spectrumPen, _points);
+                    _points[0] = _points[1];
+                    _points[_points.Length - 1] = _points[_points.Length - 2];
+                    _graphics.DrawLines(spectrumPen, _points);
+                }
             }
 
 
