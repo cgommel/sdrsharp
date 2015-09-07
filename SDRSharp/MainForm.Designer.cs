@@ -77,6 +77,7 @@ namespace SDRSharp
             this.agcDecayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.displayCollapsiblePanel = new SDRSharp.CollapsiblePanel.CollapsiblePanel();
+            this.showMaxLineCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.fftOffsetTrackBar = new System.Windows.Forms.TrackBar();
             this.fftRangeTrackBar = new System.Windows.Forms.TrackBar();
@@ -297,7 +298,7 @@ namespace SDRSharp
             this.controlPanel.Controls.Add(this.agcCollapsiblePanel);
             this.controlPanel.Location = new System.Drawing.Point(0, 0);
             this.controlPanel.Name = "controlPanel";
-            this.controlPanel.Size = new System.Drawing.Size(220, 1070);
+            this.controlPanel.Size = new System.Drawing.Size(220, 1090);
             this.controlPanel.TabIndex = 25;
             // 
             // radioCollapsiblePanel
@@ -1023,6 +1024,7 @@ namespace SDRSharp
             // 
             // displayCollapsiblePanel
             // 
+            this.displayCollapsiblePanel.Controls.Add(this.showMaxLineCheckBox);
             this.displayCollapsiblePanel.Controls.Add(this.groupBox1);
             this.displayCollapsiblePanel.Controls.Add(this.smoothingGroupBox);
             this.displayCollapsiblePanel.Controls.Add(this.useTimestampsCheckBox);
@@ -1034,13 +1036,26 @@ namespace SDRSharp
             this.displayCollapsiblePanel.Controls.Add(this.gradientButton);
             this.displayCollapsiblePanel.Controls.Add(this.fftWindowComboBox);
             this.displayCollapsiblePanel.Controls.Add(this.label8);
-            this.displayCollapsiblePanel.ExpandedHeight = 429;
+            this.displayCollapsiblePanel.ExpandedHeight = 449;
             this.displayCollapsiblePanel.Location = new System.Drawing.Point(0, 618);
             this.displayCollapsiblePanel.Name = "displayCollapsiblePanel";
             this.displayCollapsiblePanel.NextPanel = null;
             this.displayCollapsiblePanel.PanelTitle = "FFT Display";
-            this.displayCollapsiblePanel.Size = new System.Drawing.Size(217, 449);
+            this.displayCollapsiblePanel.Size = new System.Drawing.Size(217, 469);
             this.displayCollapsiblePanel.TabIndex = 24;
+            // 
+            // showMaxLineCheckBox
+            // 
+            this.showMaxLineCheckBox.AutoSize = true;
+            this.showMaxLineCheckBox.Checked = true;
+            this.showMaxLineCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showMaxLineCheckBox.Location = new System.Drawing.Point(9, 125);
+            this.showMaxLineCheckBox.Name = "showMaxLineCheckBox";
+            this.showMaxLineCheckBox.Size = new System.Drawing.Size(100, 17);
+            this.showMaxLineCheckBox.TabIndex = 33;
+            this.showMaxLineCheckBox.Text = "Show Maximum";
+            this.showMaxLineCheckBox.UseVisualStyleBackColor = true;
+            this.showMaxLineCheckBox.CheckedChanged += new System.EventHandler(this.showMaxLineCheckBox_CheckedChanged);
             // 
             // groupBox1
             // 
@@ -1048,7 +1063,7 @@ namespace SDRSharp
             this.groupBox1.Controls.Add(this.fftRangeTrackBar);
             this.groupBox1.Controls.Add(this.label27);
             this.groupBox1.Controls.Add(this.label28);
-            this.groupBox1.Location = new System.Drawing.Point(0, 332);
+            this.groupBox1.Location = new System.Drawing.Point(0, 352);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(217, 111);
             this.groupBox1.TabIndex = 32;
@@ -1104,7 +1119,7 @@ namespace SDRSharp
             this.smoothingGroupBox.Controls.Add(this.label25);
             this.smoothingGroupBox.Controls.Add(this.label24);
             this.smoothingGroupBox.Controls.Add(this.label26);
-            this.smoothingGroupBox.Location = new System.Drawing.Point(0, 126);
+            this.smoothingGroupBox.Location = new System.Drawing.Point(0, 146);
             this.smoothingGroupBox.Name = "smoothingGroupBox";
             this.smoothingGroupBox.Size = new System.Drawing.Size(217, 200);
             this.smoothingGroupBox.TabIndex = 31;
@@ -1548,5 +1563,6 @@ namespace SDRSharp
         private FrequencyEdit.FrequencyEdit vfoFrequencyEdit;
         private Label label2;
         private CheckBox unityGainCheckBox;
+        private CheckBox showMaxLineCheckBox;
     }
 }

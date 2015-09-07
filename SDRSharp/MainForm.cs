@@ -1795,6 +1795,12 @@ namespace SDRSharp
             NotifyPropertyChanged("UseTimeMarkers");
         }
 
+        private void showMaxLineCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            spectrumAnalyzer.ShowMaxLine = showMaxLineCheckBox.Checked;
+            NotifyPropertyChanged("ShowMaxLine");
+        }
+
         private void fftSpeedTrackBar_ValueChanged(object sender, EventArgs e)
         {
             _fftTimer.Interval = (int) (1.0 / fftSpeedTrackBar.Value * 1000.0);
