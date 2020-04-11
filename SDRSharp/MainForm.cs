@@ -396,11 +396,20 @@ namespace SDRSharp
             _streamControl = new StreamControl(_streamHookManager);
 
             InitializeComponent();
-            InitializeGUI();            
-            InitialiseSharpPlugins();
         }
 
-        private void InitializeGUI()
+        public bool Initialize()
+        {
+            if (InitializeGUI())
+            {
+                InitialiseSharpPlugins();
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool InitializeGUI()
         {
             _initializing = true;
 
@@ -427,7 +436,20 @@ namespace SDRSharp
 
             var defaultIndex = 0;
             var savedIndex = -1;
-            var devices = AudioDevice.GetDevices(DeviceDirection.Input);
+            List<AudioDevice> devices;
+            try
+            {
+                devices = AudioDevice.GetDevices(DeviceDirection.Input);
+            }
+            catch(TypeInitializationException tEx)
+            {
+                MessageBox.Show(
+                    $"{ this.Text } needs the PortAudio v19 library to work:\n{ tEx.Message }\n\nInstall and configure PortAudio first.", $"Could not start { this.Text }",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                return false;
+            }
+
             var savedDeviceName = Utils.GetStringSetting("inputDevice", string.Empty);
             for (var i = 0; i < devices.Count; i++)
             {
@@ -681,6 +703,7 @@ namespace SDRSharp
             #endregion
 
             _initializing = false;
+            return true;
         }
 
         private void ExtIO_LOFreqChanged(int frequency)

@@ -25,7 +25,11 @@ namespace SDRSharp
 
             Control.CheckForIllegalCrossThreadCalls = false;
             Application.EnableVisualStyles();
-            Application.Run(new MainForm());
+            var mainForm = new MainForm();
+            if (mainForm.Initialize())
+            {
+                Application.Run(mainForm);
+            }
 
             if (Environment.OSVersion.Platform == PlatformID.Win32Windows || Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
